@@ -9,4 +9,4 @@ description = "Library for Layer-wise Adversarial ML detector"
 
 [tool.setuptools.packages.find]
 include = ["libs*"]
-exclude = ["data*", "notebooks*"]
+exclude = ["dataset*", "notebooks*"]

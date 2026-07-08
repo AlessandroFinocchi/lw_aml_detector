@@ -1,1 +1,4 @@
 dataset
+lwad_libs.egg-info
+libs/__pycache__
+.vscode
