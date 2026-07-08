@@ -1,0 +1,37 @@
+# After environment has been created:
+# 1. run `pip install -e .` -> installs uc2_libs
+# 2. run `conda env config vars set LD_LIBRARY_PATH=$CONDA_PREFIX/lib:$LD_LIBRARY_PATH` -> enables GPU
+
+name: lwad_cpu_env
+channels:
+  - pytorch
+  - conda-forge
+  - nodefaults
+
+dependencies:
+  # Core Python & Environment
+  - python=3.11.14
+  - pip
+  
+  # Core Data Science Packages
+  - numpy=2.3.4
+  - pandas=2.3.3
+  - matplotlib=3.10.7
+  - scikit-learn=1.7.2
+  - jupyterlab
+  - ipykernel=7.1.0
+  - pytorch=2.5.1
+  - torchvision=0.20.1
+
+  # CPU Backend for PyTorch
+  - cpuonly  # Forces Conda to install the CPU version of PyTorch
+
+
+
+
+
+  # Pip-native and specific DL packages
+  - pip:
+    - keras==3.12.0
+    - keras-tuner==1.4.8
+    - tensorflow-cpu==2.20.0

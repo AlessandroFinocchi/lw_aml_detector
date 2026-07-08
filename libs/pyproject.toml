@@ -1,0 +1,12 @@
+[build-system]
+requires = ["setuptools>=80.10.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lwad_libs"
+version = "0.1.0"
+description = "Library for Layer-wise Adversarial ML detector"
+
+[tool.setuptools.packages.find]
+include = ["libs*"]
+exclude = ["data*", "notebooks*"]
