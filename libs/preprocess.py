@@ -4,36 +4,41 @@ import os
 import pandas as pd
 
 from kagglehub import KaggleDatasetAdapter
-from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
-DATASET_PATH = "../dataset/unsw-nb15/"
 
-def get_train_val_test_set(download_dataset=False, verbose=False):
+def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) -> tuple[
+    pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
+]:
     # 1. Download latest version
     if download_dataset:
         path = kagglehub.dataset_download("mrwellsdavid/unsw-nb15", output_dir="../dataset/unsw-nb15")
         
         # Training Set and Testing Set are inverted, so revert them
-        os.rename(DATASET_PATH + "UNSW_NB15_training-set.csv",  DATASET_PATH + "temp.csv")
-        os.rename(DATASET_PATH + "UNSW_NB15_testing-set.csv",   DATASET_PATH + "UNSW_NB15_training-set.csv")
-        os.rename(DATASET_PATH + "temp.csv",                    DATASET_PATH + "UNSW_NB15_testing-set.csv")
+        os.rename(dataset_path + "UNSW_NB15_training-set.csv",  dataset_path + "temp.csv")
+        os.rename(dataset_path + "UNSW_NB15_testing-set.csv",   dataset_path + "UNSW_NB15_training-set.csv")
+        os.rename(dataset_path + "temp.csv",                    dataset_path + "UNSW_NB15_testing-set.csv")
 
         print("Path to dataset files:", path)
 
 
     # 2. Load the dataset
-    tr = pd.read_csv(DATASET_PATH + "UNSW_NB15_training-set.csv")
-    te = pd.read_csv(DATASET_PATH + "UNSW_NB15_testing-set.csv")
+    tr = pd.read_csv(dataset_path + "UNSW_NB15_training-set.csv")
+    te = pd.read_csv(dataset_path + "UNSW_NB15_testing-set.csv")
 
 
-    # 3. Handle Categorical Features with Label Encoding
+    # 3. Handle Categorical Features with Ordinal Encoding
     categorical_cols = ['proto', 'service', 'state', 'attack_cat']  # based on dataset
-    for col in categorical_cols:
-        if col in tr.columns:
-            le = LabelEncoder()
-            tr[col] = le.fit_transform(tr[col].astype(str))
-            te[col] = le.fit_transform(te[col].astype(str))
+
+    oe = OrdinalEncoder(
+        handle_unknown='use_encoded_value', # for allowing unknown values
+        unknown_value=-1,                   # for unknown values
+        encoded_missing_value=-1            # for missing values
+    )
+    
+    tr[categorical_cols] = oe.fit_transform(tr[categorical_cols].astype(str))
+    te[categorical_cols] = oe.transform(te[categorical_cols].astype(str))
     
 
     # 4. Handle missing values replacing them with the column name (as string)
@@ -47,15 +52,12 @@ def get_train_val_test_set(download_dataset=False, verbose=False):
 
     # 5. Standardize numerical features
     exclude_columns = ['attack_cat', 'label']
-    tr_features = tr.drop(columns=exclude_columns, errors='ignore')
-
-    numeric_cols = tr_features.select_dtypes(include=['number']).columns
     scaler = StandardScaler()
 
-    tr_features_scaled = tr_features.copy()
+    tr_features = tr.drop(columns=exclude_columns, errors='ignore')
+    numeric_cols = tr_features.select_dtypes(include=['number']).columns
 
-    # fit scaler only on training data
-    # transform both training and testing data
+    # fit scaler only on training data, transform both training and testing data
     tr[numeric_cols] = scaler.fit_transform(tr_features[numeric_cols])
     te[numeric_cols] = scaler.transform(te[numeric_cols])
 
@@ -91,6 +93,20 @@ def get_train_val_test_set(download_dataset=False, verbose=False):
         attack_counts = attack_counts.fillna(0).astype(int)
         print("\nStatification on attack categories:\n")
         print(attack_counts)
+
+    # 7. Drop id and attack_cat columns
+    def clean(df):
+        drop_cols = [
+            "id",          # It's just a sequential number
+            "attack_cat"   # It's the multi-class version of label
+        ]
+        return df.drop(columns=[c for c in drop_cols if c in df.columns])
+    
+    X_train, X_val, X_test = clean(X_train), clean(X_val), clean(X_test)
     
 
     return X_train, y_train, X_val, y_val, X_test, y_test
+
+
+if __name__ == "__main__":
+    get_train_val_test_set("dataset/unsw-nb15/")
