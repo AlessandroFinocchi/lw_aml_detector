@@ -2,3 +2,4 @@ dataset
 lwad_libs.egg-info
 libs/__pycache__
 .vscode
+modello_detector.pt

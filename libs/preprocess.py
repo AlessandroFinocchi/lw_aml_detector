@@ -103,7 +103,7 @@ def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) 
         return df.drop(columns=[c for c in drop_cols if c in df.columns])
     
     X_train, X_val, X_test = clean(X_train), clean(X_val), clean(X_test)
-    
+    print("Dropped 'id' and 'attack_cat' columns")
 
     return X_train, y_train, X_val, y_val, X_test, y_test
 
