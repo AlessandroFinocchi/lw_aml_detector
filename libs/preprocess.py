@@ -1,4 +1,5 @@
 import kagglehub
+import torch
 import os
 
 import pandas as pd
@@ -6,6 +7,8 @@ import pandas as pd
 from kagglehub import KaggleDatasetAdapter
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
+
+CATEGORICAL_COLS = ["proto", "service", "state"]  # escluse dall'attacco FGSM
 
 
 def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) -> tuple[
@@ -107,6 +110,27 @@ def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) 
 
     return X_train, y_train, X_val, y_val, X_test, y_test
 
+
+# ===========================================================================
+# Dati: UNSW-NB15 tramite il tuo preprocess.py
+# ===========================================================================
+def load_unsw(dataset_path: str, download_dataset=False, verbose=False):
+    """Carica i set da preprocess.py e costruisce la maschera d'attacco."""
+    X_tr, y_tr, X_val, y_val, X_te, y_te = get_train_val_test_set(
+        dataset_path, download_dataset=False, verbose=False
+    )
+
+    feature_names = list(X_tr.columns)
+
+    # 1.0 = feature continua attaccabile, 0.0 = categorica intoccabile
+    attack_mask = torch.tensor(
+        [0.0 if c in CATEGORICAL_COLS else 1.0 for c in feature_names]
+    )
+
+    to_x = lambda df: torch.from_numpy(df.to_numpy(dtype="float32"))
+    to_y = lambda s: torch.from_numpy(s.to_numpy()).long()
+    return (to_x(X_tr), to_y(y_tr), to_x(X_val), to_y(y_val),
+            to_x(X_te), to_y(y_te), feature_names, attack_mask)
 
 if __name__ == "__main__":
     get_train_val_test_set("dataset/unsw-nb15/")
