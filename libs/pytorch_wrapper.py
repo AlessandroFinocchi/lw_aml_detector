@@ -51,12 +51,11 @@ import preprocess  # il tuo file: deve stare nella stessa cartella
 # ===========================================================================
 # Configurazione
 # ===========================================================================
-EPOCHS = 2
-#EPOCHS = 10
+#EPOCHS = 2
+EPOCHS = 50
 BATCH_SIZE = 512
 LR = 1e-3                   # learning rate del backbone
 LR_DET = 3e-3               # learning rate dei detector
-EPS = 0.3                   # intensità FGSM, in unità standardizzate
 LAMBDA_DET = 1.0            # peso della loss dei detector
 TASK_LOSS_ON_ADV = False    # True = anche adversarial training del backbone
 THRESHOLD = 0.5             # soglia iniziale/di fallback (quella operativa è scelta su validation)
@@ -68,19 +67,20 @@ CATEGORICAL_COLS = ["proto", "service", "state"]  # escluse dall'attacco FGSM
 # --- attacco: TRAIN_ATTACK per costruire la difesa, EVAL_ATTACK per la
 #     valutazione finale (stress test con un attacco diverso/più forte) ------
 class Attack(Enum):
-    FGSM = "fgsm"
-    PGD = "pgd"
+    FGSM         = "fgsm"
+    PGD          = "pgd"
     PGD_ADAPTIVE = "pgd_adaptive"
 
-TRAIN_ATTACK = Attack.PGD.value            # attacco con cui si addestra la difesa
-EVAL_ATTACK = Attack.PGD_ADAPTIVE.value    # attacco con cui si valuta la difesa
+TRAIN_ATTACK = Attack.PGD_ADAPTIVE.value            # attacco con cui si addestra la difesa
+EVAL_ATTACK  = Attack.PGD_ADAPTIVE.value   # attacco con cui si valuta la difesa
 
-PGD_STEPS = 10              # numero di iterazioni per PGD / PGD adattivo
+EPS = 0.1                   # intensità dell'attacco, in unità standardizzate
+PGD_STEPS = 20              # numero di iterazioni per PGD / PGD adattivo
 PGD_ALPHA = EPS / 4         # ampiezza del passo per iterazione (~2.5*eps/steps)
 PGD_EVADE_WEIGHT = 1.0      # peso del termine di elusione nel PGD adattivo
 
 # --- early stopping sulla validation ---------------------------------------
-PATIENCE = 3               # epoche senza miglioramento prima di fermarsi
+PATIENCE = 5                # epoche senza miglioramento prima di fermarsi
 MIN_DELTA = 1e-4            # miglioramento minimo per resettare la pazienza
 
 
@@ -476,7 +476,7 @@ def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=TRAIN_AT
         sc_c.append(s_c.cpu()); sc_a.append(s_a.cpu())
     sc_c, sc_a = torch.cat(sc_c), torch.cat(sc_a)
 
-    best_t, best_bal = 0.5, -1.0
+    best_t, best_bal = -1.0, -1.0
     for t in torch.linspace(0.01, 0.99, grid).tolist():
         tpr = (sc_a > t).float().mean().item()     # adversarial rilevati
         tnr = (sc_c <= t).float().mean().item()    # puliti riconosciuti
@@ -601,8 +601,11 @@ def main():
         else:
             patience_left -= 1
             if patience_left == 0:
-                print(f"\tearly stopping: nessun miglioramento per {PATIENCE} epoche")
-                break
+                if val_task_acc > 0.9 and val_det_bal > 0.9:
+                    print(f"\tearly stopping: nessun miglioramento per {PATIENCE} epoche")
+                    break
+                else:
+                    patience_left = 1
 
     # ripristina i pesi migliori trovati sulla validation
     if best_state is not None:
