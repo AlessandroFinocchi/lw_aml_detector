@@ -40,8 +40,8 @@ def default_detector(in_dim: int, hidden: int = 64) -> nn.Module:
     """LayerNorm stabilizes the activation scales"""
     return nn.Sequential(
         nn.LayerNorm(in_dim),
-        nn.Linear(in_dim, hidden), nn.ReLU(),
-        nn.Linear(hidden, hidden), nn.ReLU(),
+        nn.Linear(in_dim, hidden*2), nn.ReLU(),
+        nn.Linear(hidden*2, hidden), nn.ReLU(),
         nn.Linear(hidden, 1),
     )
 
