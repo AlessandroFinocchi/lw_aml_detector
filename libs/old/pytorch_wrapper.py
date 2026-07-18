@@ -210,7 +210,7 @@ def fgsm(model, x, y, eps, mask=None):
     (grad,) = torch.autograd.grad(outputs=loss, inputs=x_adv)
     delta = eps * grad.sign()
     if mask is not None:
-        delta = delta * mask.to(x.device)
+        delta = delta * mask
     return (x_adv + delta).detach()
 
 
@@ -225,7 +225,7 @@ def pgd(model, x, y, eps, steps, alpha, mask=None):
     # random start dentro la palla L-inf (solo sulle feature attaccabili)
     x_adv = x_orig + torch.empty_like(x_orig).uniform_(-eps, eps)
     if mask is not None:
-        x_adv = x_orig + (x_adv - x_orig) * mask.to(x.device)
+        x_adv = x_orig + (x_adv - x_orig) * mask
     x_adv = x_adv.detach()
 
     for _ in range(steps):
@@ -236,7 +236,7 @@ def pgd(model, x, y, eps, steps, alpha, mask=None):
         with torch.no_grad():
             delta = alpha * grad.sign()
             if mask is not None:
-                delta = delta * mask.to(x.device)
+                delta = delta * mask
             x_adv = x_adv + delta
             # proiezione: mantieni |x_adv - x_orig| <= eps
             x_adv = x_orig + torch.clamp(x_adv - x_orig, -eps, eps)
@@ -273,7 +273,7 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
     x_orig = x.clone().detach()
     x_adv = x_orig + torch.empty_like(x_orig).uniform_(-eps, eps)
     if mask is not None:
-        x_adv = x_orig + (x_adv - x_orig) * mask.to(x.device)
+        x_adv = x_orig + (x_adv - x_orig) * mask
     x_adv = x_adv.detach()
 
     with _detector_grad_enabled(model):
@@ -287,7 +287,7 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
             with torch.no_grad():
                 delta = alpha * grad.sign()
                 if mask is not None:
-                    delta = delta * mask.to(x.device)
+                    delta = delta * mask
                 x_adv = x_adv + delta
                 x_adv = x_orig + torch.clamp(x_adv - x_orig, -eps, eps)
             x_adv = x_adv.detach()
@@ -319,6 +319,9 @@ def generate_attack(model, x, y, eps, attack, mask=None):
 def train_epoch(model, loader, optimizer, eps, lambda_det=1.0,
                 task_loss_on_adv=False, class_weights=None,
                 attack_mask=None, attack=TRAIN_ATTACK, device="cpu"):
+    # NB: `device` è mantenuto per compatibilità di firma ma non è più usato
+    # qui: i batch escono dal loader già sul device giusto (dataset spostato
+    # su device nel main), quindi non serve alcun trasferimento per-batch.
     model.train()
     tot_task_loss, tot_det_loss = 0.0, 0.0
     tot_task_correct_clean_preds, tot_task_correct_adv_preds = 0, 0
@@ -326,7 +329,8 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0,
     tot_n = 0
 
     for x, y in loader:
-        x, y = x.to(device), y.to(device)
+        # x, y arrivano già sul device giusto (i tensori del dataset sono
+        # stati spostati su device una volta sola nel main)
 
         # 1) gemello adversarial del batch reale (attacco passato in `attack`)
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)
@@ -334,8 +338,8 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0,
         # 2) batch misto + flag real(0)/adversarial(1) da propagare
         xb = torch.cat([x, x_adv])
         yb = torch.cat([y, y])
-        adv_flag = torch.cat([torch.zeros(len(x), device=device),
-                              torch.ones(len(x_adv), device=device)])
+        adv_flag = torch.cat([torch.zeros(len(x), device=x.device),
+                              torch.ones(len(x_adv), device=x.device)])
 
         # 3) forward: ogni LD accumula la sua loss in state.det_loss
         logits, state = model(xb, labels=yb, is_adv=adv_flag)
@@ -417,14 +421,15 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=EVAL_ATTACK,
     model.eval()
     res = {"lab_c": [], "lab_a": [], "sc_c": [], "sc_a": []}
     for i in range(0, len(X_te), batch_size):
-        x = X_te[i:i + batch_size].to(device)
-        y = y_te[i:i + batch_size].to(device)
+        x = X_te[i:i + batch_size]
+        y = y_te[i:i + batch_size]
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)  # serve il gradiente
         lab_c, sc_c, _ = predict(model, x, threshold=threshold)
         lab_a, sc_a, _ = predict(model, x_adv, threshold=threshold)
-        res["lab_c"].append(lab_c.cpu()); res["sc_c"].append(sc_c.cpu())
-        res["lab_a"].append(lab_a.cpu()); res["sc_a"].append(sc_a.cpu())
+        res["lab_c"].append(lab_c); res["sc_c"].append(sc_c)
+        res["lab_a"].append(lab_a); res["sc_a"].append(sc_a)
  
+    # tutto resta sul device: concateno lì e calcolo le metriche lì
     lab_c, lab_a = torch.cat(res["lab_c"]), torch.cat(res["lab_a"])
     sc_c, sc_a = torch.cat(res["sc_c"]), torch.cat(res["sc_a"])
  
@@ -468,22 +473,23 @@ def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=TRAIN_AT
     model.eval()
     sc_c, sc_a = [], []
     for i in range(0, len(X_val), batch_size):
-        x = X_val[i:i + batch_size].to(device)
-        y = y_val[i:i + batch_size].to(device)
+        x = X_val[i:i + batch_size]
+        y = y_val[i:i + batch_size]
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)
         _, s_c, _ = predict(model, x)
         _, s_a, _ = predict(model, x_adv)
-        sc_c.append(s_c.cpu()); sc_a.append(s_a.cpu())
-    sc_c, sc_a = torch.cat(sc_c), torch.cat(sc_a)
+        sc_c.append(s_c); sc_a.append(s_a)
+    sc_c, sc_a = torch.cat(sc_c), torch.cat(sc_a)   # restano sul device
 
-    best_t, best_bal = -1.0, -1.0
-    for t in torch.linspace(0.01, 0.99, grid).tolist():
-        tpr = (sc_a > t).float().mean().item()     # adversarial rilevati
-        tnr = (sc_c <= t).float().mean().item()    # puliti riconosciuti
-        bal = 0.5 * (tpr + tnr)
-        if bal > best_bal:
-            best_bal, best_t = bal, t
-    return best_t, best_bal
+    # ricerca della soglia vettorializzata sul device: griglia (grid,) contro
+    # i punteggi (N,) via broadcasting, così tpr/tnr per tutte le soglie sono
+    # calcolati in un colpo e resta un solo trasferimento finale a scalare.
+    ts = torch.linspace(0.01, 0.99, grid, device=sc_c.device)
+    tpr = (sc_a.unsqueeze(0) > ts.unsqueeze(1)).float().mean(dim=1)   # (grid,)
+    tnr = (sc_c.unsqueeze(0) <= ts.unsqueeze(1)).float().mean(dim=1)  # (grid,)
+    bal = 0.5 * (tpr + tnr)
+    best_idx = int(bal.argmax())
+    return ts[best_idx].item(), bal[best_idx].item()
 
 
 # ===========================================================================
@@ -536,6 +542,15 @@ def main():
     # ---- dati --------------------------------------------------------------
     (X_tr, y_tr, X_val, y_val, X_te, y_te,
      feature_names, attack_mask) = load_unsw(dataset_path)
+
+    # I set UNSW-NB15 sono piccoli ed entrano in memoria del device: li si
+    # sposta una volta sola qui, così i loop di training/valutazione/attacco
+    # non ripetono trasferimenti host<->device ad ogni batch e ad ogni passo PGD.
+    X_tr, y_tr = X_tr.to(device), y_tr.to(device)
+    X_val, y_val = X_val.to(device), y_val.to(device)
+    X_te, y_te = X_te.to(device), y_te.to(device)
+    attack_mask = attack_mask.to(device)
+
     n_attack = int((y_tr == 1).sum())
     print(f"UNSW-NB15: \n"
           f"\t{len(X_tr)} train / {len(X_val)} val / {len(X_te)} test \n"

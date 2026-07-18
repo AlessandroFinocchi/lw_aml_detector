@@ -43,13 +43,13 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=EVAL_ATTACK,
     model.eval()
     res = {"lab_c": [], "lab_a": [], "sc_c": [], "sc_a": []}
     for i in range(0, len(X_te), batch_size):
-        x = X_te[i:i + batch_size].to(device)
-        y = y_te[i:i + batch_size].to(device)
+        x = X_te[i:i + batch_size]
+        y = y_te[i:i + batch_size]
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)  #  needs grad
         lab_c, sc_c, _ = predict(model, x, threshold=threshold)
         lab_a, sc_a, _ = predict(model, x_adv, threshold=threshold)
-        res["lab_c"].append(lab_c.cpu()); res["sc_c"].append(sc_c.cpu())
-        res["lab_a"].append(lab_a.cpu()); res["sc_a"].append(sc_a.cpu())
+        res["lab_c"].append(lab_c); res["sc_c"].append(sc_c)
+        res["lab_a"].append(lab_a); res["sc_a"].append(sc_a)
  
     lab_c, lab_a = torch.cat(res["lab_c"]), torch.cat(res["lab_a"])
     sc_c, sc_a = torch.cat(res["sc_c"]), torch.cat(res["sc_a"])

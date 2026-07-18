@@ -1,5 +1,6 @@
 .PHONY: create_cpu create_gpu create_all export_cpu export_gpu check_active_kernels install_libs
 
+
 # CREAZIONE DEGLI AMBIENTI
 create_cpu:
 	conda env create -f lwad_cpu_env.yml
@@ -32,6 +33,7 @@ export_gpu:
 # CONTROLLO DEI KERNEL ATTIVI
 check_active_kernels:
 	ps -eo pid,user,%mem,rss,command --sort=-%mem | grep "[i]pykernel"
+
 
 # INSTALLAZIONE LIBRERIE IN libs/
 install_libs:

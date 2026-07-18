@@ -30,7 +30,7 @@ def fgsm(model, x, y, eps, mask=None):
     (grad,) = torch.autograd.grad(outputs=loss, inputs=x_adv)
     delta = eps * grad.sign()
     if mask is not None:
-        delta = delta * mask.to(x.device)
+        delta = delta * mask
     return (x_adv + delta).detach()
 
 
@@ -42,7 +42,7 @@ def pgd(model, x, y, eps, steps, alpha, mask=None):
     # random start inside L-inf ball (on attackable features)
     x_adv = x_orig + torch.empty_like(x_orig).uniform_(-eps, eps)
     if mask is not None:
-        x_adv = x_orig + (x_adv - x_orig) * mask.to(x.device)
+        x_adv = x_orig + (x_adv - x_orig) * mask
     x_adv = x_adv.detach()
 
     for _ in range(steps):
@@ -53,7 +53,7 @@ def pgd(model, x, y, eps, steps, alpha, mask=None):
         with torch.no_grad():
             delta = alpha * grad.sign()
             if mask is not None:
-                delta = delta * mask.to(x.device)
+                delta = delta * mask
             x_adv = x_adv + delta
             # projection: keep |x_adv - x_orig| <= eps
             x_adv = x_orig + torch.clamp(x_adv - x_orig, -eps, eps)
@@ -81,7 +81,7 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
     x_orig = x.clone().detach()
     x_adv = x_orig + torch.empty_like(x_orig).uniform_(-eps, eps)
     if mask is not None:
-        x_adv = x_orig + (x_adv - x_orig) * mask.to(x.device)
+        x_adv = x_orig + (x_adv - x_orig) * mask
     x_adv = x_adv.detach()
 
     with _detector_grad_enabled(model):
@@ -95,7 +95,7 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
             with torch.no_grad():
                 delta = alpha * grad.sign()
                 if mask is not None:
-                    delta = delta * mask.to(x.device)
+                    delta = delta * mask
                 x_adv = x_adv + delta
                 x_adv = x_orig + torch.clamp(x_adv - x_orig, -eps, eps)
             x_adv = x_adv.detach()

@@ -16,16 +16,14 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0,
     tot_n = 0
 
     for x, y in loader:
-        x, y = x.to(device), y.to(device)
-
         # 1) advrsarial version of real batch 
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)
 
         # 2) mixed batch + real(0)/adversarial(1) flag
         xb = torch.cat([x, x_adv])
         yb = torch.cat([y, y])
-        adv_flag = torch.cat([torch.zeros(len(x), device=device),
-                              torch.ones(len(x_adv), device=device)])
+        adv_flag = torch.cat([torch.zeros(len(x), device=x.device),
+                              torch.ones(len(x_adv), device=x.device)])
 
         # 3) forward
         logits, state = model(xb, labels=yb, is_adv=adv_flag)
@@ -75,19 +73,17 @@ def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=TRAIN_AT
     model.eval()
     sc_c, sc_a = [], []
     for i in range(0, len(X_val), batch_size):
-        x = X_val[i:i + batch_size].to(device)
-        y = y_val[i:i + batch_size].to(device)
+        x = X_val[i:i + batch_size]
+        y = y_val[i:i + batch_size]
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)
         _, s_c, _ = predict(model, x)
         _, s_a, _ = predict(model, x_adv)
-        sc_c.append(s_c.cpu()); sc_a.append(s_a.cpu())
+        sc_c.append(s_c); sc_a.append(s_a)
     sc_c, sc_a = torch.cat(sc_c), torch.cat(sc_a)
 
-    best_t, best_bal = -1.0, -1.0
-    for t in torch.linspace(0.01, 0.99, grid).tolist():
-        tpr = (sc_a > t).float().mean().item()     # adversarial attacks detected
-        tnr = (sc_c <= t).float().mean().item()    # clean data detected
-        bal = 0.5 * (tpr + tnr)
-        if bal > best_bal:
-            best_bal, best_t = bal, t
-    return best_t, best_bal
+    ts = torch.linspace(0.01, 0.99, grid, device=sc_c.device)
+    tpr = (sc_a.unsqueeze(0) > ts.unsqueeze(1)).float().mean(dim=1)   # (grid,)
+    tnr = (sc_c.unsqueeze(0) <= ts.unsqueeze(1)).float().mean(dim=1)  # (grid,)
+    bal = 0.5 * (tpr + tnr)
+    best_idx = int(bal.argmax())
+    return ts[best_idx].item(), bal[best_idx].item()
