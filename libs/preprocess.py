@@ -16,6 +16,9 @@ def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) 
 ]:
     # 1. Download latest version
     if download_dataset:
+        dataset_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataset")
+        os.makedirs(dataset_dir, exist_ok=True)
+
         path = kagglehub.dataset_download("mrwellsdavid/unsw-nb15", output_dir="../dataset/unsw-nb15")
         
         # Training Set and Testing Set are inverted, so revert them
@@ -117,7 +120,7 @@ def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) 
 def load_unsw(dataset_path: str, download_dataset=False, verbose=False):
     """Carica i set da preprocess.py e costruisce la maschera d'attacco."""
     X_tr, y_tr, X_val, y_val, X_te, y_te = get_train_val_test_set(
-        dataset_path, download_dataset=False, verbose=False
+        dataset_path, download_dataset=download_dataset, verbose=verbose
     )
 
     feature_names = list(X_tr.columns)
@@ -133,4 +136,4 @@ def load_unsw(dataset_path: str, download_dataset=False, verbose=False):
             to_x(X_te), to_y(y_te), feature_names, attack_mask)
 
 if __name__ == "__main__":
-    get_train_val_test_set("dataset/unsw-nb15/")
+    get_train_val_test_set("dataset/unsw-nb15/", True, True)

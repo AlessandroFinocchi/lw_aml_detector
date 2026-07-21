@@ -11,8 +11,8 @@ class Attack(Enum):
     PGD          = "pgd"
     PGD_ADAPTIVE = "pgd_adaptive"
 
-TRAIN_ATTACK = Attack.PGD_ADAPTIVE.value   # attack to train defense
-EVAL_ATTACK  = Attack.PGD_ADAPTIVE.value   # attack to evaluate defense
+TRAIN_ATTACK = Attack.PGD.value   # attack to train defense
+EVAL_ATTACK  = Attack.PGD.value   # attack to evaluate defense
 
 EPS = 0.1                   # attack intensity, in standardized measurement unit
 PGD_STEPS = 20              # iterations number for PGD / adaptive PGD
