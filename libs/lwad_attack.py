@@ -11,13 +11,13 @@ class Attack(Enum):
     PGD          = "pgd"
     PGD_ADAPTIVE = "pgd_adaptive"
 
-TRAIN_ATTACK = Attack.PGD.value   # attack to train defense
-EVAL_ATTACK  = Attack.PGD.value   # attack to evaluate defense
-
-EPS = 0.1                   # attack intensity, in standardized measurement unit
-PGD_STEPS = 20              # iterations number for PGD / adaptive PGD
-PGD_ALPHA = EPS / 4         # amplitude of iteration step
-PGD_EVADE_WEIGHT = 1.0      # evade term weight in adaptive PGD
+# Default values, the ones being used are in lwad_config.py
+DEFAULT_TRAIN_ATTACK = Attack.PGD.value   # attack to train defense
+DEFAULT_EVAL_ATTACK  = Attack.PGD.value   # attack to evaluate defense
+DEFUALT_EPS              = 0.1             # attack intensity, in standardized measurement unit
+DEFUALT_PGD_STEPS        = 20              # iterations number for PGD / adaptive PGD
+DEFUALT_PGD_ALPHA        = DEFUALT_EPS / 4 # amplitude of iteration step
+DEFUALT_PGD_EVADE_WEIGHT = 1.0             # evade term weight in adaptive PGD
 
 
 # ===========================================================================
@@ -35,7 +35,7 @@ def fgsm(model, x, y, eps, mask=None):
 
 
 # ===========================================================================
-# standard PGD limited inside the L-inf ball
+# Standard PGD limited inside the L-inf ball
 # ===========================================================================
 def pgd(model, x, y, eps, steps, alpha, mask=None):
     x_orig = x.clone().detach()
@@ -78,6 +78,12 @@ def _detector_grad_enabled(model):
 
 
 def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
+    if not any(isinstance(m, DetectorLayer) for m in model.modules()):
+        raise ValueError(
+            "pgd_adaptive requires a detector-based architecture: "
+            "on model with NearestAL/PassThrough use pgd or fgsm"
+        )
+
     x_orig = x.clone().detach()
     x_adv = x_orig + torch.empty_like(x_orig).uniform_(-eps, eps)
     if mask is not None:
@@ -104,14 +110,20 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
 
 # ===========================================================================
 # Attack selection
+# steps / alpha / evade_weight are optionals: if None, defaults are used
 # ===========================================================================
-def generate_attack(model, x, y, eps, attack, mask=None):
+def generate_attack(model, x, y, eps, attack, mask=None,
+                    steps=None, alpha=None, evade_weight=None):
     attack = Attack(attack)
+    steps = DEFUALT_PGD_STEPS if steps is None else steps
+    alpha = (eps / 4) if alpha is None else alpha
+    evade_weight = DEFUALT_PGD_EVADE_WEIGHT if evade_weight is None else evade_weight
+
     if attack is Attack.FGSM:
         return fgsm(model, x, y, eps, mask=mask)
     if attack is Attack.PGD:
-        return pgd(model, x, y, eps, steps=PGD_STEPS, alpha=PGD_ALPHA, mask=mask)
+        return pgd(model, x, y, eps, steps=steps, alpha=alpha, mask=mask)
     if attack is Attack.PGD_ADAPTIVE:
-        return pgd_adaptive(model, x, y, eps, steps=PGD_STEPS, alpha=PGD_ALPHA,
-                            mask=mask, evade_weight=PGD_EVADE_WEIGHT)
+        return pgd_adaptive(model, x, y, eps, steps=steps, alpha=alpha,
+                            mask=mask, evade_weight=evade_weight)
     raise ValueError(f"Unknown attack: {attack!r}")

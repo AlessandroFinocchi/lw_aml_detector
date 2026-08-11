@@ -1,15 +1,17 @@
 import torch
 
-from libs.lwad_config import THRESHOLD
-from libs.lwad_attack import generate_attack, EVAL_ATTACK
+from libs.lwad_config import DEFAULT_THRESHOLD
+from libs.lwad_attack import generate_attack, DEFAULT_EVAL_ATTACK
 
 @torch.no_grad()
-def predict(model, x, threshold=THRESHOLD, reduce="mean"):
-    """returns (predicted labels, adversarial score, clean-adversarial flags)."""
+def predict(model, x, threshold=DEFAULT_THRESHOLD, reduce="mean"):
+    """Returns (predicted labels, adversarial score, clean-adversarial flags).
+    For architectures of type 2 (NearestAL) score and flags are None."""
     model.eval()
     logits, state = model(x)
     score = state.adv_score(reduce=reduce)
-    return logits.argmax(-1), score, score > threshold
+    flags = (score > threshold) if score is not None else None
+    return logits.argmax(-1), score, flags
 
 def _binary_metrics(pred, true, positive=1):
     """Accuracy, precision and recall for binary classification.
@@ -26,56 +28,69 @@ def _binary_metrics(pred, true, positive=1):
     recall = tp / (tp + fn) if (tp + fn) else 0.0
     return {"acc": acc, "precision": precision, "recall": recall}
 
-def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=EVAL_ATTACK,
-             device="cpu", batch_size=4096, threshold=THRESHOLD):
+def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTACK,
+             device="cpu", batch_size=4096, threshold=DEFAULT_THRESHOLD,
+             attack_kwargs=None):
     """
     Task and Detector metrics on batch set
-    
+
     Return a dictionary with acc, prec and recall for both classifications
- 
+
       task_clean    : task metrics on clean data
       task_adv      : task metrics on adv data
       det_clean_acc : detector accuracy on clean data  (= 1 - FPR)
       det_adv_acc   : detector accuracy on adv data (= TPR = recall)
       detector      : detector accuracy, precision and recall on the clean and
                       adversarial mixed set
-    """
+
+    For architectures of type 2 (NearestAL) detector voices are None"""
     model.eval()
+    attack_kwargs = attack_kwargs or {}
     res = {"lab_c": [], "lab_a": [], "sc_c": [], "sc_a": []}
     for i in range(0, len(X_te), batch_size):
         x = X_te[i:i + batch_size]
         y = y_te[i:i + batch_size]
-        x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask)  #  needs grad
+        x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask,
+                                **attack_kwargs)  #  needs grad
         lab_c, sc_c, _ = predict(model, x, threshold=threshold)
         lab_a, sc_a, _ = predict(model, x_adv, threshold=threshold)
-        res["lab_c"].append(lab_c); res["sc_c"].append(sc_c)
-        res["lab_a"].append(lab_a); res["sc_a"].append(sc_a)
- 
+        res["lab_c"].append(lab_c)
+        res["lab_a"].append(lab_a)
+        if sc_c is not None:
+            res["sc_c"].append(sc_c); res["sc_a"].append(sc_a)
+
     lab_c, lab_a = torch.cat(res["lab_c"]), torch.cat(res["lab_a"])
-    sc_c, sc_a = torch.cat(res["sc_c"]), torch.cat(res["sc_a"])
- 
-    # --- TASK (positive = attacco = label 1) --------------------------------
+
+    # --- TASK (positive = attack = label 1) --------------------------------
     task_clean = _binary_metrics(lab_c, y_te, positive=1)
     task_adv = _binary_metrics(lab_a, y_te, positive=1)
- 
+
+    out = {"task_clean": task_clean,
+           "task_adv": task_adv,
+           "det_clean_acc": None,
+           "det_adv_acc": None,
+           "detector": None,
+           "score_clean": None,
+           "score_adv": None}
+
     # --- DETECTOR (positive = adversarial) ---------------------------------
-    # ground truth: clean = 0, adversarial = 1
-    det_pred_clean = (sc_c > threshold).long()   # should be 0
-    det_pred_adv = (sc_a > threshold).long()     # should be 1
-    det_true_clean = torch.zeros_like(det_pred_clean)
-    det_true_adv = torch.ones_like(det_pred_adv)
- 
-    det_clean_acc = (det_pred_clean == det_true_clean).float().mean().item()
-    det_adv_acc = (det_pred_adv == det_true_adv).float().mean().item()
- 
-    det_pred = torch.cat([det_pred_clean, det_pred_adv])
-    det_true = torch.cat([det_true_clean, det_true_adv])
-    detector = _binary_metrics(det_pred, det_true, positive=1)
- 
-    return {"task_clean": task_clean,
-            "task_adv": task_adv,
-            "det_clean_acc": det_clean_acc,
-            "det_adv_acc": det_adv_acc,
-            "detector": detector,
-            "score_clean": sc_c.mean().item(),
-            "score_adv": sc_a.mean().item()}
+    # only for architecture of type 1
+    if res["sc_c"]:
+        sc_c, sc_a = torch.cat(res["sc_c"]), torch.cat(res["sc_a"])
+
+        # ground truth: clean = 0, adversarial = 1
+        det_pred_clean = (sc_c > threshold).long()   # should be 0
+        det_pred_adv = (sc_a > threshold).long()     # should be 1
+        det_true_clean = torch.zeros_like(det_pred_clean)
+        det_true_adv = torch.ones_like(det_pred_adv)
+
+        out["det_clean_acc"] = (det_pred_clean == det_true_clean).float().mean().item()
+        out["det_adv_acc"] = (det_pred_adv == det_true_adv).float().mean().item()
+
+        det_pred = torch.cat([det_pred_clean, det_pred_adv])
+        det_true = torch.cat([det_true_clean, det_true_adv])
+        out["detector"] = _binary_metrics(det_pred, det_true, positive=1)
+        out["score_clean"] = sc_c.mean().item()
+        out["score_adv"] = sc_a.mean().item()
+
+    return out

@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import torch
@@ -8,14 +7,19 @@ import torch.nn.functional as F
 from typing import Iterable, Optional
 
 
+# ===========================================================================
+# FlowState: flows through the network accumulating detections and aux. losses
+# ===========================================================================
 class FlowState:
 
     def __init__(self, is_adv=None, labels=None):
         #self.labels = labels
         self.is_adv = is_adv
         self.detections: list[torch.Tensor] = []
-        self.det_loss: Optional[torch.Tensor] = None
+        self.det_loss: Optional[torch.Tensor] = None # detector loss (BCE)
+        self.act_loss: Optional[torch.Tensor] = None # activation loss (Further/Nearest)
 
+    # --- detection (for DetectorLayer) -------------------------------------
     def add_detection(self, logit: torch.Tensor) -> None:
         self.detections.append(logit)
         if self.is_adv is not None:
@@ -24,11 +28,28 @@ class FlowState:
             )
             self.det_loss = loss if self.det_loss is None else self.det_loss + loss
 
+    # --- activation loss (for FurtherAL and NearestAL) ---------------------
+    def add_act_loss(self, loss: torch.Tensor) -> None:
+        self.act_loss = loss if self.act_loss is None else self.act_loss + loss
+
+    def split_pairs(self, y: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+        """"Divides activations in pairs (real, adv). Relies on
+                batch = cat([x, x_adv])
+        """
+        real = y[self.is_adv == 0]
+        adv = y[self.is_adv == 1]
+        if len(real) != len(adv):
+            raise ValueError(
+                f"split_pairs: {len(real)} real sample vs {len(adv)} adv, "
+                "batch has to contain every sample in both versions"
+            )
+        return real, adv
+
     def adv_score(self, reduce: str = "mean") -> Optional[torch.Tensor]:
         """reduce can be:
-                "mean": mean of all detection scores
-                "max" : alerts if at least 1 adversarial detection   
-        """
+                "mean": averages all detectors scores
+                "max" : alerts if at least one detector result is adversarial
+        Returns None if the network doesn't contain any detector."""
         if not self.detections:
             return None
 
@@ -46,47 +67,153 @@ def default_detector(in_dim: int, hidden: int = 64) -> nn.Module:
     )
 
 
+# ===========================================================================
+# Layer class diagram
+#
+#                     PassThrough
+#                    /           \
+#             DetectorLayer   ActivationLoss
+#                    \          <abstract>
+#                     \         /        \
+#                      FurtherAL          NearestAL
+#
+# Forwar pass is defined ONCE in PassThrough; subclasses contribute
+# overriding the collect() hook and combining with super().collect().
+# Thus, FurtherAL(DetectorLayer, ActivationLoss) executes automatically both
+# the detection and the contrastive loss.
+# ===========================================================================
 class PassThrough(nn.Module):
-    """State propagates unchanged (x, state) -> (h(x), state)"""
+    """(x, state) -> (base(x), state). State propagates unchanged;
+    Subclasses add their contributions via collect hook"""
 
-    def __init__(self, base: nn.Module):
-        super().__init__()
+    def __init__(self, base: nn.Module, **kwargs):
+        super().__init__(**kwargs)
         self.base = base
 
     def forward(self, x, state: FlowState):
-        return self.base(x), state
+        y = self.base(x)
+        self.collect(x, y, state)
+        return y, state
+
+    def collect(self, x, y, state: FlowState) -> None:
+        pass
 
 
-class DetectorLayer(nn.Module):
-    """detach can be:
-            True: detector loss updates detector parameters
-            False: detector loss update backbone and detector parameters,
-                   making activations more easily recognizable
+class DetectorLayer(PassThrough):
+    """Adds real/adv classification detector on layer activations.
+
+    detach can be:
+            True: detector loss updates only detector parameters
+            False: detector loss updates also the backbone, 
+                   making activations easier recognizable
     """
 
-    def __init__(self, base: nn.Module, detector: nn.Module, detach: bool = True):
-        super().__init__()
-        self.base = base
+    def __init__(self, base: nn.Module, detector: nn.Module,
+                 detach: bool = True, **kwargs):
+        super().__init__(base, **kwargs)
         self.detector = detector
         self.detach = detach
 
-    def forward(self, x, state: FlowState):
-        y = self.base(x)                          # base output
+    def collect(self, x, y, state: FlowState) -> None:
         feats = y.detach() if self.detach else y
-        state.add_detection(self.detector(feats)) # real/adv detector classification
-        return y, state
+        state.add_detection(self.detector(feats))  # real/adv classification
+        super().collect(x, y, state)
 
 
+class ActivationLoss(PassThrough):
+    """
+    Abstract class, subclasses define only distance_to_loss(d)
+
+    - enabled: disable loss without changing architecture
+    - detach_reference: if true real activations are fixed and grad
+                        only moves adv activations, protecting 
+                        accuracy on clean data.
+    """
+
+    def __init__(self, base: nn.Module, enabled: bool = True,
+                 detach_reference: bool = True, **kwargs):
+        super().__init__(base, **kwargs)
+        self.enabled = enabled
+        self.detach_reference = detach_reference
+
+    def collect(self, x, y, state: FlowState) -> None:
+        # in evaluation / attack generation is_adv is not passed, no loss
+        if self.enabled and state.is_adv is not None:
+            real, adv = state.split_pairs(y)
+            ref = real.detach() if self.detach_reference else real
+            # mean square distance, comparable between layers with different width
+            d = (adv - ref).pow(2).mean(dim=-1)           # (n_coppie,)
+            state.add_act_loss(self.distance_to_loss(d))
+        super().collect(x, y, state)
+
+    def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
+        raise NotImplementedError("subclasses define distance_to_loss")
+
+
+class FurtherAL(DetectorLayer, ActivationLoss):
+    """
+    Architecture 1: detector + contrastive loss. Pushes awey adversarial
+    activations from clean ones in order to make them more recognizable 
+    by the detector.
+
+    When FurtherAL invokes collect, the Method Resolution Order (MRO) is
+
+            DetectorLayer -> ActivationLoss -> PassThrough
+
+    Contrastiva Loss: ReLU(margin - distance). 
+    Pushes away until the distance exceeds the margin, then gets zero.
+    Maximizing distance without any constraints would make it diverge to infinity.
+    """
+
+    def __init__(self, base: nn.Module, detector: nn.Module,
+                 margin: float = 1.0, **kwargs):
+        super().__init__(base, detector=detector, **kwargs)
+        self.margin = margin
+
+    def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
+        return F.relu(self.margin - d).mean()
+
+
+class NearestAL(ActivationLoss):
+    """
+    Architecture 2 (adversarial training): attractive loss, brings adversarial
+    activations to the real ones. Incompatible with detectors, this constraint
+    is verified within DetectorSequential."""
+
+    def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
+        return d.mean()
+
+
+# ===========================================================================
+# Contenitore
+# ===========================================================================
 class DetectorSequential(nn.Module):
-    """Like nn.Sequential, propagating (h(x), state)
-       Normal modules get automatically wrapped in PassThrough"""
+    """Like nn.Sequential, but propagates (h(x), state).
+       nn.Modules are automatically wrapped in PassThrough.
+
+       Upon building, architecture coherency is verified: NearestAL can't
+       cohexist with Detector-based layer within the same network."""
 
     def __init__(self, *modules: nn.Module):
         super().__init__()
         self.layers = nn.ModuleList([
-            m if isinstance(m, (DetectorLayer, PassThrough)) else PassThrough(m)
+            m if isinstance(m, PassThrough) else PassThrough(m)
             for m in modules
         ])
+        self._validate()
+
+    def _validate(self) -> None:
+        has_det = any(isinstance(m, DetectorLayer) for m in self.layers)
+        has_nearest = any(isinstance(m, NearestAL) for m in self.layers)
+        if has_det and has_nearest:
+            raise ValueError(
+                "Incoherent architecture: NearestAL can't"
+                "cohexist with Detector-based layer within the same network."
+            )
+
+    @property
+    def has_detectors(self) -> bool:
+        return any(isinstance(m, DetectorLayer) for m in self.modules())
 
     def forward(self, x, labels=None, is_adv=None):
         state = FlowState(labels=labels, is_adv=is_adv)
