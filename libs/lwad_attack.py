@@ -14,10 +14,10 @@ class Attack(Enum):
 # Default values, the ones being used are in lwad_config.py
 DEFAULT_TRAIN_ATTACK = Attack.PGD.value   # attack to train defense
 DEFAULT_EVAL_ATTACK  = Attack.PGD.value   # attack to evaluate defense
-DEFUALT_EPS              = 0.1             # attack intensity, in standardized measurement unit
-DEFUALT_PGD_STEPS        = 20              # iterations number for PGD / adaptive PGD
-DEFUALT_PGD_ALPHA        = DEFUALT_EPS / 4 # amplitude of iteration step
-DEFUALT_PGD_EVADE_WEIGHT = 1.0             # evade term weight in adaptive PGD
+DEFAULT_EPS              = 0.1             # attack intensity, in standardized measurement unit
+DEFAULT_PGD_STEPS        = 20              # iterations number for PGD / adaptive PGD
+DEFAULT_PGD_ALPHA        = DEFAULT_EPS / 4 # amplitude of iteration step
+DEFAULT_PGD_EVADE_WEIGHT = 1.0             # evade term weight in adaptive PGD
 
 
 # ===========================================================================
@@ -115,9 +115,9 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
 def generate_attack(model, x, y, eps, attack, mask=None,
                     steps=None, alpha=None, evade_weight=None):
     attack = Attack(attack)
-    steps = DEFUALT_PGD_STEPS if steps is None else steps
+    steps = DEFAULT_PGD_STEPS if steps is None else steps
     alpha = (eps / 4) if alpha is None else alpha
-    evade_weight = DEFUALT_PGD_EVADE_WEIGHT if evade_weight is None else evade_weight
+    evade_weight = DEFAULT_PGD_EVADE_WEIGHT if evade_weight is None else evade_weight
 
     if attack is Attack.FGSM:
         return fgsm(model, x, y, eps, mask=mask)

@@ -8,7 +8,7 @@ from typing import Iterable, Optional
 
 
 # ===========================================================================
-# FlowState: flows through the network accumulating detections and aux. losses
+# FlowState: flows through the network accumulating detections and losses
 # ===========================================================================
 class FlowState:
 
@@ -77,10 +77,10 @@ def default_detector(in_dim: int, hidden: int = 64) -> nn.Module:
 #                     \         /        \
 #                      FurtherAL          NearestAL
 #
-# Forwar pass is defined ONCE in PassThrough; subclasses contribute
+# Forward pass is defined once in PassThrough; subclasses contribute
 # overriding the collect() hook and combining with super().collect().
-# Thus, FurtherAL(DetectorLayer, ActivationLoss) executes automatically both
-# the detection and the contrastive loss.
+# Thus, FurtherAL(DetectorLayer, ActivationLoss) executes automatically 
+# both the detection and the contrastive loss.
 # ===========================================================================
 class PassThrough(nn.Module):
     """(x, state) -> (base(x), state). State propagates unchanged;
@@ -124,17 +124,21 @@ class ActivationLoss(PassThrough):
     """
     Abstract class, subclasses define only distance_to_loss(d)
 
-    - enabled: disable loss without changing architecture
-    - detach_reference: if true real activations are fixed and grad
-                        only moves adv activations, protecting 
-                        accuracy on clean data.
+    - enabled: enables loss without changing architecture
+    - detach_reference: if true real activations are treated as a fixed
+                        anchor and grad only moves adv activations.
+                        None -> DETACH_REFERENCE_DEFAULT of the subclass.
     """
 
+    # Overridden per loss type
+    DETACH_REFERENCE_DEFAULT: bool = True
+
     def __init__(self, base: nn.Module, enabled: bool = True,
-                 detach_reference: bool = True, **kwargs):
+                 detach_reference: Optional[bool] = None, **kwargs):
         super().__init__(base, **kwargs)
         self.enabled = enabled
-        self.detach_reference = detach_reference
+        self.detach_reference = (self.DETACH_REFERENCE_DEFAULT
+                                 if detach_reference is None else detach_reference)
 
     def collect(self, x, y, state: FlowState) -> None:
         # in evaluation / attack generation is_adv is not passed, no loss
@@ -142,7 +146,7 @@ class ActivationLoss(PassThrough):
             real, adv = state.split_pairs(y)
             ref = real.detach() if self.detach_reference else real
             # mean square distance, comparable between layers with different width
-            d = (adv - ref).pow(2).mean(dim=-1)           # (n_coppie,)
+            d = (adv - ref).pow(2).mean(dim=-1)
             state.add_act_loss(self.distance_to_loss(d))
         super().collect(x, y, state)
 
@@ -152,9 +156,8 @@ class ActivationLoss(PassThrough):
 
 class FurtherAL(DetectorLayer, ActivationLoss):
     """
-    Architecture 1: detector + contrastive loss. Pushes awey adversarial
-    activations from clean ones in order to make them more recognizable 
-    by the detector.
+    Architecture 1: detector + contrastive loss. Pushes away adversarial activations 
+    from clean ones in order to make them more recognizable by the detector.
 
     When FurtherAL invokes collect, the Method Resolution Order (MRO) is
 
@@ -163,7 +166,15 @@ class FurtherAL(DetectorLayer, ActivationLoss):
     Contrastiva Loss: ReLU(margin - distance). 
     Pushes away until the distance exceeds the margin, then gets zero.
     Maximizing distance without any constraints would make it diverge to infinity.
+
+    Keeps DETACH_REFERENCE_DEFAULT = True: clean activations are the
+    anchor, adversarial ones are pushed away from, so that the clean
+    representation is not dragged around to satisfy the repulsion. Safe here
+    because ReLU(margin - d) is bounded by margin and switches off once the
+    layers are far enough apart (distance = margin)
     """
+
+    DETACH_REFERENCE_DEFAULT: bool = True
 
     def __init__(self, base: nn.Module, detector: nn.Module,
                  margin: float = 1.0, **kwargs):
@@ -177,8 +188,17 @@ class FurtherAL(DetectorLayer, ActivationLoss):
 class NearestAL(ActivationLoss):
     """
     Architecture 2 (adversarial training): attractive loss, brings adversarial
-    activations to the real ones. Incompatible with detectors, this constraint
-    is verified within DetectorSequential."""
+    activations closer to the real ones. Incompatible with detectors, this 
+    constraint is verified within DetectorSequential.
+
+    DETACH_REFERENCE_DEFAULT = False, unlike FurtherAL. 
+    Detaching here makes the loss diverge.
+    Intuitively, adversarial training wants a representation where 
+    clean and adversarial versions MEET, so both branches must be free
+    to move. Anchoring the clean branch only makes sense for repulsion.
+    """
+
+    DETACH_REFERENCE_DEFAULT: bool = False
 
     def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
         return d.mean()
@@ -207,7 +227,7 @@ class DetectorSequential(nn.Module):
         has_nearest = any(isinstance(m, NearestAL) for m in self.layers)
         if has_det and has_nearest:
             raise ValueError(
-                "Incoherent architecture: NearestAL can't"
+                "Incoherent architecture: NearestAL can't "
                 "cohexist with Detector-based layer within the same network."
             )
 

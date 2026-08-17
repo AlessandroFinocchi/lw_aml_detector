@@ -55,7 +55,7 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0, lambda_act=1.0,
         if state.act_loss is not None:
             loss = loss + lambda_act * state.act_loss
 
-        optimizer.zero_grad()   # gradients accumlate, so always reset them before backward pass
+        optimizer.zero_grad()   # gradients accumulate, alweys reset them before backward pass
         loss.backward()         # compute the gradients traversing autgrad graph
         optimizer.step()        # updates model parameters based on their lr
 
@@ -96,8 +96,9 @@ def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=DEFAULT_
     Chooses the detector threashold maximizing its balanced accuracy, as the mean
     between adversarial attack (score above threshold) and clean data correctly
     classified (score under the threshold)"""
+
     if not getattr(model, "has_detectors", True):
-        raise ValueError("select_threshold richiede un'architettura con detector")
+        raise ValueError("select_threshold requires a detector-based architecture")
 
     model.eval()
     attack_kwargs = attack_kwargs or {}

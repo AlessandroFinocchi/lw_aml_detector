@@ -6,7 +6,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
@@ -26,7 +26,7 @@ DEFAULT_LR = 1e-3                   # backbone learning rate
 DEFAULT_LR_DET = 3e-3               # detector learning rate
 DEFAULT_LAMBDA_DET = 1.0            # detector loss weight
 DEFAULT_LAMBDA_ACT = 1.0            # activation loss weight (FurtherAL / NearestAL)
-DEFAULT_ACT_MARGIN = 1.0            # margine della hinge repulsiva di FurtherAL
+DEFAULT_ACT_MARGIN = 9e-4           # FurtherAL contrastive loss margin
 DEFAULT_TASK_LOSS_ON_ADV = False    # true = backbone adversarial training
 DEFAULT_THRESHOLD = 0.5             # starting threshold
 DEFAULT_SEED = 42
@@ -68,7 +68,9 @@ class ArchitectureConfig:
 
     # --- activation loss ----------------------------------------------------
     lambda_act:       float = DEFAULT_LAMBDA_ACT
-    detach_reference: bool = True # fixed real activation
+    detach_reference: Optional[bool] = None # None: each activation loss uses its
+                                            #       own default (True for FurtherAL
+                                            #       and False for NearestAL)
 
     # abstract class
     def __new__(cls, *args, **kwargs):
@@ -79,7 +81,7 @@ class ArchitectureConfig:
     # pgd_alpha can also be passed as an argument in new
     def __post_init__(self):
         if self.pgd_alpha is None:
-            self.pgd_alpha = self.eps / 4   # amplitude of iteration step
+            self.pgd_alpha = self.eps / 4 # amplitude of iteration step
 
     # --- what every config has to build -------------------------------------
     def build_model(self, n_features: int) -> lw.DetectorSequential:
@@ -101,25 +103,41 @@ class ArchitectureConfig:
 
 @dataclass
 class DetectorArchConfig(ArchitectureConfig):
-    """Architecture 1: detector on arbitrary layer, optional with contrastive loss
-    using FurtherAL (use_act_loss=False -> DetectorLayer)."""
+    """Architecture 1: detector on arbitrary layer, optional with contrastive 
+    loss using FurtherAL (use_act_loss=False -> DetectorLayer)."""
 
     lr_det:          float = DEFAULT_LR_DET     # detector learning rate
     lambda_det:      float = DEFAULT_LAMBDA_DET # detector loss weight
     threshold:       float = DEFAULT_THRESHOLD  # detector initial threshold
     detach:          bool = True                # detector loss doesn't affect backbone
-    detector_hidden: int = 64
+    detector_hidden: int = 64                   # detector hidden units
     use_act_loss:    bool = True                # true -> FurtherAL, false -> DetectorLayer
-    act_margin:      float = DEFAULT_ACT_MARGIN # contrastive loss margin
+    act_margin:      Union[float, Tuple[float, ...]] = DEFAULT_ACT_MARGIN # contrastive loss margin
+                                                                          # single float for all layers
+                                                                          # tuple with values for each FurtherAL
 
     @property
     def uses_detectors(self) -> bool:
         return True
 
-    def _det_layer(self, base: nn.Module, out_dim: int) -> lw.DetectorLayer:
+    def margin_for_layer(self, idx: int, total: int) -> float:
+        """Returns FurtherAL layer margin(s): with a scalar is the same for every layer,
+        with a tuple there must be exactly one value per layer (following the layers order)"""
+        if isinstance(self.act_margin, (tuple, list)):
+            if len(self.act_margin) != total:
+                raise ValueError(
+                    f"act_margin: expected {total} values (one for every FurtherAL "
+                    f"network layer, received {len(self.act_margin)}"
+                )
+            return float(self.act_margin[idx])
+        return float(self.act_margin)
+
+    def _det_layer(self, base: nn.Module, out_dim: int,
+                   idx: int = 0, total: int = 1) -> lw.DetectorLayer:
         detector = lw.default_detector(out_dim, self.detector_hidden)
         if self.use_act_loss:
-            return lw.FurtherAL(base, detector=detector, margin=self.act_margin,
+            return lw.FurtherAL(base, detector=detector,
+                                margin=self.margin_for_layer(idx, total),
                                 detach=self.detach,
                                 detach_reference=self.detach_reference)
         return lw.DetectorLayer(base, detector=detector, detach=self.detach)
@@ -128,9 +146,9 @@ class DetectorArchConfig(ArchitectureConfig):
         h = self.hidden
         return lw.DetectorSequential(
             nn.LayerNorm(n_features),
-            self._det_layer(nn.Linear(n_features, h*2), h*2), nn.ReLU(),
+            self._det_layer(nn.Linear(n_features, h*2), h*2, idx=0, total=2), nn.ReLU(),
             nn.Linear(h*2, h), nn.ReLU(),
-            self._det_layer(nn.Linear(h, 64), 64), nn.ReLU(),
+            self._det_layer(nn.Linear(h, 64), 64, idx=1, total=2), nn.ReLU(),
             nn.Linear(64, self.n_classes),
         )
 
@@ -143,11 +161,10 @@ class DetectorArchConfig(ArchitectureConfig):
 
 @dataclass
 class AlignmentArchConfig(ArchitectureConfig):
-    """Architecture 2: adversarial training via NearestAL, no detector.
-    Only PassThrough e NearestAL. Task loss on adversarial smaple is
-    active by default"""
+    """Architecture 2: adversarial training via NearestAL, no detector. Only 
+    PassThrough e NearestAL. Task loss on adversarial sample is active by default"""
 
-    task_loss_on_adv: bool = True           # base default override
+    task_loss_on_adv: bool = True # base default override
 
     def build_model(self, n_features: int) -> lw.DetectorSequential:
         h = self.hidden
