@@ -18,7 +18,7 @@ loader = torch.utils.data.DataLoader(
 
 print("== 1) vincolo del contenitore: NearestAL + detector deve fallire ==")
 try:
-    lw.DetectorSequential(
+    lw.LWADSequential(
         lw.DetectorLayer(nn.Linear(F_DIM, 8), detector=lw.default_detector(8)),
         lw.NearestAL(nn.Linear(8, 2)),
     )
@@ -27,7 +27,7 @@ except ValueError as e:
     print("   OK ->", str(e)[:60], "...")
 
 try:
-    lw.DetectorSequential(
+    lw.LWADSequential(
         lw.FurtherAL(nn.Linear(F_DIM, 8), detector=lw.default_detector(8)),
         lw.NearestAL(nn.Linear(8, 2)),
     )

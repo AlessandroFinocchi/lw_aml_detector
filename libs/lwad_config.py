@@ -29,8 +29,8 @@ DEFAULT_LAMBDA_ACT = 1.0            # activation loss weight (FurtherAL / Neares
 DEFAULT_ACT_MARGIN = 9e-4           # FurtherAL contrastive loss margin
 DEFAULT_TASK_LOSS_ON_ADV = False    # true = backbone adversarial training
 DEFAULT_THRESHOLD = 0.5             # starting threshold
-DEFAULT_SEED = 42
-DEFAULT_CHECKPOINT = "modello_detector.pt"
+SEED = 42
+DEFAULT_CHECKPOINT = "lwad_model.pt"
 
 # --- early stopping config --------------------------------------------------
 DEFAULT_PATIENCE = 5                # epochs without improvements before stopping
@@ -49,7 +49,6 @@ class ArchitectureConfig:
     batch_size:       int = DEFAULT_BATCH_SIZE
     lr:               float = DEFAULT_LR # backbone learning rate
     task_loss_on_adv: bool = DEFAULT_TASK_LOSS_ON_ADV
-    seed:             int = DEFAULT_SEED
     checkpoint:       str = DEFAULT_CHECKPOINT
     patience:         int = DEFAULT_PATIENCE
     min_delta:        float = DEFAULT_MIN_DELTA
@@ -84,10 +83,10 @@ class ArchitectureConfig:
             self.pgd_alpha = self.eps / 4 # amplitude of iteration step
 
     # --- what every config has to build -------------------------------------
-    def build_model(self, n_features: int) -> lw.DetectorSequential:
+    def build_model(self, n_features: int) -> lw.LWADSequential:
         raise NotImplementedError("defined on concrete configs")
 
-    def build_optimizer(self, model: lw.DetectorSequential) -> torch.optim.Optimizer:
+    def build_optimizer(self, model: lw.LWADSequential) -> torch.optim.Optimizer:
         return torch.optim.Adam(model.parameters(), lr=self.lr)
 
     def attack_kwargs(self) -> dict:
@@ -142,9 +141,9 @@ class DetectorArchConfig(ArchitectureConfig):
                                 detach_reference=self.detach_reference)
         return lw.DetectorLayer(base, detector=detector, detach=self.detach)
 
-    def build_model(self, n_features: int) -> lw.DetectorSequential:
+    def build_model(self, n_features: int) -> lw.LWADSequential:
         h = self.hidden
-        return lw.DetectorSequential(
+        return lw.LWADSequential(
             nn.LayerNorm(n_features),
             self._det_layer(nn.Linear(n_features, h*2), h*2, idx=0, total=2), nn.ReLU(),
             nn.Linear(h*2, h), nn.ReLU(),
@@ -152,7 +151,7 @@ class DetectorArchConfig(ArchitectureConfig):
             nn.Linear(64, self.n_classes),
         )
 
-    def build_optimizer(self, model: lw.DetectorSequential) -> torch.optim.Optimizer:
+    def build_optimizer(self, model: lw.LWADSequential) -> torch.optim.Optimizer:
         return torch.optim.Adam(params=[
             {"params": list(model.backbone_parameters()), "lr": self.lr},
             {"params": list(model.detector_parameters()), "lr": self.lr_det},
@@ -166,11 +165,11 @@ class AlignmentArchConfig(ArchitectureConfig):
 
     task_loss_on_adv: bool = True # base default override
 
-    def build_model(self, n_features: int) -> lw.DetectorSequential:
+    def build_model(self, n_features: int) -> lw.LWADSequential:
         h = self.hidden
         def al(base: nn.Module) -> lw.NearestAL:
             return lw.NearestAL(base, detach_reference=self.detach_reference)
-        return lw.DetectorSequential(
+        return lw.LWADSequential(
             nn.Linear(n_features, h), nn.ReLU(),
             al(nn.Linear(h, h)), nn.ReLU(),
             al(nn.Linear(h, 64)), nn.ReLU(),
@@ -183,7 +182,7 @@ class AlignmentArchConfig(ArchitectureConfig):
 # ===========================================================================
 @dataclass
 class BuiltArchitecture:
-    model: lw.DetectorSequential
+    model: lw.LWADSequential
     optimizer: torch.optim.Optimizer
     config: ArchitectureConfig
 

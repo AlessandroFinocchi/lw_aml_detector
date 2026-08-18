@@ -207,7 +207,7 @@ class NearestAL(ActivationLoss):
 # ===========================================================================
 # Contenitore
 # ===========================================================================
-class DetectorSequential(nn.Module):
+class LWADSequential(nn.Module):
     """Like nn.Sequential, but propagates (h(x), state).
        nn.Modules are automatically wrapped in PassThrough.
 

@@ -1,16 +1,17 @@
-"""Per-layer selection of FurtherAL margins.
+"""Per-layer calibration and automatic selection of FurtherAL margins.
+
 Two levels:
 
-  suggest_margins -> instant calibration, no training: measures the natural
-                     real/adv distance d_i of every layer on an untrained
-                     model and proposes margin_i = factor * d_i.
+  suggest_margins  - fast calibration: measures the natural real/adv distance
+                     d_i of every layer after a short warmup trained WITHOUT
+                     the activation loss, and proposes margin_i = factor * d_i.
 
-  select_margins  -> automatic selection: keeps the parametrization
+  select_margins   - automatic selection: keeps the parametrization
                      margin_i = factor * d_i (so every layer gets a margin on
                      its own scale) and searches the best factor by briefly
                      training one candidate per value and comparing the
-                     validation scores. The search stays unidimensional
-                     with any number of layers.
+                     validation scores. The search stays 1-D with any number
+                     of layers.
 
 usage example:
     res = select_margins(cfg, X_train, y_train, X_val, y_val,
@@ -55,11 +56,42 @@ def _measure_layer_distances(model, x, x_adv):
     return rows
 
 
-def _natural_distances(config, X, y, attack_mask, device):
-    """Natural d_i, on an UNTRAINED model (deterministic init from config.seed,
-    so it matches the init of the search candidates)."""
-    torch.manual_seed(config.seed)
-    model = config.build_model(X.shape[1]).to(device)
+def _warmup(config, X, y, attack_mask, device, epochs, class_weights=None):
+    """Trains the model briefly WITHOUT the activation loss (lambda_act=0).
+
+    The margin is a hyperparameter of training, so it cannot be computed on an
+    already trained model. Training with lambda_act=0 breaks that: the warmed-up 
+    model does not depend on the margin at all, yet its activations are about
+    the order of magnitue the margin will actually operate in."""
+    torch.manual_seed(lc.SEED)
+    built = lc.create_architecture(config, X.shape[1], device=device)
+    if epochs <= 0:
+        return built.model
+    loader = torch.utils.data.DataLoader(
+        torch.utils.data.TensorDataset(X, y),
+        batch_size=config.batch_size, shuffle=True,
+    )
+    for _ in range(epochs):
+        lt.train_epoch(built.model, loader, built.optimizer, eps=config.eps,
+                       lambda_det=getattr(config, "lambda_det", 0.0),
+                       lambda_act=0.0,                  # no margin involved
+                       task_loss_on_adv=config.task_loss_on_adv,
+                       class_weights=class_weights, attack_mask=attack_mask,
+                       attack=config.train_attack,
+                       threshold=getattr(config, "threshold", 0.5),
+                       attack_kwargs=config.attack_kwargs(), device=device)
+    return built.model
+
+
+def _natural_distances(config, X, y, attack_mask, device, warmup_epochs=3,
+                       class_weights=None):
+    """Activation real vs adv distances, measured after `warmup_epochs` epochs 
+    trained without the activation loss (warmup_epochs=0 means untrained model).
+
+    Warmup matters: on an untrained model the attack barely hits and, more 
+    importantly, the distances are not representative."""
+    model = _warmup(config, X, y, attack_mask, device, warmup_epochs,
+                    class_weights=class_weights)
     model.eval()
     x, yy = X.to(device), y.to(device)
     x_adv = generate_attack(model, x, yy, config.eps, config.train_attack,
@@ -70,16 +102,23 @@ def _natural_distances(config, X, y, attack_mask, device):
 
 
 # ===========================================================================
-# Fast calibration (no training)
+# Calibration (short warm-up, no margin search)
 # ===========================================================================
 def suggest_margins(config, X, y, attack_mask=None, device="cpu",
-                    factor=5.0, verbose=True) -> Optional[tuple]:
+                    factor=2.0, warmup_epochs=3, class_weights=None,
+                    verbose=True) -> Optional[tuple]:
     """Proposes a PER-LAYER margin: margin_i = factor * natural d_i.
     Returns a tuple ordered like the FurtherAL layers of the network, or None
-    if the architecture has no layer with a margin (e.g. architecture 2)."""
-    base_d, rows = _natural_distances(config, X, y, attack_mask, device)
+    if the architecture has no layer with a margin (e.g. architecture 2).
+
+    warmup_epochs: epochs trained without the activation loss before measuring
+    (0 = untrained model, NOT recommended, see _natural_distances)."""
+    base_d, rows = _natural_distances(config, X, y, attack_mask, device,
+                                      warmup_epochs=warmup_epochs,
+                                      class_weights=class_weights)
     if verbose and rows:
-        print(f"real/adv distance on untrained model (eps={config.eps}):")
+        state = "untrained" if warmup_epochs <= 0 else f"after {warmup_epochs} warmup epochs"
+        print(f"real/adv distance {state} (eps={config.eps}):")
         for r in rows:
             print(f"   {r['layer']:12s}  d={r['d']:.5f}   "
                   f"|activations|={r['scale']:.3f}   "
@@ -104,28 +143,25 @@ class MarginSearchResult:
     factor: float           # winning multiplier
     score: float            # validation score of the winner
     base_distances: tuple   # natural d_i used as the scale of each layer
+    warmup_epochs: int      # warmup epochs used to measure base_distances
     candidates: list        # details of every factor tried
 
 
 def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
-                   device="cpu", factors=(2.0, 5.0, 10.0, 20.0),
-                   search_epochs=3, max_train=None, probe_size=2048,
-                   class_weights=None, verbose=True) -> MarginSearchResult:
-    """Automatically selects a margin for every FurtherAL layer.
-
-    Strategy: searching N independent margins would be combinatorial; here the
-    margins are parametrized as margin_i = factor * d_i, where d_i is the
-    natural real/adv distance of layer i (measured on an untrained model, same
-    init as the candidates) and factor is single and shared. Every layer thus
-    gets a margin proportional to its own scale and the search is 1-D over the
-    values in `factors`: for each one the model is trained for `search_epochs`
-    epochs and evaluated on the validation set with the same score used in
-    main.py, the mean of clean task accuracy and detector balanced accuracy.
-    The factor with the highest score wins.
+                   device="cpu", factors=(1.0, 2.0, 5.0),
+                   search_epochs=3, warmup_epochs=3, max_train=None,
+                   probe_size=2048, class_weights=None,
+                   verbose=True) -> MarginSearchResult:
+    """Automatically selects a margin for every FurtherAL layer: starting from
+    a set of propose factors, search the best factor such that the best margins
+            margin_i = factor * d_i
+    are the ones with higher scores
 
     Useful parameters:
-      search_epochs : training epochs per candidate (a few are enough to rank
-                      the candidates; the real training happens afterwards)
+      search_epochs : training epochs per candidate
+      warmup_epochs : epochs trained without the activation loss before
+                      measuring d_i (0 = untrained model, not recommended:
+                      the layers distances would be unrepresentative)
       max_train     : subsample the train set to speed the search up
       probe_size    : samples used to measure the natural d_i
       class_weights : the same class weights used in the real training
@@ -135,7 +171,9 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
     """
     probe_n = min(probe_size, len(X_train))
     base_d, _ = _natural_distances(config, X_train[:probe_n],
-                                   y_train[:probe_n], attack_mask, device)
+                                   y_train[:probe_n], attack_mask, device,
+                                   warmup_epochs=warmup_epochs,
+                                   class_weights=class_weights)
     if not base_d:
         raise ValueError(
             "select_margins requires FurtherAL layers: use a "
@@ -150,14 +188,15 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
     if verbose:
         print(f"select_margins: natural d = "
               f"{tuple(round(d, 5) for d in base_d)}  "
-              f"({search_epochs} epochs x {len(factors)} candidates, "
+              f"(measured after {warmup_epochs} warmup epochs; "
+              f"{search_epochs} epochs x {len(factors)} candidates, "
               f"{len(Xtr)} train samples)")
 
     candidates = []
     for f in factors:
         margins = tuple(f * d for d in base_d)
         cand = dataclasses.replace(config, act_margin=margins)
-        torch.manual_seed(cand.seed)   # same init and same shuffle for all
+        torch.manual_seed(lc.SEED)   # same init and same shuffle for all
         built = lc.create_architecture(cand, X_train.shape[1], device=device)
         loader = torch.utils.data.DataLoader(
             torch.utils.data.TensorDataset(Xtr, ytr),
@@ -190,4 +229,5 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
               f"act_margin = {tuple(round(m, 5) for m in best['margins'])}")
     return MarginSearchResult(margins=best["margins"], factor=best["factor"],
                               score=best["score"], base_distances=base_d,
+                              warmup_epochs=warmup_epochs,
                               candidates=candidates)
