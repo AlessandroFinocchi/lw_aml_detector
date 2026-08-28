@@ -21,7 +21,7 @@ Run:  python smoke_test_further.py
 """
 import torch
 
-import libs.preprocess as pp
+import libs.preprocess.unsw_bw15 as pp
 import libs.lwad_wrapper as lw
 import libs.lwad_config as lc
 import libs.lwad_trainer as lt
