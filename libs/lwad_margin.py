@@ -48,7 +48,7 @@ def _measure_layer_distances(model, x, x_adv):
         # hidden activation, base for no FlowState
         h_real = layer.base(h_real)
         h_adv = layer.base(h_adv)
-        if isinstance(layer, lw.FurtherAL):
+        if isinstance(layer, lw.FurtherAL) or isinstance(layer, lw.DetectorLayer):
             d = (h_adv - h_real).pow(2).mean(dim=-1).mean().item()  # real/adv act. distance
             scale = h_real.pow(2).mean().item() ** 0.5              # layer activation magnitude
             rows.append({"layer": type(layer).__name__,
@@ -149,8 +149,8 @@ class MarginSearchResult:
 
 def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
                    device="cpu", factors=(1.0, 2.0, 5.0),
-                   search_epochs=3, warmup_epochs=3, max_train=None,
-                   probe_size=2048, class_weights=None,
+                   search_epochs=3, warmup_epochs=5, max_train=None,
+                   probe_size=16384, class_weights=None,
                    verbose=True) -> MarginSearchResult:
     """Automatically selects a margin for every FurtherAL layer: starting from
     a set of propose factors, search the best factor such that the best margins
