@@ -4,34 +4,40 @@ import os
 
 import pandas as pd
 
-from kagglehub import KaggleDatasetAdapter
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
+DATASET_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "dataset", "unsw-nb15")
 CATEGORICAL_COLS = ["proto", "service", "state"]  # escluse dall'attacco FGSM
 
+def get_categorical_cols():
+    return CATEGORICAL_COLS
 
-def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) -> tuple[
+
+def get_train_val_test_set(download_dataset=False, verbose=False) -> tuple[
     pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
 ]:
     # 1. Download latest version
     if download_dataset:
-        dataset_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "dataset")
+        dataset_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "dataset")
         os.makedirs(dataset_dir, exist_ok=True)
 
-        path = kagglehub.dataset_download("mrwellsdavid/unsw-nb15", output_dir="../dataset/unsw-nb15")
+        path = kagglehub.dataset_download("mrwellsdavid/unsw-nb15", output_dir=DATASET_PATH)
         
         # Training Set and Testing Set are inverted, so revert them
-        os.rename(dataset_path + "UNSW_NB15_training-set.csv",  dataset_path + "temp.csv")
-        os.rename(dataset_path + "UNSW_NB15_testing-set.csv",   dataset_path + "UNSW_NB15_training-set.csv")
-        os.rename(dataset_path + "temp.csv",                    dataset_path + "UNSW_NB15_testing-set.csv")
+        train_csv = os.path.join(DATASET_PATH, "UNSW_NB15_training-set.csv")
+        test_csv = os.path.join(DATASET_PATH, "UNSW_NB15_testing-set.csv")
+        temp_csv = os.path.join(DATASET_PATH, "temp.csv")
+        os.rename(train_csv, temp_csv)
+        os.rename(test_csv, train_csv)
+        os.rename(temp_csv, test_csv)
 
         print("Path to dataset files:", path)
 
 
     # 2. Load the dataset
-    tr = pd.read_csv(dataset_path + "UNSW_NB15_training-set.csv")
-    te = pd.read_csv(dataset_path + "UNSW_NB15_testing-set.csv")
+    tr = pd.read_csv(os.path.join(DATASET_PATH, "UNSW_NB15_training-set.csv"))
+    te = pd.read_csv(os.path.join(DATASET_PATH, "UNSW_NB15_testing-set.csv"))
 
 
     # 3. Handle Categorical Features with Ordinal Encoding
@@ -114,18 +120,15 @@ def get_train_val_test_set(dataset_path, download_dataset=False, verbose=False) 
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-# ===========================================================================
-# Dati: UNSW-NB15 tramite il tuo preprocess.py
-# ===========================================================================
-def load_unsw(dataset_path: str, download_dataset=False, verbose=False):
-    """Carica i set da preprocess.py e costruisce la maschera d'attacco."""
+def load_unsw(download_dataset=False, verbose=False):
+    """Loads the sets and builds the attack mask."""
     X_tr, y_tr, X_val, y_val, X_te, y_te = get_train_val_test_set(
-        dataset_path, download_dataset=download_dataset, verbose=verbose
+        download_dataset, verbose
     )
 
     feature_names = list(X_tr.columns)
 
-    # 1.0 = feature continua attaccabile, 0.0 = categorica intoccabile
+    # 1.0 = real features (attackable), 0.0 = categoric features (not attackable)
     attack_mask = torch.tensor(
         [0.0 if c in CATEGORICAL_COLS else 1.0 for c in feature_names]
     )
@@ -136,4 +139,4 @@ def load_unsw(dataset_path: str, download_dataset=False, verbose=False):
             to_x(X_te), to_y(y_te), feature_names, attack_mask)
 
 if __name__ == "__main__":
-    get_train_val_test_set("dataset/unsw-nb15/", True, True)
+    get_train_val_test_set(True, True)

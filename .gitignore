@@ -1,6 +1,7 @@
 dataset
 lwad_libs.egg-info
-libs/__pycache__
+*__pycache__
 .vscode
 lwad_model.pt
 notebooks/main*.py
+
