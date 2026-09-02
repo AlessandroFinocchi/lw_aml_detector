@@ -14,7 +14,7 @@ def get_categorical_cols():
     return CATEGORICAL_COLS
 
 
-def get_train_val_test_set(download_dataset=False, verbose=False) -> tuple[
+def get_train_val_test_set(download_dataset=False, verbose=False, **kwargs) -> tuple[
     pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
 ]:
     # 1. Download latest version
@@ -120,7 +120,7 @@ def get_train_val_test_set(download_dataset=False, verbose=False) -> tuple[
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-def load_unsw(download_dataset=False, verbose=False):
+def load_unsw(download_dataset=False, verbose=False, **kwargs):
     """Loads the sets and builds the attack mask."""
     X_tr, y_tr, X_val, y_val, X_te, y_te = get_train_val_test_set(
         download_dataset, verbose
