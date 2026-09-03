@@ -12,9 +12,7 @@ Three things make these raw files nastier than the 2017 ones:
     captures on the columns they all share.
   * Several files (02-16, 02-28, 03-01) repeat the header row in the middle of
     the data, which makes pandas type every column as object.
-  * It is big, roughly 16M flows. Use `subsample` to preprocess a fraction of
-    each daily file, and `max_per_class` / `majority_ratio` to size a single
-    experiment at load time.
+  * It is big, roughly 16M flows.
 """
 
 from __future__ import annotations
