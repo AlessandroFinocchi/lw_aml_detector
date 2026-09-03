@@ -40,6 +40,10 @@ CATEGORICAL_COLS+=FLAG_COLS
 # while the Timestamp could has a negative effect.
 IDENTIFIER_COLS = ["Flow ID", "Src IP", "Src Port", "Dst IP", "Timestamp"]
 
+# For having balanced dataset with ~ 200k rows
+MAX_PER_CLASS  = 14 * 1000
+MAJORITY_RATIO = 0.11
+
 BENIGN_LABEL = "BENIGN"   # compared uppercased
 
 
@@ -88,11 +92,13 @@ CONFIG = DatasetConfig(
 
 def get_train_val_test_set(download_dataset: bool = False, verbose: bool = False, **kwargs):
     """X_train, y_train, X_val, y_val, X_test, y_test. See utils for the options."""
-    return utils.get_train_val_test_set(CONFIG, download_dataset, verbose, **kwargs)
+    return utils.get_train_val_test_set(CONFIG, download_dataset, verbose,
+        max_per_class=MAX_PER_CLASS, majority_ratio=MAJORITY_RATIO, **kwargs)
 
 
 def load_csecicids2018(download_dataset: bool = False, verbose: bool = False, **kwargs):
-    return utils.load_tensors(CONFIG, download_dataset, verbose, **kwargs)
+    return utils.load_tensors(CONFIG, download_dataset, verbose,
+        max_per_class=MAX_PER_CLASS, majority_ratio=MAJORITY_RATIO, **kwargs)
 
 
 if __name__ == "__main__":

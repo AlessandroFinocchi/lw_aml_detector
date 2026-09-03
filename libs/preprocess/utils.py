@@ -225,8 +225,7 @@ def undersample(
     majority_ratio  the biggest class keeps at most ratio * (all other rows)
 
     The two can be combined. Passing neither returns the frame unchanged.
-    Sampling is without replacement and the result is shuffled, so the rows do
-    not come out grouped by class.
+    Sampling is without replacement and the result is shuffled.
     """
     if max_per_class is None and majority_ratio is None:
         return df
@@ -234,15 +233,20 @@ def undersample(
     counts = df[label_col].value_counts()
     counts = counts[counts > 0]          # categorical dtypes report empty classes
     caps = counts.to_dict()
+    majority = counts.index[0]       # value_counts is sorted descending
 
+    # 1. Cap non-majority classes only
+    if max_per_class is not None:
+        caps = {cls: (n if cls == majority else min(n, int(max_per_class)))
+                for cls, n in caps.items()
+               }
+
+    # 2. Cap majority class relative to the remaining non-majority rows
     if majority_ratio is not None:
-        majority = counts.index[0]       # value_counts is sorted descending
         others = int(counts.sum() - counts.iloc[0])
         caps[majority] = min(caps[majority], max(int(majority_ratio * others), 1))
 
-    if max_per_class is not None:
-        caps = {cls: min(n, int(max_per_class)) for cls, n in caps.items()}
-
+    # 3. Sample indices
     rng = np.random.default_rng(random_state)
     kept = []
     for cls, cap in caps.items():

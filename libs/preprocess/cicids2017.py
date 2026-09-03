@@ -26,6 +26,10 @@ FLAG_COLS = [
 # For avoiding FGSM to attack FLAG_COLS
 CATEGORICAL_COLS+=FLAG_COLS
 
+# For having balanced dataset with ~ 200k rows
+MAX_PER_CLASS  = 25 * 1000
+MAJORITY_RATIO = 0.33
+
 BENIGN_LABEL = "BENIGN"
 
 def get_categorical_cols():
@@ -67,11 +71,14 @@ CONFIG = DatasetConfig(
 
 
 def get_train_val_test_set(download_dataset: bool = False,verbose: bool = False, **kwargs):
-    return utils.get_train_val_test_set(CONFIG, download_dataset, verbose, **kwargs)
+    return utils.get_train_val_test_set(
+        CONFIG, download_dataset, verbose,
+        max_per_class=MAX_PER_CLASS, majority_ratio=MAJORITY_RATIO, **kwargs)
 
 
 def load_cicids(download_dataset: bool = False, verbose: bool = False, **kwargs):
-    return utils.load_tensors(CONFIG, download_dataset, verbose, **kwargs)
+    return utils.load_tensors(CONFIG, download_dataset, verbose, 
+        max_per_class=MAX_PER_CLASS, majority_ratio=MAJORITY_RATIO, **kwargs)
 
 
 if __name__ == "__main__":

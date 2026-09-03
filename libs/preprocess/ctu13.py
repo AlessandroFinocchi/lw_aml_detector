@@ -38,6 +38,10 @@ CATEGORICAL_COLS+=PORT_COLS
 # every row looks unique.
 IDENTIFIER_COLS = ["StartTime", "SrcAddr", "DstAddr", "LastTime", "Timestamp"]
 
+# For having balanced dataset with ~ 200k rows
+MAX_PER_CLASS  = 50 * 1000
+MAJORITY_RATIO = 0.4
+
 BOTNET_CLASS     = "Botnet"
 NORMAL_CLASS     = "Normal"
 BACKGROUND_CLASS = "Background"
@@ -138,6 +142,7 @@ def get_train_val_test_set(download_dataset: bool = False, verbose: bool = False
                            drop_background: bool = False, **kwargs):
     return utils.get_train_val_test_set(
         CONFIG, download_dataset=download_dataset, verbose=verbose,
+        max_per_class=MAX_PER_CLASS, majority_ratio=MAJORITY_RATIO,
         clean_file=partial(_clean_file, drop_background=drop_background), **kwargs
     )
 
@@ -146,6 +151,7 @@ def load_ctu13(download_dataset: bool = False, verbose: bool = False, *,
                drop_background: bool = False, **kwargs):
     return utils.load_tensors(
         CONFIG, download_dataset=download_dataset, verbose=verbose,
+        max_per_class=MAX_PER_CLASS, majority_ratio=MAJORITY_RATIO,
         clean_file=partial(_clean_file, drop_background=drop_background), **kwargs
     )
 
