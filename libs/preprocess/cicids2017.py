@@ -19,7 +19,7 @@ CATEGORICAL_COLS = ["Destination Port", "Protocol"]  # excluded from the FGSM at
 
 # TCP flags are discrete counters.
 FLAG_COLS = [
-    "Fwd PSH Flags", "Bwd PSH Flags", "Fwd URG Flags", "Bwd URG Flags",
+    "Fwd PSH Flags", "Fwd URG Flags",
     "FIN Flag Count", "SYN Flag Count", "RST Flag Count", "PSH Flag Count",
     "ACK Flag Count", "URG Flag Count", "CWE Flag Count", "ECE Flag Count",
 ]
@@ -56,7 +56,9 @@ def _clean_file(path: str, verbose: bool = False) -> pd.DataFrame:
     df["attack_cat"] = df[label_col].map(_normalize_label)
     df["label"] = (df["attack_cat"].str.upper() != BENIGN_LABEL).astype("int64")
 
-    return df.drop(columns=[label_col])
+    # a raw column already named 'label' was overwritten just above: dropping
+    # it would throw the binary label away
+    return df if label_col == "label" else df.drop(columns=[label_col])
 
 
 CONFIG = DatasetConfig(

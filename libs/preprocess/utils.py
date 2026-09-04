@@ -173,7 +173,9 @@ def find_label_col(df: pd.DataFrame) -> str:
 
 
 def drop_if_present(df: pd.DataFrame, cols, what: str, verbose: bool = False) -> pd.DataFrame:
-    present = [c for c in cols if c in df.columns]
+    # case-insensitive
+    wanted = {str(c).strip().lower() for c in cols}
+    present = [c for c in df.columns if str(c).strip().lower() in wanted]
     if present:
         df = df.drop(columns=present)
         if verbose:
@@ -587,9 +589,22 @@ def load_tensors(
     feature_names = list(X_tr.columns)
     non_attackable = config.categorical_cols if non_attackable is None else non_attackable
 
+    print(f"\n{config.name}: {len(feature_names)} columns")
+    for name in sorted(feature_names):
+        print(f"  {name}")
+
+    # case-insensitive
+    non_attackable_wanted = {c.strip().lower() for c in non_attackable}
+    non_attackable_matched = {c for c in feature_names if c.strip().lower() in non_attackable_wanted}
+
+    non_attackable_unmatched = sorted(non_attackable_wanted - {c.strip().lower() for c in non_attackable_matched})
+    if non_attackable_unmatched:
+        print(f"[warn] {config.name}: non-attackable columns not found in the "
+              f"features, they will be perturbed by the attack: {non_attackable_unmatched}")
+
     # 1.0 = continuous attackable feature, 0.0 = untouchable categorical one
     attack_mask = torch.tensor(
-        [0.0 if c in non_attackable else 1.0 for c in feature_names]
+        [0.0 if c in non_attackable_matched else 1.0 for c in feature_names]
     )
 
     to_x = lambda df: torch.from_numpy(df.to_numpy(dtype="float32"))

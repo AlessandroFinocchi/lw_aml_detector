@@ -4,15 +4,7 @@ train/test split, so the first call builds one and saves it; later calls just
 reload it. All of that lives in utils.py -- this module only describes what is
 specific to CSE-CIC-IDS2018: how to clean one of its daily files.
 
-Three things make these raw files nastier than the 2017 ones:
-
-  * The schema is not uniform. Most files have 80 columns, but the
-    Thursday-01-03-2018 capture also carries Flow ID / Src IP / Src Port /
-    Dst IP. Those are identifiers and get dropped here; utils then aligns the
-    captures on the columns they all share.
-  * Several files (02-16, 02-28, 03-01) repeat the header row in the middle of
-    the data, which makes pandas type every column as object.
-  * It is big, roughly 16M flows.
+Very big dataset, roughly 16M flows.
 """
 
 from __future__ import annotations
@@ -25,20 +17,16 @@ from libs.preprocess.utils import DatasetConfig
 
 
 # 1.0 = continuous, attackable feature / 0.0 = categorical, untouchable one.
-CATEGORICAL_COLS = ["Dst Port", "Protocol"]  # excluded from the FGSM attack
+CATEGORICAL_COLS = ["Protocol"]  # excluded from the FGSM attack
 
 # TCP flags are discrete counters
 FLAG_COLS = [
-    "Fwd PSH Flags", "Bwd PSH Flags", "Fwd URG Flags", "Bwd URG Flags",
-    "FIN Flag Cnt", "SYN Flag Cnt", "RST Flag Cnt", "PSH Flag Cnt",
-    "ACK Flag Cnt", "URG Flag Cnt", "CWE Flag Count", "ECE Flag Cnt",
+    "Fwd PSH Flags", "Fwd URG Flags",
+    "FIN Flag Count", "SYN Flag Count", "RST Flag Count", "PSH Flag Count",
+    "ACK Flag Count", "URG Flag Count", "CWE Flag Count", "ECE Flag Count",
 ]
 # For avoiding FGSM to attack FLAG_COLS
 CATEGORICAL_COLS+=FLAG_COLS
-
-# Only one capture carries the first four fields,
-# while the Timestamp could has a negative effect.
-IDENTIFIER_COLS = ["Flow ID", "Src IP", "Src Port", "Dst IP", "Timestamp"]
 
 # For having balanced dataset with ~ 200k rows
 MAX_PER_CLASS  = 14 * 1000
@@ -56,25 +44,12 @@ def _clean_file(path: str, verbose: bool = False) -> pd.DataFrame:
     df = utils.normalize_columns(utils.read_raw(path))
     label_col = utils.find_label_col(df)
 
-    # Repeated header rows: whole lines where every cell holds its column name.
-    # They are what forces pandas to type the entire file as object.
-    header_rows = df[label_col].astype(str).str.strip().str.lower() == "label"
-    if header_rows.any():
-        df = df[~header_rows]
-        if verbose:
-            print(f"    repeated header rows removed: {int(header_rows.sum())}")
-
-    # Identifiers must go before anything else: Timestamp in particular makes
-    # every row unique and would defeat duplicate removal further down.
-    df = utils.drop_if_present(df, IDENTIFIER_COLS, "identifier columns", verbose)
-
     df["attack_cat"] = df[label_col].map(lambda v: " ".join(str(v).strip().split()))
     df["label"] = (df["attack_cat"].str.upper() != BENIGN_LABEL).astype("int64")
-    df = df.drop(columns=[label_col])
-
-    # Everything except the labels is numeric
-    feature_cols = [c for c in df.columns if c not in ("attack_cat", "label")]
-    df[feature_cols] = df[feature_cols].apply(pd.to_numeric, errors="coerce")
+    # a raw column already named 'label' was overwritten just above: dropping
+    # it would throw the binary label away
+    if label_col != "label":
+        df = df.drop(columns=[label_col])
 
     return df
 
