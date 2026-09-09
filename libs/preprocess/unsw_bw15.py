@@ -7,14 +7,19 @@ import pandas as pd
 from sklearn.preprocessing import OrdinalEncoder, StandardScaler
 from sklearn.model_selection import train_test_split
 
+import libs.preprocess.utils as utils
+
 DATASET_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "dataset", "unsw-nb15")
-CATEGORICAL_COLS = ["proto", "service", "state"]  # escluse dall'attacco FGSM
+CATEGORICAL_COLS = ["proto", "service", "state", "is_ftp_login", "is_sm_ips_ports"]  # escluse dall'attacco FGSM
 
 def get_categorical_cols():
     return CATEGORICAL_COLS
 
 
-def get_train_val_test_set(download_dataset=False, verbose=False, **kwargs) -> tuple[
+def get_train_val_test_set(download_dataset=False, verbose=False,
+                           skew_transform: str = utils.DEFAULT_SKEW_TRANSFORM,
+                           skew_threshold: float = utils.DEFAULT_SKEW_THRESHOLD,
+                           **kwargs) -> tuple[
     pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
 ]:
     # 1. Download latest version
@@ -61,6 +66,11 @@ def get_train_val_test_set(download_dataset=False, verbose=False, **kwargs) -> t
         if te[col].isnull().any():
             te[col].fillna(col, inplace=True)
     
+
+    # 4b. Reshape the heavy tails before scaling
+    tr, te = utils.reshape_skewed(tr, te, CATEGORICAL_COLS,
+                                  method=skew_transform, threshold=skew_threshold,
+                                  verbose=verbose)
 
     # 5. Standardize numerical features
     exclude_columns = ['attack_cat', 'label']
@@ -123,7 +133,7 @@ def get_train_val_test_set(download_dataset=False, verbose=False, **kwargs) -> t
 def load_unsw(download_dataset=False, verbose=False, **kwargs):
     """Loads the sets and builds the attack mask."""
     X_tr, y_tr, X_val, y_val, X_te, y_te = get_train_val_test_set(
-        download_dataset, verbose
+        download_dataset, verbose, **kwargs
     )
 
     feature_names = list(X_tr.columns)

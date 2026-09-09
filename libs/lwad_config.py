@@ -170,6 +170,7 @@ class AlignmentArchConfig(ArchitectureConfig):
         def al(base: nn.Module) -> lw.NearestAL:
             return lw.NearestAL(base, detach_reference=self.detach_reference)
         return lw.LWADSequential(
+            nn.LayerNorm(n_features),
             nn.Linear(n_features, h), nn.ReLU(),
             al(nn.Linear(h, h)), nn.ReLU(),
             al(nn.Linear(h, 64)), nn.ReLU(),

@@ -26,13 +26,14 @@ Read one raw capture file and return a DataFrame that has:
 After that downcasting, deduplication, subsampling, schema alignment, 
 merging, splitting and saving.
 
-Sizing knobs, both optional:
+Notes:
   * `undersample`    keeps a stratified fraction of each daily file during the
                      preprocessing, bounding peak memory but preserving the
                      original class ratios.
   * `max_per_class` / `majority_ratio` undersample the over-represented classes
                      at load time, shrinking the data AND rebalancing it. They
                      can be changed between runs without redoing preprocessing.
+  * `skew_transform` / `skew_threshold` pull in the skewness.
 """
 
 from __future__ import annotations
@@ -47,7 +48,8 @@ import numpy as np
 import pandas as pd
 import torch
 
-from sklearn.preprocessing import OrdinalEncoder, StandardScaler
+from sklearn.preprocessing import (OrdinalEncoder, PowerTransformer,
+                                   QuantileTransformer, StandardScaler)
 from sklearn.model_selection import train_test_split
 
 try:                       # only needed to download a dataset
@@ -58,11 +60,13 @@ except ImportError:        # the modules stay usable offline
 
 RAW_SUBDIR = "raw"
 
-# Bookkeeping columns: never features, never scaled, dropped before the tensors.
-# 'scenario' and 'capture' are the names earlier versions used for 'source';
-# they are listed so splits saved back then still load.
+# Dropping columns: never features, never scaled, dropped before the tensors.
 META_COLS = ("attack_cat", "label", "source")
 NON_FEATURE_COLS = ("id", "source", "scenario", "capture", "attack_cat")
+
+# See reshape_skewed().
+DEFAULT_SKEW_TRANSFORM = "quantile"     # "quantile" | "yeo-johnson" | "none"
+DEFAULT_SKEW_THRESHOLD = 2.0            # |skew| above which a column gets reshaped
 
 
 @dataclass
@@ -76,6 +80,9 @@ class DatasetConfig:
     clean_file: Callable[..., pd.DataFrame]    # see the contract above
     categorical_cols: list[str] = field(default_factory=list)  # untouchable by FGSM
     raw_extensions: tuple[str, ...] = (".parquet", ".csv")
+
+    skew_transform: str = DEFAULT_SKEW_TRANSFORM    # quantile|yeo-johnson|none
+    skew_threshold: float = DEFAULT_SKEW_THRESHOLD  # |skew| above which to reshape
 
 
 # ===========================================================================
@@ -135,6 +142,7 @@ def download_raw(kaggle_handle: str, raw_dir: str,
     return raw_dir
 
 
+    # see reshape_skewed(); overridable per call
 def list_raw_files(raw_dir: str, extensions: tuple[str, ...]) -> list[str]:
     files: list[str] = []
     for ext in extensions:
@@ -235,7 +243,7 @@ def undersample(
     counts = df[label_col].value_counts()
     counts = counts[counts > 0]          # categorical dtypes report empty classes
     caps = counts.to_dict()
-    majority = counts.index[0]       # value_counts is sorted descending
+    majority = counts.index[0]           # value_counts is sorted descending
 
     # 1. Cap non-majority classes only
     if max_per_class is not None:
@@ -360,9 +368,10 @@ def build_train_test_set(
     Merge the raw captures, clean them, split into train/test and save both.
 
     `subsample` is applied per capture file rather than on the merged frame, so
-    peak memory stays bounded. A float is the fraction kept from each file, an
-    int the maximum number of rows kept from each file; either way the sampling
-    is stratified on that file's own labels.
+                memory usage stays bounded:
+                * float is the fraction kept from each file
+                * int is the maximum number of rows kept from each file
+                either way the sampling is stratified on that file's own labels.
     """
     clean_file = clean_file or config.clean_file
     os.makedirs(dataset_path, exist_ok=True)
@@ -391,8 +400,7 @@ def build_train_test_set(
 
         part = downcast(part)
 
-        # deduplicate here, while the frame is still small: most duplicates are
-        # internal to one capture and this keeps the merged frame much lighter
+        # deduplicate here, while the frame is still small
         n_before = len(part)
         part = part.drop_duplicates(ignore_index=True)
         if verbose and n_before != len(part):
@@ -422,7 +430,63 @@ def build_train_test_set(
 
 
 # ===========================================================================
-# Loading: the saved splits -> X_train, y_train, X_val, y_val, X_test, y_test
+# Feature reshaping
+# ===========================================================================
+def reshape_skewed(tr: pd.DataFrame, te: pd.DataFrame, categorical_cols=(),
+                   method: str = DEFAULT_SKEW_TRANSFORM,
+                   threshold: float = DEFAULT_SKEW_THRESHOLD,
+                   random_state: int = 42, verbose: bool = False
+                   ) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """
+    Pull in the heavy tails before the scaler: datasets are skewed.
+
+    Methods:
+      quantile (the default)
+      yeo-johnson
+
+    Only columns whose |skew| on the training set exceeds `threshold` are
+    touched, and the map is fitted on the training set alone. Ordinal-encoded
+    categoricals are numeric by now, so `categorical_cols` has to be passed.
+    """
+    if method == "none":
+        return tr, te
+
+    skip = {str(c).strip().lower() for c in categorical_cols}
+    skip |= {c.lower() for c in NON_FEATURE_COLS} | {"label"}
+    cols = [c for c in tr.columns
+            if pd.api.types.is_numeric_dtype(tr[c])
+            and str(c).strip().lower() not in skip
+            and abs(tr[c].skew()) > threshold]
+    if not cols:
+        return tr, te
+
+    if method == "quantile":
+        qt = QuantileTransformer(output_distribution="normal",
+                                 n_quantiles=min(1000, len(tr)),
+                                 random_state=random_state)
+        tr[cols] = qt.fit_transform(tr[cols])
+        te[cols] = qt.transform(te[cols])
+
+    elif method == "yeo-johnson":
+        pt = PowerTransformer(method="yeo-johnson", standardize=True)
+        tr[cols] = pt.fit_transform(tr[cols])
+        te[cols] = pt.transform(te[cols])
+
+    else:
+        raise ValueError(f"Unknown skew_transform {method!r}: use "
+                         "'yeo-johnson', 'quantile' or 'none'")
+
+    # both transforms return float64: stay in float32, like the rest of the frame
+    tr[cols] = tr[cols].astype("float32")
+    te[cols] = te[cols].astype("float32")
+
+    if verbose:
+        print(f"\nSkew transform ({method}) applied to {len(cols)} columns: {cols}")
+    return tr, te
+
+
+# ===========================================================================
+# Loading: -> X_train, y_train, X_val, y_val, X_test, y_test
 # ===========================================================================
 def get_train_val_test_set(
     config: DatasetConfig,
@@ -438,9 +502,15 @@ def get_train_val_test_set(
     majority_ratio: float | None = None,
     test_max_rows: int | None = None,
     clean_file: Callable[..., pd.DataFrame] | None = None,
+    skew_transform: str | None = None,
+    skew_threshold: float | None = None,
 ) -> tuple[
     pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
 ]:
+    # the config carries the per-dataset default, the arguments override it
+    skew_transform = config.skew_transform if skew_transform is None else skew_transform
+    skew_threshold = config.skew_threshold if skew_threshold is None else skew_threshold
+
     # 1. Build the training/test sets only if they do not exist yet
     dataset_path = config.dataset_path
     train_path = find_split(dataset_path, config.train_basename)
@@ -462,10 +532,7 @@ def get_train_val_test_set(
     tr = read_split(train_path)
     te = read_split(test_path)
 
-    # 2b. Optional undersampling. This is where the size of a single experiment
-    #     is decided, so it can be changed without redoing the preprocessing.
-    #     Only the training set is rebalanced: the test set is merely capped in
-    #     size, so the reported metrics keep reflecting the real class ratios.
+    # 2b. Optional undersampling, only the training set is rebalanced.
     tr = undersample(tr, max_per_class=max_per_class, majority_ratio=majority_ratio,
                      random_state=random_state, verbose=verbose)
 
@@ -475,8 +542,6 @@ def get_train_val_test_set(
             print(f"\nTest set capped at {len(te)} rows (class ratios preserved)")
 
     # 3. Handle categorical features with ordinal encoding.
-    #    Non numeric covers str/object/category, depending on the pandas version
-    #    and on the format the split was reloaded from.
     categorical_cols = [c for c in tr.columns if not pd.api.types.is_numeric_dtype(tr[c])]
 
     oe = OrdinalEncoder(
@@ -488,12 +553,11 @@ def get_train_val_test_set(
     tr[categorical_cols] = oe.fit_transform(tr[categorical_cols].astype(str))
     te[categorical_cols] = oe.transform(te[categorical_cols].astype(str))
 
-    # the encoder returns float64, which would upcast the whole frame during
-    # scaling: stay in float32, it is what the tensors use anyway
+    # the tensors use float32
     tr[categorical_cols] = tr[categorical_cols].astype("float32")
     te[categorical_cols] = te[categorical_cols].astype("float32")
 
-    # keep the code -> class name mapping, only used for the verbose report
+    # code -> class name mapping, only used for the verbose report
     attack_names = (
         list(oe.categories_[categorical_cols.index("attack_cat")])
         if "attack_cat" in categorical_cols else []
@@ -506,6 +570,11 @@ def get_train_val_test_set(
     for col in te.columns:
         if te[col].isnull().any():
             te[col] = te[col].fillna(col)
+
+    # 4b. Reshape the heavy tails
+    tr, te = reshape_skewed(tr, te, config.categorical_cols, method=skew_transform,
+                            threshold=skew_threshold, random_state=random_state,
+                            verbose=verbose)
 
     # 5. Standardize numerical features
     scaler = StandardScaler()
