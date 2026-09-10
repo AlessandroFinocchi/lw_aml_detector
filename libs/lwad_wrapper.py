@@ -45,11 +45,16 @@ class FlowState:
             )
         return real, adv
 
+    REDUCE_MODES = ("mean", "max")
+
     def adv_score(self, reduce: str = "mean") -> Optional[torch.Tensor]:
         """reduce can be:
                 "mean": averages all detectors scores
                 "max" : alerts if at least one detector result is adversarial
         Returns None if the network doesn't contain any detector."""
+        if reduce not in self.REDUCE_MODES:
+            raise ValueError(f"adv_score: unknown reduce {reduce!r}, "
+                             f"expected one of {self.REDUCE_MODES}")
         if not self.detections:
             return None
 
@@ -57,18 +62,42 @@ class FlowState:
         return probs.max(dim=-1).values if reduce == "max" else probs.mean(dim=-1)
 
 
+# ===========================================================================
+# Detector build utilities
+# ===========================================================================
+def build_detector(in_dim: int, dims: Iterable[int] = (128, 64),
+                   layer_norm: bool = True) -> nn.Module:
+    """Builds a detector for real/adv classification. The detector module
+    architecture must stay the following for the state_dict keys
+    
+    activations --> [LayerNorm] --> Linear  --> ReLU 
+     in_dim         optional       (dims[1])         
+                                --> Linear  --> ReLU 
+                                   (dims[2])                  
+                                --> ... 
+                                --> Linear  --> ReLU 
+                                   (dims[n])                 
+                                --> Linear --> logit
+                                    (1)
+    Args:
+        in_dim: the input dimension
+        dims: the dimensions of internal Linear layers
+        layer_norm: if true starts with a LayerNorm
+    """
+    mods: list[nn.Module] = [nn.LayerNorm(in_dim)] if layer_norm else []
+    prev = in_dim
+    for h in dims:
+        mods += [nn.Linear(prev, h), nn.ReLU()]
+        prev = h
+    mods.append(nn.Linear(prev, 1))
+    return nn.Sequential(*mods)
+
 def default_detector(in_dim: int, hidden: int = 64) -> nn.Module:
-    """LayerNorm stabilizes the activation scales"""
-    return nn.Sequential(
-        nn.LayerNorm(in_dim),
-        nn.Linear(in_dim, hidden*2), nn.ReLU(),
-        nn.Linear(hidden*2, hidden), nn.ReLU(),
-        nn.Linear(hidden, 1),
-    )
+    return build_detector(in_dim, (hidden*2, hidden))
 
 
 # ===========================================================================
-# Layer class diagram
+# Layers class diagram
 #
 #                     PassThrough
 #                    /           \
@@ -125,7 +154,7 @@ class ActivationLoss(PassThrough):
     Abstract class, subclasses define only distance_to_loss(d)
 
     - enabled: enables loss without changing architecture
-    - detach_reference: if true real activations are treated as a fixed
+    - detach_reference: if true, real activations are treated as a fixed
                         anchor and grad only moves adv activations.
                         None -> DETACH_REFERENCE_DEFAULT of the subclass.
     """

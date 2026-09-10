@@ -1,15 +1,16 @@
 import torch
 import torch.nn.functional as F
 
-from libs.lwad_config import DEFAULT_THRESHOLD
-from libs.lwad_attack import generate_attack, DEFAULT_TRAIN_ATTACK
+from libs.lwad_config import DEFAULT_THRESHOLD_DET
+from libs.lwad_attack import (generate_attack, DEFAULT_TRAIN_ATTACK,
+                              DEFAULT_SCORE_REDUCE)
 from libs.lwad_evaluator import predict
 
 
 def train_epoch(model, loader, optimizer, eps, lambda_det=1.0, lambda_act=1.0,
                 task_loss_on_adv=False, class_weights=None,
-                attack_mask=None, attack=DEFAULT_TRAIN_ATTACK, threshold=DEFAULT_THRESHOLD,
-                attack_kwargs=None, device="cpu"):
+                attack_mask=None, attack=DEFAULT_TRAIN_ATTACK, threshold_det=DEFAULT_THRESHOLD_DET,
+                attack_kwargs=None, device="cpu", reduce=DEFAULT_SCORE_REDUCE):
     """Agnostic training loop:
 
         loss = task + lambda_det * det_loss + lambda_act * act_loss
@@ -73,9 +74,9 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0, lambda_act=1.0,
         tot_task_correct_adv_preds += (logits[n:].argmax(-1) == y).sum().item()
 
         with torch.no_grad():
-            score = state.adv_score()
+            score = state.adv_score(reduce=reduce)
         if score is not None:
-            det_pred_adv = score > threshold # => adversarial sample
+            det_pred_adv = score > threshold_det # => adversarial sample
             tot_det_correct_clean_preds += (~det_pred_adv[:n]).sum().item()
             tot_det_correct_adv_preds += det_pred_adv[n:].sum().item()
 
@@ -91,9 +92,10 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0, lambda_act=1.0,
 
 
 def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=DEFAULT_TRAIN_ATTACK,
-                     device="cpu", batch_size=4096, grid=99, attack_kwargs=None):
+                     device="cpu", batch_size=4096, grid=99, attack_kwargs=None,
+                     reduce=DEFAULT_SCORE_REDUCE):
     """
-    Chooses the detector threashold maximizing its balanced accuracy, as the mean
+    Chooses the detector threshold maximizing its balanced accuracy, as the mean
     between adversarial attack (score above threshold) and clean data correctly
     classified (score under the threshold)"""
 
@@ -108,8 +110,8 @@ def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=DEFAULT_
         y = y_val[i:i + batch_size]
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask,
                                 **attack_kwargs)
-        _, s_c, _ = predict(model, x)
-        _, s_a, _ = predict(model, x_adv)
+        _, s_c, _ = predict(model, x, reduce=reduce)
+        _, s_a, _ = predict(model, x_adv, reduce=reduce)
         sc_c.append(s_c); sc_a.append(s_a)
     sc_c, sc_a = torch.cat(sc_c), torch.cat(sc_a)
 

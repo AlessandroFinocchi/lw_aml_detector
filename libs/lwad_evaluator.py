@@ -1,16 +1,17 @@
 import torch
 
-from libs.lwad_config import DEFAULT_THRESHOLD
-from libs.lwad_attack import generate_attack, DEFAULT_EVAL_ATTACK
+from libs.lwad_config import DEFAULT_THRESHOLD_DET
+from libs.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
+                              DEFAULT_SCORE_REDUCE)
 
 @torch.no_grad()
-def predict(model, x, threshold=DEFAULT_THRESHOLD, reduce="mean"):
+def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_REDUCE):
     """Returns (predicted labels, adversarial score, clean-adversarial flags).
     For architectures of type 2 (NearestAL) score and flags are None."""
     model.eval()
     logits, state = model(x)
     score = state.adv_score(reduce=reduce)
-    flags = (score > threshold) if score is not None else None
+    flags = (score > threshold_det) if score is not None else None
     return logits.argmax(-1), score, flags
 
 def _binary_metrics(pred, true, positive=1):
@@ -29,8 +30,8 @@ def _binary_metrics(pred, true, positive=1):
     return {"acc": acc, "precision": precision, "recall": recall}
 
 def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTACK,
-             device="cpu", batch_size=4096, threshold=DEFAULT_THRESHOLD,
-             attack_kwargs=None):
+             device="cpu", batch_size=4096, threshold_det=DEFAULT_THRESHOLD_DET,
+             attack_kwargs=None, reduce=DEFAULT_SCORE_REDUCE):
     """
     Task and Detector metrics on batch set
 
@@ -52,8 +53,8 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
         y = y_te[i:i + batch_size]
         x_adv = generate_attack(model, x, y, eps, attack, mask=attack_mask,
                                 **attack_kwargs)  #  needs grad
-        lab_c, sc_c, _ = predict(model, x, threshold=threshold)
-        lab_a, sc_a, _ = predict(model, x_adv, threshold=threshold)
+        lab_c, sc_c, _ = predict(model, x, threshold_det=threshold_det, reduce=reduce)
+        lab_a, sc_a, _ = predict(model, x_adv, threshold_det=threshold_det, reduce=reduce)
         res["lab_c"].append(lab_c)
         res["lab_a"].append(lab_a)
         if sc_c is not None:
@@ -79,8 +80,8 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
         sc_c, sc_a = torch.cat(res["sc_c"]), torch.cat(res["sc_a"])
 
         # ground truth: clean = 0, adversarial = 1
-        det_pred_clean = (sc_c > threshold).long()   # should be 0
-        det_pred_adv = (sc_a > threshold).long()     # should be 1
+        det_pred_clean = (sc_c > threshold_det).long()   # should be 0
+        det_pred_adv = (sc_a > threshold_det).long()     # should be 1
         det_true_clean = torch.zeros_like(det_pred_clean)
         det_true_adv = torch.ones_like(det_pred_adv)
 

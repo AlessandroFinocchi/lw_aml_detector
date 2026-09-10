@@ -18,6 +18,7 @@ DEFAULT_EPS              = 0.1             # attack intensity, in standardized m
 DEFAULT_PGD_STEPS        = 20              # iterations number for PGD / adaptive PGD
 DEFAULT_PGD_ALPHA        = DEFAULT_EPS / 4 # amplitude of iteration step
 DEFAULT_PGD_EVADE_WEIGHT = 1.0             # evade term weight in adaptive PGD
+DEFAULT_SCORE_REDUCE     = "mean"          # how adv_score merges the detectors
 
 
 # ===========================================================================
@@ -77,7 +78,8 @@ def _detector_grad_enabled(model):
             layer.detach = s
 
 
-def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
+def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0,
+                 reduce=DEFAULT_SCORE_REDUCE):
     if not any(isinstance(m, DetectorLayer) for m in model.modules()):
         raise ValueError(
             "pgd_adaptive requires a detector-based architecture: "
@@ -95,7 +97,7 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
             x_adv.requires_grad_(True)
             logits, state = model(x_adv)
             task_loss = F.cross_entropy(input=logits, target=y)
-            score = state.adv_score().mean() # mean "adversarial" probability
+            score = state.adv_score(reduce=reduce).mean()
             objective = task_loss - evade_weight * score
             (grad,) = torch.autograd.grad(outputs=objective, inputs=x_adv)
             with torch.no_grad():
@@ -110,14 +112,15 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0):
 
 # ===========================================================================
 # Attack selection
-# steps / alpha / evade_weight are optionals: if None, defaults are used
+# steps / alpha / evade_weight / reduce are optionals: if None, defaults are used
 # ===========================================================================
 def generate_attack(model, x, y, eps, attack, mask=None,
-                    steps=None, alpha=None, evade_weight=None):
+                    steps=None, alpha=None, evade_weight=None, reduce=None):
     attack = Attack(attack)
     steps = DEFAULT_PGD_STEPS if steps is None else steps
     alpha = (eps / 4) if alpha is None else alpha
     evade_weight = DEFAULT_PGD_EVADE_WEIGHT if evade_weight is None else evade_weight
+    reduce = DEFAULT_SCORE_REDUCE if reduce is None else reduce
 
     if attack is Attack.FGSM:
         return fgsm(model, x, y, eps, mask=mask)
@@ -125,5 +128,5 @@ def generate_attack(model, x, y, eps, attack, mask=None,
         return pgd(model, x, y, eps, steps=steps, alpha=alpha, mask=mask)
     if attack is Attack.PGD_ADAPTIVE:
         return pgd_adaptive(model, x, y, eps, steps=steps, alpha=alpha,
-                            mask=mask, evade_weight=evade_weight)
+                            mask=mask, evade_weight=evade_weight, reduce=reduce)
     raise ValueError(f"Unknown attack: {attack!r}")

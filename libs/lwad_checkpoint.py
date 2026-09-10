@@ -8,13 +8,13 @@ knowing in advance which architecture produced it:
     config         : all config fields, so build_model() can be replayed
     feature_names  : column order the model was trained on
     attack_mask    : which features are attackable (1.0) or categorical (0.0)
-    threshold      : selected detector threshold (None for architecture 2)
+    threshold_det  : selected detector threshold (None for architecture 2)
 
 Typical use:
 
     from libs.lwad_checkpoint import load_checkpoint
     ck = load_checkpoint("lwad_model.pt", device=device)
-    labels, score, is_adv = predict(ck.model, x, threshold=ck.threshold)
+    labels, score, is_adv = predict(ck.model, x, threshold_det=ck.threshold_det)
 """
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ def _config_classes() -> dict:
 # Store
 # ===========================================================================
 def save_checkpoint(path, model, config, feature_names,
-                    attack_mask=None, threshold=None) -> None:
+                    attack_mask=None, threshold_det=None) -> None:
     """Stores weights + everything needed to rebuild the architecture.
     The checkpoint can be reloaded with weights_only=True."""
     torch.save({"state_dict": model.state_dict(),
@@ -52,7 +52,7 @@ def save_checkpoint(path, model, config, feature_names,
                 "config": dict(config.__dict__),
                 "feature_names": list(feature_names),
                 "attack_mask": attack_mask,
-                "threshold": threshold
+                "threshold_det": threshold_det
                 }, path)
 
 
@@ -65,7 +65,7 @@ class LoadedCheckpoint:
     config: lc.ArchitectureConfig
     feature_names: list
     attack_mask: Optional[torch.Tensor]
-    threshold: Optional[float]
+    threshold_det: Optional[float]
 
     @property
     def uses_detectors(self) -> bool:
@@ -123,7 +123,7 @@ def load_checkpoint(path, device="cpu", eval_mode=True) -> LoadedCheckpoint:
     return LoadedCheckpoint(model=model, config=config,
                             feature_names=feature_names,
                             attack_mask=attack_mask,
-                            threshold=ck.get("threshold"))
+                            threshold_det=ck.get("threshold_det"))
 
 
 # ===========================================================================

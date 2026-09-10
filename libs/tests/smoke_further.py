@@ -79,7 +79,7 @@ def train_and_measure(cfg, X_tr, y_tr, X_te, y_te, mask):
         lt.train_epoch(built.model, loader, built.optimizer, eps=cfg.eps,
                        lambda_det=cfg.lambda_det, lambda_act=cfg.lambda_act,
                        task_loss_on_adv=cfg.task_loss_on_adv, attack_mask=mask,
-                       attack=cfg.train_attack, threshold=cfg.threshold,
+                       attack=cfg.train_attack, threshold_det=cfg.threshold_det,
                        attack_kwargs=cfg.attack_kwargs())
 
     built.model.eval()
@@ -87,7 +87,7 @@ def train_and_measure(cfg, X_tr, y_tr, X_te, y_te, mask):
                             mask=mask, **cfg.attack_kwargs())
     rows = layer_distances(built.model, X_te, x_adv)
     val = le.evaluate(built.model, X_te, y_te, eps=cfg.eps, attack_mask=mask,
-                      attack=cfg.eval_attack, threshold=cfg.threshold,
+                      attack=cfg.eval_attack, threshold_det=cfg.threshold_det,
                       attack_kwargs=cfg.attack_kwargs())
     return built.model, rows, val
 

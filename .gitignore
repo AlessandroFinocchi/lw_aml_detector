@@ -4,4 +4,6 @@ lwad_libs.egg-info
 .vscode
 lwad_model.pt
 notebooks/main*.py
-
+notebooks/params_calc.py
+results
+res.log

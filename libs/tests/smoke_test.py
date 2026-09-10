@@ -71,12 +71,12 @@ for name, cfg in [("Architettura 1 (DetectorArchConfig, FurtherAL)", lc.Detector
                            lambda_act=cfg.lambda_act,
                            task_loss_on_adv=cfg.task_loss_on_adv,
                            attack_mask=mask, attack=cfg.train_attack,
-                           threshold=getattr(cfg, "threshold", 0.5),
+                           threshold_det=getattr(cfg, "threshold_det", 0.5),
                            attack_kwargs=cfg.attack_kwargs())
     print("   train stats:", {k: (round(v, 3) if isinstance(v, float) else v)
                               for k, v in stats.items()})
     m = le.evaluate(model, X, y, eps=cfg.eps, attack_mask=mask,
-                    attack=cfg.eval_attack, threshold=getattr(cfg, "threshold", 0.5),
+                    attack=cfg.eval_attack, threshold_det=getattr(cfg, "threshold_det", 0.5),
                     attack_kwargs=cfg.attack_kwargs(), batch_size=128)
     print("   eval: task_clean acc =", round(m["task_clean"]["acc"], 3),
           "| task_adv acc =", round(m["task_adv"]["acc"], 3),

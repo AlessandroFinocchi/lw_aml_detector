@@ -78,7 +78,7 @@ def _warmup(config, X, y, attack_mask, device, epochs, class_weights=None):
                        task_loss_on_adv=config.task_loss_on_adv,
                        class_weights=class_weights, attack_mask=attack_mask,
                        attack=config.train_attack,
-                       threshold=getattr(config, "threshold", 0.5),
+                       threshold_det=getattr(config, "threshold_det", 0.5),
                        attack_kwargs=config.attack_kwargs(), device=device)
     return built.model
 
@@ -207,11 +207,11 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
                            lambda_det=cand.lambda_det, lambda_act=cand.lambda_act,
                            task_loss_on_adv=cand.task_loss_on_adv,
                            class_weights=class_weights, attack_mask=attack_mask,
-                           attack=cand.train_attack, threshold=cand.threshold,
+                           attack=cand.train_attack, threshold_det=cand.threshold_det,
                            attack_kwargs=cand.attack_kwargs(), device=device)
         val = le.evaluate(built.model, X_val, y_val, eps=cand.eps,
                           attack_mask=attack_mask, attack=cand.train_attack,
-                          device=device, threshold=cand.threshold,
+                          device=device, threshold_det=cand.threshold_det,
                           attack_kwargs=cand.attack_kwargs())
         det_bal = 0.5 * (val["det_clean_acc"] + val["det_adv_acc"])
         score = 0.5 * (val["task_clean"]["acc"] + det_bal)
