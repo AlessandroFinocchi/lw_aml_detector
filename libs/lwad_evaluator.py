@@ -1,8 +1,30 @@
 import torch
 
-from libs.lwad_config import DEFAULT_THRESHOLD_DET
+from libs.lwad_config import DEFAULT_THRESHOLD_DET, ScoreMode, DEFAULT_SCORE_MODE
 from libs.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
                               DEFAULT_SCORE_REDUCE)
+
+
+# ===========================================================================
+# Experiment comparison metric within different architectures
+#
+# The two architectures cannot be ranked on their own metrics: ali. architecture
+# defends by FLAGGING adversarial samples, det. architecture by CLASSIFYING them. 
+# The end-to-end view makes them comparable:
+#
+#   clean_acc_e2e  = clean sample classified right AND not flagged
+#   robust_acc_e2e = adv sample classified right OR flagged
+# ===========================================================================
+def combined_score(metrics: dict, mode=DEFAULT_SCORE_MODE) -> float:
+    """Collapses the end-to-end metrics into the single number every
+    experiment is ranked on. `mode` accepts a ScoreMode or its string value."""
+    mode = ScoreMode(mode)
+    clean, robust = metrics["clean_acc_e2e"], metrics["robust_acc_e2e"]
+    if mode is ScoreMode.CLEAN:
+        return clean
+    if mode is ScoreMode.ROBUST:
+        return robust
+    return 0.5 * (clean + robust)
 
 @torch.no_grad()
 def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_REDUCE):
@@ -43,6 +65,8 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
       det_adv_acc   : detector accuracy on adv data (= TPR = recall)
       detector      : detector accuracy, precision and recall on the clean and
                       adversarial mixed set
+      clean_acc_e2e : clean sample classified right AND not flagged
+      robust_acc_e2e: adv sample classified right OR flagged
 
     For architectures of type 2 (NearestAL) detector voices are None"""
     model.eval()
@@ -66,13 +90,20 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
     task_clean = _binary_metrics(lab_c, y_te, positive=1)
     task_adv = _binary_metrics(lab_a, y_te, positive=1)
 
+    correct_clean = lab_c.long() == y_te.long()
+    correct_adv = lab_a.long() == y_te.long()
+
     out = {"task_clean": task_clean,
            "task_adv": task_adv,
            "det_clean_acc": None,
            "det_adv_acc": None,
            "detector": None,
            "score_clean": None,
-           "score_adv": None}
+           "score_adv": None,
+           # no detector -> nothing is ever flagged, so the end-to-end view
+           # degenerates into the plain task accuracies (architecture 2)
+           "clean_acc_e2e": correct_clean.float().mean().item(),
+           "robust_acc_e2e": correct_adv.float().mean().item()}
 
     # --- DETECTOR (positive = adversarial) ---------------------------------
     # only for architecture of type 1
@@ -93,5 +124,11 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
         out["detector"] = _binary_metrics(det_pred, det_true, positive=1)
         out["score_clean"] = sc_c.mean().item()
         out["score_adv"] = sc_a.mean().item()
+
+        # a false alarm on a clean sample is a missclassification, 
+        # an adversarial alarm is a success even when the classifier gets fooled
+        flag_c, flag_a = det_pred_clean.bool(), det_pred_adv.bool()
+        out["clean_acc_e2e"] = (correct_clean & ~flag_c).float().mean().item()
+        out["robust_acc_e2e"] = (correct_adv | flag_a).float().mean().item()
 
     return out

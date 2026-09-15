@@ -1,6 +1,7 @@
 from enum import Enum
 
 from libs.preprocess import unsw_bw15, cicids2017, ctu13, csecicids2018
+from libs.preprocess.utils import DEFAULT_TEST_MAX_ROWS   # for re-export
 
 
 class KaggleDataset(Enum):

@@ -33,6 +33,9 @@ Notes:
   * `max_per_class` / `majority_ratio` undersample the over-represented classes
                      at load time, shrinking the data AND rebalancing it. They
                      can be changed between runs without redoing preprocessing.
+  * `test_max_rows`  caps the TEST split and gives every class the same size
+                     (balanced_cap). The two above only touch the training one.
+                     None disables the capping.
   * `skew_transform` / `skew_threshold` pull in the skewness.
 """
 
@@ -67,6 +70,8 @@ NON_FEATURE_COLS = ("id", "source", "scenario", "capture", "attack_cat")
 # See reshape_skewed().
 DEFAULT_SKEW_TRANSFORM = "quantile"     # "quantile" | "yeo-johnson" | "none"
 DEFAULT_SKEW_THRESHOLD = 2.0            # |skew| above which a column gets reshaped
+
+DEFAULT_TEST_MAX_ROWS = 100_000
 
 
 @dataclass
@@ -273,6 +278,45 @@ def undersample(
               f"({100 * len(out) / max(len(df), 1):.2f}% kept)")
         print(out[label_col].value_counts().to_string())
 
+    return out
+
+
+def balanced_cap(
+    df: pd.DataFrame,
+    max_rows: int | None,
+    label_col: str = "attack_cat",
+    random_state: int = 42,
+    verbose: bool = False,
+) -> pd.DataFrame:
+    """
+    Shrink a set to at most `max_rows` rows giving every class the same size.
+
+    A class holding less than its share releases the difference to the others,
+    so the result stays as close to `max_rows` as the data allows. 
+    """
+    if max_rows is None or len(df) <= max_rows:
+        return df
+
+    col = next((c for c in (label_col, "label") if c in df.columns), None)
+    if col is None:
+        out = df.sample(n=int(max_rows), random_state=random_state)
+    else:
+        groups = dict(tuple(df.groupby(col, observed=True, dropna=False)))
+        order = sorted(groups, key=lambda c: len(groups[c]))
+        budget, parts = min(int(max_rows), len(df)), []
+        for i, c in enumerate(order):
+            take = min(len(groups[c]), int(budget / (len(order) - i)))
+            budget -= take
+            if take:
+                parts.append(groups[c].sample(n=take, random_state=random_state))
+        out = pd.concat(parts)
+
+    out = out.sample(frac=1.0, random_state=random_state).reset_index(drop=True)
+    if verbose:
+        print(f"\nTest set capped: {len(df)} -> {len(out)} rows "
+              f"{f'(classes balanced on {col!r})' if col else '(uniform)'}")
+        if col:
+            print(out[col].value_counts().to_string())
     return out
 
 
@@ -500,7 +544,7 @@ def get_train_val_test_set(
     subsample: float | int | None = None,
     max_per_class: int | None = None,
     majority_ratio: float | None = None,
-    test_max_rows: int | None = None,
+    test_max_rows: int | None = DEFAULT_TEST_MAX_ROWS,
     clean_file: Callable[..., pd.DataFrame] | None = None,
     skew_transform: str | None = None,
     skew_threshold: float | None = None,
@@ -536,10 +580,8 @@ def get_train_val_test_set(
     tr = undersample(tr, max_per_class=max_per_class, majority_ratio=majority_ratio,
                      random_state=random_state, verbose=verbose)
 
-    if test_max_rows is not None and len(te) > test_max_rows:
-        te = te.sample(n=int(test_max_rows), random_state=random_state).reset_index(drop=True)
-        if verbose:
-            print(f"\nTest set capped at {len(te)} rows (class ratios preserved)")
+    # 2c. Caps the test split, balancing its classes
+    te = balanced_cap(te, test_max_rows, random_state=random_state, verbose=verbose)
 
     # 3. Handle categorical features with ordinal encoding.
     categorical_cols = [c for c in tr.columns if not pd.api.types.is_numeric_dtype(tr[c])]

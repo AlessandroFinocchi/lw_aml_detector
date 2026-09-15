@@ -19,6 +19,8 @@ def get_categorical_cols():
 def get_train_val_test_set(download_dataset=False, verbose=False,
                            skew_transform: str = utils.DEFAULT_SKEW_TRANSFORM,
                            skew_threshold: float = utils.DEFAULT_SKEW_THRESHOLD,
+                           test_max_rows: int | None = utils.DEFAULT_TEST_MAX_ROWS,
+                           random_state: int = 42,
                            **kwargs) -> tuple[
     pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame
 ]:
@@ -43,6 +45,10 @@ def get_train_val_test_set(download_dataset=False, verbose=False,
     # 2. Load the dataset
     tr = pd.read_csv(os.path.join(DATASET_PATH, "UNSW_NB15_training-set.csv"))
     te = pd.read_csv(os.path.join(DATASET_PATH, "UNSW_NB15_testing-set.csv"))
+
+    # 2b. Caps and stratify the test split
+    te = utils.balanced_cap(te, test_max_rows, random_state=random_state,
+                            verbose=verbose)
 
 
     # 3. Handle Categorical Features with Ordinal Encoding

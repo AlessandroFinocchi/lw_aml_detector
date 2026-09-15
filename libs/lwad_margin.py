@@ -213,8 +213,11 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
                           attack_mask=attack_mask, attack=cand.train_attack,
                           device=device, threshold_det=cand.threshold_det,
                           attack_kwargs=cand.attack_kwargs())
+
+        # the same score the suite ranks an experiment on
+        score = le.combined_score(val, cand.score_mode)
+        
         det_bal = 0.5 * (val["det_clean_acc"] + val["det_adv_acc"])
-        score = 0.5 * (val["task_clean"]["acc"] + det_bal)
         candidates.append({"factor": f, "margins": margins, "score": score,
                            "task_clean_acc": val["task_clean"]["acc"],
                            "det_bal_acc": det_bal})

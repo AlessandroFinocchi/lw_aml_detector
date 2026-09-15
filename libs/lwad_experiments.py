@@ -23,6 +23,7 @@ import torch
 import libs.preprocess.preprocess as pp
 import libs.lwad_config as lc
 import libs.lwad_attack as la
+import libs.lwad_margin as lm
 import libs.lwad_trainer as lt
 import libs.lwad_evaluator as le
 import libs.lwad_checkpoint as lcp
@@ -160,12 +161,27 @@ class Exp:
         # Check for correct wrap indexes
         cfg.resolved_wrap_at()
 
+        # Verify the checkpoint to load exists
+        if cfg.load_from and not os.path.exists(cfg.load_from):
+            print(f"warning: {self.name}: load_from={cfg.load_from!r} does not "
+                  f"exist yet, the run will fail unless it is created first")
+
         # Check for correct passed margins, and warns if they are passed an not used
         if cfg.uses_detectors:
-            cfg.margin_for_layer(0, cfg.n_wrapped_layers)
-            if isinstance(cfg.act_margin, tuple) and not cfg.use_act_loss:
-                print(f"warning: {self.name}: act_margin is a tuple but "
-                      f"use_act_loss=False, the margins are unused")
+            if cfg.margin_factor is None:
+                cfg.margin_for_layer(0, cfg.n_wrapped_layers)
+                if isinstance(cfg.act_margin, tuple) and not cfg.use_act_loss:
+                    print(f"warning: {self.name}: act_margin is a tuple but "
+                          f"use_act_loss=False, the margins are unused")
+            else:
+                # act_margin is going to be overwritten by _resolve_margins, so
+                # its declared shape is not checked here
+                if cfg.margin_factor <= 0:
+                    raise ValueError(f"{self.name}: margin_factor must be "
+                                     f"positive, got {cfg.margin_factor}")
+                if not cfg.use_act_loss:
+                    print(f"warning: {self.name}: margin_factor is set but "
+                          f"use_act_loss=False, no margin is ever used")
 
 
 class Sweep(Exp):
@@ -249,11 +265,13 @@ class DatasetBundle:
 
     @classmethod
     def load(cls, kd, device: str = "cpu", download: bool = False,
-             verbose: bool = False) -> "DatasetBundle":
+             verbose: bool = False,
+             test_max_rows: Optional[int] = pp.DEFAULT_TEST_MAX_ROWS) -> "DatasetBundle":
         (X_train, y_train, 
          X_val, y_val,
          X_test, y_test, 
-         feature_names, attack_mask) = pp.load_dataset(kd, download, verbose)
+         feature_names, attack_mask) = pp.load_dataset(
+            kd, download, verbose, test_max_rows=test_max_rows)
 
         X_train, y_train = X_train.to(device), y_train.to(device)
         X_val, y_val = X_val.to(device), y_val.to(device)
@@ -292,26 +310,23 @@ class DatasetBundle:
 
 
 # ===========================================================================
-# Shared pieces of the run
+# Run utilities
 # ===========================================================================
-def validation_score(metrics: dict, uses_detectors: bool) -> tuple[float, str, float]:
-    """The score both architectures are compared on:
+def validation_score(metrics: dict, mode: str = lc.DEFAULT_SCORE_MODE) -> float:
+    """The single number every run is ranked on, IDENTICAL for both
+    architectures.
 
-        detectors : mean of clean task accuracy and detector balanced accuracy
-        alignment : mean of clean task accuracy and adversarial task accuracy
+    The old per-architecture formulas (detector balanced accuracy vs
+    adversarial task accuracy) were not commensurable, so they could not order
+    architecture 1 and architecture 2 in the same table. The end-to-end metrics
+    can: see lwad_evaluator for their definition.
 
-    Returns (score, name of the second term, value of the second term).
+    mode: "joint" (default) | "clean" | "robust" - see lc.ScoreMode.
     """
-    task_acc = metrics["task_clean"]["acc"]
-    if uses_detectors:
-        second_term, name = 0.5 * (metrics["det_clean_acc"] + metrics["det_adv_acc"]), "det bal acc"
-    else:
-        second_term, name = metrics["task_adv"]["acc"], "task adv acc"
-    return 0.5 * (task_acc + second_term), name, second_term
+    return le.combined_score(metrics, mode)
 
 
-def _epoch_report(epoch: int, stats: dict, task_acc: float,
-                  second_name: str, second: float, score: float) -> str:
+def _epoch_report(epoch: int, stats: dict, val: dict, score: float) -> str:
     msg = (f"epoch {epoch:3d}:\n"
            f"\ttask loss={stats['task_loss']:.4f}\n")
     if stats["det_loss"] is not None:
@@ -323,7 +338,9 @@ def _epoch_report(epoch: int, stats: dict, task_acc: float,
     if stats["det_clean_acc"] is not None:
         msg += (f"\tdet clean samples acc={stats['det_clean_acc']:.4f}\n"
                 f"\tdet adv samples acc={stats['det_adv_acc']:.4f}\n")
-    msg += (f"\t[val] task acc={task_acc:.4f}  {second_name}={second:.4f}  "
+    msg += (f"\t[val] task acc={val['task_clean']['acc']:.4f}  "
+            f"clean e2e={val['clean_acc_e2e']:.4f}  "
+            f"robust e2e={val['robust_acc_e2e']:.4f}  "
             f"score={score:.4f}")
     return msg
 
@@ -360,14 +377,11 @@ def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
                           attack_mask=data.attack_mask, attack=cfg.train_attack,
                           device=device, threshold_det=threshold_det,
                           attack_kwargs=attack_kwargs, reduce=cfg.score_reduce)
-        val_task_acc = val["task_clean"]["acc"]
-        val_score, second_name, val_second = validation_score(val, cfg.uses_detectors)
+        val_score = validation_score(val, cfg.score_mode)
 
         if verbose >= 2:
-            print(_epoch_report(epoch, stats, val_task_acc,
-                                second_name, val_second, val_score))
+            print(_epoch_report(epoch, stats, val, val_score))
 
-        # early stopping end condition
         if val_score > best_val_score + cfg.min_delta:
             best_val_score = val_score
             best_state = {k: v.detach().cpu().clone()
@@ -375,14 +389,11 @@ def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
             patience_left = cfg.patience
         else:
             patience_left -= 1
-            if patience_left == 0:
-                if val_task_acc > 0.9 and val_second > 0.9:
-                    if verbose >= 2:
-                        print(f"\tearly stopping: no improvement for "
-                              f"{cfg.patience} epochs")
-                    break
-                else:
-                    patience_left = 1
+            if patience_left <= 0 and epochs_ran >= cfg.min_epochs:
+                if verbose >= 2:
+                    print(f"\tearly stopping: no improvement for "
+                          f"{cfg.patience} epochs")
+                break
 
     return best_state, best_val_score, epochs_ran
 
@@ -396,8 +407,13 @@ CSV_COLUMNS = [
     "task_clean_acc", "task_clean_prec", "task_clean_rec",
     "task_adv_acc", "task_adv_prec", "task_adv_rec",
     "det_clean_acc", "det_adv_acc", "det_precision", "det_recall",
-    "score_clean", "score_adv", "duration_s", "checkpoint", "error",
+    "score_clean", "score_adv",
+    "clean_acc_e2e", "robust_acc_e2e",
+    "duration_s", "checkpoint", "error",
 ]
+
+# decimals of columns for summary_table and pivot that must have ≠4 decimals 
+AGG_DECIMALS = {"epochs": 0, "duration_s": 0}
 
 
 @dataclass
@@ -442,7 +458,9 @@ class RunResult:
                      task_clean_rec=round(tc["recall"], 4),
                      task_adv_acc=round(ta["acc"], 4),
                      task_adv_prec=round(ta["precision"], 4),
-                     task_adv_rec=round(ta["recall"], 4))
+                     task_adv_rec=round(ta["recall"], 4),
+                     clean_acc_e2e=round(m["clean_acc_e2e"], 4),
+                     robust_acc_e2e=round(m["robust_acc_e2e"], 4))
             if m["detector"] is not None:
                 r.update(det_clean_acc=round(m["det_clean_acc"], 4),
                          det_adv_acc=round(m["det_adv_acc"], 4),
@@ -463,6 +481,31 @@ def _render_table(rows: list[list[str]], headers: list[str]) -> str:
                      [line(r) for r in rows])
 
 
+def _agg_cell(values: list, decimals: int = 4) -> str:
+    """Mean of the values, with ±std as soon as there is more than one seed.
+
+    Non numeric entries (the empty string a row carries for a metric that does
+    not apply to that architecture) are dropped, so a column that never applies
+    shows "-" rather than a misleading 0.
+    """
+    nums = [v for v in values if isinstance(v, (int, float))]
+    if not nums:
+        return "-"
+    mean = sum(nums) / len(nums)
+    if len(nums) == 1:
+        return f"{mean:.{decimals}f}"
+    sd = (sum((v - mean) ** 2 for v in nums) / (len(nums) - 1)) ** 0.5
+    return f"{mean:.{decimals}f}\u00b1{sd:.{decimals}f}"
+
+
+def _group_by_run(rows: list[dict]) -> dict:
+    """(experiment, dataset) -> its rows, one per seed."""
+    groups: dict = {}
+    for r in rows:
+        groups.setdefault((r["experiment"], r["dataset"]), []).append(r)
+    return groups
+
+
 @dataclass
 class SuiteResult:
     results: list[RunResult] = field(default_factory=list)
@@ -474,42 +517,65 @@ class SuiteResult:
         return [r for r in self.results if not r.ok]
 
     # --- reporting ----------------------------------------------------------
-    def summary_table(self, sort_by: str = "score") -> str:
-        """Prints every run results. Details:
-           * the columns printed are the one in cols variabl
+    def summary_table(self, sort_by: str = "score", aggregate: bool = True) -> str:
+        """Run results, one line per (experiment, dataset) pair. Details:
+           * with more than one seed the cells carry mean±std across seeds, and
+             column n is how many seeds contributed
            * the order is by (dataset, score)
            * the minus is for not-applicable metrics, ERR for failed runs
-        
+           * aggregate=False restores the old one-line-per-run view
         """
-        cols = ["experiment", "dataset", "arch", "epochs", "task_clean_acc",
-                "task_adv_acc", "det_clean_acc", "det_adv_acc", "threshold_det",
-                "score", "duration_s"]
-        rows = sorted(self.rows(),
-                      key=lambda r: (r["dataset"],
-                                     -(r[sort_by] if r[sort_by] != "" else -1e9)))
-        body = [[str(r[c]) if r[c] != "" else ("ERR" if r["error"] else "-")
-                 for c in cols] for r in rows]
+        cols = ["experiment", "dataset", "arch", "n", "epochs", "task_clean_acc",
+                "task_adv_acc", "det_clean_acc", "det_adv_acc",
+                "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "score",
+                "duration_s"]
         n_bad = len(self.failures())
         head = (f"== summary ({len(self.results)} run"
-                f"{f', {n_bad} falliti' if n_bad else ''}) ==")
+                f"{f', {n_bad} failed' if n_bad else ''}) ==")
+
+        if not aggregate:
+            plain = [c for c in cols if c != "n"]
+            rows = sorted(self.rows(),
+                          key=lambda r: (r["dataset"],
+                                         -(r[sort_by] if r[sort_by] != "" else -1e9)))
+            body = [[str(r[c]) if r[c] != "" else ("ERR" if r["error"] else "-")
+                     for c in plain] for r in rows]
+            return f"{head}\n{_render_table(body, plain)}"
+
+        lines = []
+        for (exp, ds), rs in _group_by_run(self.rows()).items():
+            ok = [r for r in rs if not r["error"]]
+            n = str(len(rs)) if len(ok) == len(rs) else f"{len(ok)}/{len(rs)}"
+            if not ok:
+                lines.append((ds, -1e9,
+                              [exp, ds, rs[0]["arch"], n] + ["ERR"] * (len(cols) - 4)))
+                continue
+            cells = [_agg_cell([r[c] for r in ok], AGG_DECIMALS.get(c, 4))
+                     for c in cols[4:]]
+            keys = [r[sort_by] for r in ok if isinstance(r[sort_by], (int, float))]
+            lines.append((ds, sum(keys) / len(keys) if keys else -1e9,
+                          [exp, ds, ok[0]["arch"], n] + cells))
+        body = [line for _, _, line in sorted(lines, key=lambda t: (t[0], -t[1]))]
         return f"{head}\n{_render_table(body, cols)}"
 
     def pivot(self, metric: str = "score") -> str:
         """
-        For a given metric, prints a table comparing 
-        the experiments for every dataset.
+        For a given metric, prints a table comparing the experiments for every dataset.
+        Cells are averaged over seeds.
         """
+        rows = self.rows()
         datasets, experiments = [], []
-        cell: dict[tuple[str, str], str] = {}
-        for r in self.results:
-            row = r.row()
+        for row in rows:
             if row["dataset"] not in datasets:
                 datasets.append(row["dataset"])
             if row["experiment"] not in experiments:
                 experiments.append(row["experiment"])
-            v = row.get(metric, "")
-            cell[(row["dataset"], row["experiment"])] = (
-                "ERR" if r.error else (str(v) if v != "" else "-"))
+        cell: dict[tuple[str, str], str] = {}
+        for (exp, ds), rs in _group_by_run(rows).items():
+            ok = [r for r in rs if not r["error"]]
+            cell[(ds, exp)] = ("ERR" if not ok else
+                               _agg_cell([r.get(metric, "") for r in ok],
+                                         AGG_DECIMALS.get(metric, 4)))
         body = [[e] + [cell.get((d, e), "") for d in datasets] for e in experiments]
         return (f"== {metric}: esperimento x dataset ==\n"
                 + _render_table(body, ["experiment"] + datasets))
@@ -551,10 +617,133 @@ def _safe_filename(name: str) -> str:
     return re.sub(r"-+", "-", name).strip("-") # collapse any run of dashes
 
 
+# ===========================================================================
+# Margin calibration with cache
+# ===========================================================================
+MARGIN_PROBE_SIZE = 16384
+_MARGIN_CACHE: dict[tuple, tuple] = {}
+
+
+def clear_margin_cache() -> None:
+    """Drops the stored natural distances."""
+    _MARGIN_CACHE.clear()
+
+
+def _margin_cache_key(cfg: lc.DetectorArchConfig, dataset: str) -> tuple:
+    """What the measured natural distances d_i depend on.
+
+    Deliberately out of the key:
+    * pgd_steps and pgd_alpha
+    * lr / lr_det / batch_size (fixed during experiments)
+    * warmup_epochs (fixed during experiments)
+
+
+    """
+    return (dataset, # margins change depending on the task
+            cfg.input_norm, cfg.resolved_hidden_dims(), cfg.resolved_wrap_at(), # backbone info
+            cfg.detector_norm, cfg.resolved_detector_dims(), # detector info
+            cfg.detach, # if the detector affects the backbone                                                     
+            cfg.task_loss_on_adv, # if training is also adversarial training
+            cfg.eps, cfg.train_attack) # attack configuration
+
+
+def _resolve_margins(cfg: lc.ArchitectureConfig, data: DatasetBundle, *,
+                     device: str = "cpu", verbose: int = 1
+                     ) -> lc.ArchitectureConfig:
+    """Replaces act_margin with margin_factor * d_i, d_i measured per layer.
+
+    Must run before torch.manual_seed(seed): the warmup inside suggest_margins
+    reseeds the global rng to lc.SEED (lwad_margin._warmup), so running it
+    afterwards would hand every seed of a multi-seed run the same initial
+    weights - and only on a cache MISS, which would make the result depend on
+    the order the runs happen to execute in.
+    """
+    if not cfg.uses_detectors or cfg.margin_factor is None:
+        return cfg
+    if not cfg.use_act_loss:
+        return cfg          # DetectorLayer owns no margin: a warmup would buy nothing
+
+    key = _margin_cache_key(cfg, data.name)
+    base_d = _MARGIN_CACHE.get(key)
+    cached = base_d is not None
+    if base_d is None:
+        n = min(MARGIN_PROBE_SIZE, len(data.X_train))
+        base_d = lm.suggest_margins(cfg, data.X_train[:n], data.y_train[:n],
+                                    attack_mask=data.attack_mask, device=device,
+                                    factor=1.0,
+                                    warmup_epochs=cfg.margin_warmup_epochs,
+                                    class_weights=data.class_weights,
+                                    verbose=verbose >= 2)
+        if not base_d:
+            raise ValueError(
+                "margin_factor is set but the network has no layer carrying a "
+                f"margin (wrap_at={cfg.resolved_wrap_at()}, "
+                f"use_act_loss={cfg.use_act_loss})"
+            )
+        _MARGIN_CACHE[key] = base_d
+
+    margins = tuple(cfg.margin_factor * d for d in base_d)
+    if verbose >= 1:
+        print(f"act_margin = {tuple(round(m, 6) for m in margins)}  "
+              f"({cfg.margin_factor:g}x natural d="
+              f"{tuple(round(d, 6) for d in base_d)}, "
+              f"{'cached' if cached else 'measured'})")
+    return dataclasses.replace(cfg, act_margin=margins)
+
+
+# ===========================================================================
+# Reusing an already trained model
+# ===========================================================================
+def _load_pretrained(cfg: lc.ArchitectureConfig, data: DatasetBundle, *,
+                     device: str = "cpu", verbose: int = 1):
+    """Rebuilds a trained model from cfg.load_from instead of training one.
+
+    This is what makes a worst-case search affordable: the defense is fixed,
+    only the attack changes, so retraining an identical model for every attack
+    would be pure waste (a training costs ~20x an evaluation).
+
+    Returns (model, threshold_det).
+    """
+    if not os.path.exists(cfg.load_from):
+        raise FileNotFoundError(f"load_from: no checkpoint at {cfg.load_from!r}")
+    ck = lcp.load_checkpoint(cfg.load_from, device=device)
+
+    if type(ck.config) is not type(cfg):
+        raise ValueError(
+            f"load_from: the checkpoint holds a {type(ck.config).__name__} but "
+            f"the experiment declares a {type(cfg).__name__}"
+        )
+    if list(ck.feature_names) != list(data.feature_names):
+        raise ValueError(
+            f"load_from: the checkpoint was trained on {len(ck.feature_names)} "
+            f"features, {data.name} has {data.n_features} and they do not match: "
+            f"wrong dataset for this checkpoint"
+        )
+
+    threshold_det = ck.threshold_det
+    if cfg.uses_detectors:
+        # check score reduction
+        if threshold_det is None or ck.config.score_reduce != cfg.score_reduce:
+            threshold_det, val_bal = lt.select_threshold(
+                ck.model, data.X_val, data.y_val, eps=cfg.eps,
+                attack_mask=data.attack_mask, attack=cfg.train_attack,
+                device=device, attack_kwargs=cfg.attack_kwargs(),
+                reduce=cfg.score_reduce)
+            if verbose >= 1:
+                print(f"threshold re-selected for score_reduce="
+                      f"{cfg.score_reduce!r}: {threshold_det:.3f} "
+                      f"(balanced acc on validation set = {val_bal:.4f})")
+    if verbose >= 2:
+        print(f"loaded {cfg.load_from}, training skipped")
+    return ck.model, threshold_det
+
+
 def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                    seed: int = lc.SEED, verbose: int = 1,
                    checkpoint_dir: Optional[str] = None) -> RunResult:
-    """Trains, picks the detector threshold and evaluates one config on one dataset."""
+    """Trains, picks the detector threshold and evaluates one config on one
+    dataset. With cfg.load_from set, training and threshold selection are
+    skipped and the stored model is evaluated as it is."""
 
     # --- setting up ----------------------------------------------------------
     started = time.time()
@@ -570,33 +759,44 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
               f"architecture = {type(cfg).__name__}\n"
               f"train attack = {cfg.train_attack}  |  eval attack = {cfg.eval_attack}\n")
 
-    # seeded here so a run is independent of its position in the table
-    torch.manual_seed(seed)
-    built = lc.create_architecture(cfg, data.n_features, device=device)
-    model, optimizer = built.model, built.optimizer
+    if cfg.load_from:
+        # --- reuse an already trained defense --------------------------------
+        model, threshold_det = _load_pretrained(cfg, data, device=device,
+                                                verbose=verbose)
+        if threshold_det is None:
+            threshold_det = lc.DEFAULT_THRESHOLD_DET
+        res.threshold_det = threshold_det if cfg.uses_detectors else None
+        res.checkpoint = cfg.load_from
+    else:
+        # margins first (as stated in _resolve_margins)
+        cfg = _resolve_margins(cfg, data, device=device, verbose=verbose)
+        res.config = cfg
 
+        torch.manual_seed(seed)
+        built = lc.create_architecture(cfg, data.n_features, device=device)
+        model, optimizer = built.model, built.optimizer
 
-    # --- training ------------------------------------------------------------
-    if verbose >= 2:
-        print("\n== training ==")
-    best_state, best_val, epochs_ran = train_with_early_stopping(
-        model, optimizer, cfg, data, device=device, verbose=verbose)
-    if best_state is None:
-        raise ValueError(f"no best state available, an error has occured")
-    model.load_state_dict(best_state)
-    res.best_val_score, res.epochs_ran = best_val, epochs_ran
-
-    # --- detector threshold, chosen on the training attack -------------------
-    threshold_det = cfg.threshold_det if cfg.uses_detectors else lc.DEFAULT_THRESHOLD_DET
-    if cfg.uses_detectors:
-        threshold_det, val_bal = lt.select_threshold(
-            model, data.X_val, data.y_val, eps=cfg.eps, attack_mask=data.attack_mask,
-            attack=cfg.train_attack, device=device,
-            attack_kwargs=cfg.attack_kwargs(), reduce=cfg.score_reduce)
+        # --- training --------------------------------------------------------
         if verbose >= 2:
-            print(f"\ndetector threshold choice: {threshold_det:.3f} "
-                  f"(balanced acc on validation set = {val_bal:.4f})")
-        res.threshold_det = threshold_det
+            print("\n== training ==")
+        best_state, best_val, epochs_ran = train_with_early_stopping(
+            model, optimizer, cfg, data, device=device, verbose=verbose)
+        if best_state is None:
+            raise ValueError(f"no best state available, an error has occured")
+        model.load_state_dict(best_state)
+        res.best_val_score, res.epochs_ran = best_val, epochs_ran
+
+        # --- detector threshold, chosen on the training attack ---------------
+        threshold_det = cfg.threshold_det if cfg.uses_detectors else lc.DEFAULT_THRESHOLD_DET
+        if cfg.uses_detectors:
+            threshold_det, val_bal = lt.select_threshold(
+                model, data.X_val, data.y_val, eps=cfg.eps, attack_mask=data.attack_mask,
+                attack=cfg.train_attack, device=device,
+                attack_kwargs=cfg.attack_kwargs(), reduce=cfg.score_reduce)
+            if verbose >= 2:
+                print(f"\ndetector threshold choice: {threshold_det:.3f} "
+                      f"(balanced acc on validation set = {val_bal:.4f})")
+            res.threshold_det = threshold_det
 
     # --- test set evaluation -------------------------------------------------
     if verbose >= 2:
@@ -612,7 +812,7 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
     # ---- checkpoint ---------------------------------------------------------
     # stores weights + architecture + config, so load_checkpoint() can rebuild
     # the model without knowing which architecture produced it
-    if ckpt:
+    if ckpt and not cfg.load_from:      # no overwriting the model just reused
         os.makedirs(checkpoint_dir, exist_ok=True)
         lcp.save_checkpoint(ckpt, model, cfg, data.feature_names,
                             attack_mask=data.attack_mask,
@@ -634,6 +834,9 @@ def _metrics_report(m: dict) -> str:
                 f"  adversarial accuracy: {m['det_adv_acc']:.4f}",
                 f"  precision / recall  : {det['precision']:.4f} / {det['recall']:.4f}",
                 f"  mean clean/adv score: {m['score_clean']:.4f} / {m['score_adv']:.4f}"]
+    out += ["END TO END (comparable across architectures)",
+            f"  clean  : {m['clean_acc_e2e']:.4f}   (right AND not flagged)",
+            f"  robust : {m['robust_acc_e2e']:.4f}   (right OR flagged)"]
     return "\n".join(out)
 
 
@@ -643,6 +846,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
               only: Optional[str] = None, dry_run: bool = False,
               resume: bool = False, download: bool = False,
               save_checkpoints: bool = True,
+              test_max_rows: Optional[int] = pp.DEFAULT_TEST_MAX_ROWS,
               on_error: str = "record") -> SuiteResult:
     """Runs every experiment on every dataset.
 
@@ -658,6 +862,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                  2 the full per-epoch output of the original script.
         on_error: "record" keeps going and marks the run failed, "raise" stops.
         only: run only the experiments whose name starts with this prefix
+        test_max_rows: caps and balances the test split
     """
     experiments = _table() if experiments is None else experiments
     datasets = DATASETS if datasets is None else datasets
@@ -694,6 +899,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
         print(f"== suite: {len(runs)} experiments x {len(datasets)} datasets "
               f"x {len(seeds)} seeds = {total} runs ==")
         print(f"   device={device}  out_dir={out_dir}  "
+              f"test_max_rows={test_max_rows}  "
               f"total max epochs={sum(e.config().epochs for e in runs) * len(datasets) * len(seeds)}")
     if dry_run:
         for e in runs:
@@ -718,7 +924,8 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                     continue
                 if data is None:       # loaded lazily: a fully resumed dataset costs nothing
                     data = DatasetBundle.load(kd, device=device, download=download,
-                                              verbose=verbose >= 2)
+                                              verbose=verbose >= 2,
+                                              test_max_rows=test_max_rows)
                 if verbose >= 1:
                     print(f"\n### [{n:3d}/{total}] {exp.name} | {data.name} | "
                           f"seed {seed}{' | ' + exp.describe() if exp.overrides else ''} ###")

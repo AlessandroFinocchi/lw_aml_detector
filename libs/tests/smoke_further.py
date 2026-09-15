@@ -30,7 +30,7 @@ from libs.lwad_attack import generate_attack
 
 DATASET_PATH = "dataset/unsw-nb15/"
 EPOCHS = 15
-HIDDEN = 64
+HIDDEN_DIMS = (128, 64, 64)
 N_TRAIN, N_TEST, N_FEATURES = 6000, 2000, 42
 
 # The margin must sit ABOVE the distance the model reaches on its own,
@@ -99,8 +99,8 @@ def main():
 
 
     # --- fairness check: identical structure and initial weights ----------
-    cfg_plain = lc.DetectorArchConfig(hidden=HIDDEN, use_act_loss=False)
-    probe = lc.DetectorArchConfig(hidden=HIDDEN, use_act_loss=True)
+    cfg_plain = lc.DetectorArchConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=False)
+    probe = lc.DetectorArchConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=True)
 
     torch.manual_seed(lc.SEED); m_a = cfg_plain.build_model(N_FEATURES)
     torch.manual_seed(lc.SEED); m_b = probe.build_model(N_FEATURES)
@@ -121,7 +121,7 @@ def main():
     print(f"margins ({MARGIN_FACTOR:g}x)      : {tuple(f'{m:.5f}' for m in margins)}")
     print(f"lambda_act         : {LAMBDA_ACT:g}\n")
 
-    cfg_further = lc.DetectorArchConfig(hidden=HIDDEN, use_act_loss=True,
+    cfg_further = lc.DetectorArchConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=True,
                                         lambda_act=LAMBDA_ACT, act_margin=margins)
     _, rows_further, val_further = train_and_measure(cfg_further, X_tr, y_tr, X_te, y_te, mask)
 
