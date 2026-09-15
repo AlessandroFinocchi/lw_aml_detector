@@ -347,7 +347,7 @@ def _epoch_report(epoch: int, stats: dict, val: dict, score: float) -> str:
 
 
 def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
-                              device: str = "cpu", verbose: int = 2
+                              device: str = "cpu", verbose: int = 1
                               ) -> tuple[Optional[dict], float, int]:
     """Training loop with early stopping, validated against the training attack.
 
@@ -403,7 +403,7 @@ def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
 # Results
 # ===========================================================================
 CSV_COLUMNS = [
-    "dataset", "experiment", "arch", "params", "seed", "epochs", "score",
+    "dataset", "experiment", "arch", "params", "seed", "epochs", "val_score",
     "threshold_det", "train_attack", "eval_attack",
     "task_clean_acc", "task_clean_prec", "task_clean_rec",
     "task_adv_acc", "task_adv_prec", "task_adv_rec",
@@ -450,7 +450,7 @@ class RunResult:
         if self.threshold_det is not None:
             r["threshold_det"] = round(self.threshold_det, 4)
         if self.best_val_score == self.best_val_score:
-            r["score"] = round(self.best_val_score, 4)
+            r["val_score"] = round(self.best_val_score, 4)
         m = self.metrics
         if m:
             tc, ta = m["task_clean"], m["task_adv"]
@@ -518,17 +518,17 @@ class SuiteResult:
         return [r for r in self.results if not r.ok]
 
     # --- reporting ----------------------------------------------------------
-    def summary_table(self, sort_by: str = "score", aggregate: bool = True) -> str:
+    def summary_table(self, sort_by: str = "val_score", aggregate: bool = True) -> str:
         """Run results, one line per (experiment, dataset) pair. Details:
            * with more than one seed the cells carry mean±std across seeds, and
              column n is how many seeds contributed
-           * the order is by (dataset, score)
+           * the order is by (dataset, sort_by)
            * the minus is for not-applicable metrics, ERR for failed runs
            * aggregate=False restores the old one-line-per-run view
         """
         cols = ["experiment", "dataset", "arch", "n", "epochs", "task_clean_acc",
                 "task_adv_acc", "det_clean_acc", "det_adv_acc",
-                "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "score",
+                "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "val_score",
                 "duration_s"]
         n_bad = len(self.failures())
         head = (f"== summary ({len(self.results)} run"
@@ -559,7 +559,7 @@ class SuiteResult:
         body = [line for _, _, line in sorted(lines, key=lambda t: (t[0], -t[1]))]
         return f"{head}\n{_render_table(body, cols)}"
 
-    def pivot(self, metric: str = "score") -> str:
+    def pivot(self, metric: str = "val_score") -> str:
         """
         For a given metric, prints a table comparing the experiments for every dataset.
         Cells are averaged over seeds.
@@ -950,7 +950,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
             data.free()
 
     if verbose >= 1:
-        print(f"\n{suite.summary_table()}\n\n{suite.pivot('score')}")
+        print(f"\n{suite.summary_table()}\n\n{suite.pivot('val_score')}")
         print(f"\nCSV: {csv_path}")
     return suite
 

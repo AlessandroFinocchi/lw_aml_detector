@@ -12,7 +12,8 @@ from libs.experiments.lwad_experiments import Exp
 # ===========================================================================
 # Presets
 # ===========================================================================
-COMMON = dict(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
+COMMON = dict(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd",
+              hidden_dims=(64, 32), wrap_at=(0,1))
 
 DET = lc.DetectorArchConfig(**COMMON, use_act_loss=False)    # DetectorLayer
 FUR = lc.DetectorArchConfig(**COMMON, use_act_loss=True,     # FurtherAL
@@ -57,8 +58,8 @@ def table() -> list[Exp]:
 
         # (3) Shape never used, so first run is cold, and the two should be 
         # identical if seeding is correctly managed.
-        Exp("s1/vv/repro-cold",     FUR, hidden_dims=(64, 16), wrap_at=(0,1)),
-        Exp("s1/vv/repro-warm",     FUR, hidden_dims=(64, 16), wrap_at=(0,1)),
+        Exp("s1/vv/repro-cold",     FUR, hidden_dims=(64, 16), wrap_at=(1,)),
+        Exp("s1/vv/repro-warm",     FUR, hidden_dims=(64, 16), wrap_at=(1,)),
     ]
 
 
