@@ -4,6 +4,7 @@ Edit the EXPERIMENTS table below: one line per experiment, giving a name, a
 preset, and ONLY the parameters that differ from it. Then
 
     import libs.lwad_experiments as lx
+    import libs.lwad_stage1            # appends stage 1 exp to lx.EXPERIMENTS
     res = lx.run_suite(lx.EXPERIMENTS, lx.DATASETS)
 """
 from __future__ import annotations
@@ -48,7 +49,7 @@ DATASETS = list([pp.KaggleDataset.UNSW_BW15])
 def _table():
     return [
         # --- architecture 1: detector ---------------------------------------
-        Exp("det/base",           DET),
+        #Exp("det/base",           DET),
         #Exp("det/no-actloss",     DET, use_act_loss=False),
         #Exp("det/score-max",      DET, score_reduce="max"),
         #Exp("det/attached",       DET, detach=False),
@@ -66,12 +67,12 @@ def _table():
 
         # --- sweeps ----------------------------------------------------------
         #Sweep("det/eps",     DET, eps=[0.05, 0.1, 0.2]),
-        Sweep("det/lr",      DET, lr=[1e-3, 3e-4], lr_det=[3e-3, 1e-3]),
+        #Sweep("det/lr",      DET, lr=[1e-3, 3e-4], lr_det=[3e-3, 1e-3]),
         #Sweep("det/lambda",  DET, lambda_det=[0.5, 1.0, 2.0], lambda_act=[0.0, 1.0]),
         #Sweep("det/atk",     DET, train_attack=["fgsm", "pgd"],
         #                          eval_attack=["pgd", "pgd_adaptive"]),
-        Paired("det/steps",  DET, pgd_steps=[10, 20],
-                                  pgd_alpha=[0.05, 0.025]),
+        #Paired("det/steps",  DET, pgd_steps=[10, 20],
+        #                          pgd_alpha=[0.05, 0.025]),
         #Sweep("ali/eps",     ALI, eps=[0.05, 0.1, 0.2]),
     ]
 
@@ -606,18 +607,6 @@ def _done_runs(path: str) -> set:
 
 
 # ===========================================================================
-# Execution
-# ===========================================================================
-def _safe_filename(name: str) -> str:
-    """
-    Converts an experiment name into a valid file name
-    """
-    for ch in "/=[], ":
-        name = name.replace(ch, "-")
-    return re.sub(r"-+", "-", name).strip("-") # collapse any run of dashes
-
-
-# ===========================================================================
 # Margin calibration with cache
 # ===========================================================================
 MARGIN_PROBE_SIZE = 16384
@@ -736,6 +725,18 @@ def _load_pretrained(cfg: lc.ArchitectureConfig, data: DatasetBundle, *,
     if verbose >= 2:
         print(f"loaded {cfg.load_from}, training skipped")
     return ck.model, threshold_det
+
+
+# ===========================================================================
+# Execution
+# ===========================================================================
+def _safe_filename(name: str) -> str:
+    """
+    Converts an experiment name into a valid file name
+    """
+    for ch in "/=[], ":
+        name = name.replace(ch, "-")
+    return re.sub(r"-+", "-", name).strip("-") # collapse any run of dashes
 
 
 def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
@@ -864,7 +865,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
         only: run only the experiments whose name starts with this prefix
         test_max_rows: caps and balances the test split
     """
-    experiments = _table() if experiments is None else experiments
+    experiments = EXPERIMENTS if experiments is None else experiments
     datasets = DATASETS if datasets is None else datasets
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     csv_path = os.path.join(out_dir, "summary.csv")

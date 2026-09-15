@@ -26,12 +26,12 @@ DEFAULT_EPOCHS = 5
 DEFAULT_BATCH_SIZE = 512
 DEFAULT_LR = 1e-3                   # backbone learning rate
 DEFAULT_CHECKPOINT = "lwad_model.pt"
+DEFAULT_TASK_LOSS_ON_ADV = False    # true = backbone adversarial training
 
 # --- detector ---------------------------------------------------------------
 DEFAULT_LR_DET = 3e-3               # detector learning rate
 DEFAULT_LAMBDA_DET = 1.0            # detector loss weight
 DEFAULT_THRESHOLD_DET = 0.5         # detector threshold
-DEFAULT_TASK_LOSS_ON_ADV = False    # true = backbone adversarial training
 
 # --- activations ------------------------------------------------------------
 DEFAULT_LAMBDA_ACT = 1.0            # activation loss weight (FurtherAL / NearestAL)
@@ -39,8 +39,8 @@ DEFAULT_LAMBDA_ACT = 1.0            # activation loss weight (FurtherAL / Neares
 # --- network shape ----------------------------------------------------------
 # One entry per hidden layer, in network order
 DEFAULT_HIDDEN_DIMS     = (256, 128, 64)   # detector architecture backbone
-DEFAULT_ALI_HIDDEN_DIMS = (128, 128, 64)   # alignment architecture backbone
-DEFAULT_DETECTOR_DIMS   = (128, 64)        # detector
+DEFAULT_ALI_HIDDEN_DIMS = (320, 128, 64)   # alignment architecture backbone
+DEFAULT_DETECTOR_DIMS   = (64, 32)         # detector
 
 # Which hidden layers carry the special layer, by index
 DEFAULT_WRAP_AT     = (0, 2)               # detector architecture

@@ -13,6 +13,8 @@ import libs.preprocess.preprocess as pp
 import libs.lwad_config as lc
 import libs.lwad_experiments as lx
 
+import libs.lwad_stage1            # appends stage 1 to lx.EXPERIMENTS
+
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--only", default=None,
                     help="run only the experiments whose name starts with this prefix")
