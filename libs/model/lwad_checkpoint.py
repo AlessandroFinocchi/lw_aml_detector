@@ -24,8 +24,8 @@ from typing import Optional
 
 import torch
 
-import libs.lwad_config as lc
-import libs.lwad_wrapper as lw
+import libs.model.lwad_config as lc
+import libs.model.lwad_wrapper as lw
 
 
 def _config_classes() -> dict:

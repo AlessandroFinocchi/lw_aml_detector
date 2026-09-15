@@ -4,9 +4,9 @@
 """
 from __future__ import annotations
 
-import libs.lwad_config as lc
-import libs.lwad_experiments as lx
-from libs.lwad_experiments import Exp
+import libs.model.lwad_config as lc
+import libs.experiments.lwad_experiments as lx
+from libs.experiments.lwad_experiments import Exp
 
 
 # ===========================================================================

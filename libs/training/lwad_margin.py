@@ -26,11 +26,11 @@ import torch
 import dataclasses
 from typing import Optional
 
-import libs.lwad_wrapper as lw
-import libs.lwad_config as lc
-import libs.lwad_trainer as lt
-import libs.lwad_evaluator as le
-from libs.lwad_attack import generate_attack
+import libs.model.lwad_wrapper as lw
+import libs.model.lwad_config as lc
+import libs.training.lwad_trainer as lt
+import libs.evaluation.lwad_evaluator as le
+from libs.attacks.lwad_attack import generate_attack
 
 
 # ===========================================================================

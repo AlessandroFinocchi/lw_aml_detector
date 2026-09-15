@@ -10,10 +10,10 @@ decides how the suite is executed.
 import argparse
 
 import libs.preprocess.preprocess as pp
-import libs.lwad_config as lc
-import libs.lwad_experiments as lx
+import libs.model.lwad_config as lc
+import libs.experiments.lwad_experiments as lx
 
-import libs.lwad_stage1            # appends stage 1 to lx.EXPERIMENTS
+import libs.experiments.lwad_stage1            # appends stage 1 to lx.EXPERIMENTS
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument("--only", default=None,

@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 from enum import Enum
-from libs.lwad_wrapper import DetectorLayer
+from libs.model.lwad_wrapper import DetectorLayer
 
 
 class Attack(Enum):

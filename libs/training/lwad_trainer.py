@@ -1,10 +1,10 @@
 import torch
 import torch.nn.functional as F
 
-from libs.lwad_config import DEFAULT_THRESHOLD_DET
-from libs.lwad_attack import (generate_attack, DEFAULT_TRAIN_ATTACK,
+from libs.model.lwad_config import DEFAULT_THRESHOLD_DET
+from libs.attacks.lwad_attack import (generate_attack, DEFAULT_TRAIN_ATTACK,
                               DEFAULT_SCORE_REDUCE)
-from libs.lwad_evaluator import predict
+from libs.evaluation.lwad_evaluator import predict
 
 
 def train_epoch(model, loader, optimizer, eps, lambda_det=1.0, lambda_act=1.0,

@@ -12,8 +12,8 @@ from typing import Optional, Tuple, Union
 import torch
 import torch.nn as nn
 
-import libs.lwad_wrapper as lw
-import libs.lwad_attack as la
+import libs.model.lwad_wrapper as lw
+import libs.attacks.lwad_attack as la
 
 
 # ===========================================================================

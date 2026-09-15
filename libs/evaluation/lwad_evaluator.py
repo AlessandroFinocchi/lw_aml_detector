@@ -1,7 +1,7 @@
 import torch
 
-from libs.lwad_config import DEFAULT_THRESHOLD_DET, ScoreMode, DEFAULT_SCORE_MODE
-from libs.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
+from libs.model.lwad_config import DEFAULT_THRESHOLD_DET, ScoreMode, DEFAULT_SCORE_MODE
+from libs.attacks.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
                               DEFAULT_SCORE_REDUCE)
 
 

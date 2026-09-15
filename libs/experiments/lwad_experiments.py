@@ -22,12 +22,12 @@ from typing import Any, Iterable, Optional, Sequence
 import torch
 
 import libs.preprocess.preprocess as pp
-import libs.lwad_config as lc
-import libs.lwad_attack as la
-import libs.lwad_margin as lm
-import libs.lwad_trainer as lt
-import libs.lwad_evaluator as le
-import libs.lwad_checkpoint as lcp
+import libs.model.lwad_config as lc
+import libs.attacks.lwad_attack as la
+import libs.training.lwad_margin as lm
+import libs.training.lwad_trainer as lt
+import libs.evaluation.lwad_evaluator as le
+import libs.model.lwad_checkpoint as lcp
 
 
 # ===========================================================================

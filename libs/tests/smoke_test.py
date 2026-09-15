@@ -2,11 +2,11 @@
 import torch
 import torch.nn as nn
 
-import libs.lwad_wrapper as lw
-import libs.lwad_config as lc
-import libs.lwad_attack as la
-import libs.lwad_trainer as lt
-import libs.lwad_evaluator as le
+import libs.model.lwad_wrapper as lw
+import libs.model.lwad_config as lc
+import libs.attacks.lwad_attack as la
+import libs.training.lwad_trainer as lt
+import libs.evaluation.lwad_evaluator as le
 
 torch.manual_seed(0)
 N, F_DIM = 256, 20
@@ -127,7 +127,7 @@ try:
 except ValueError as e:
     print("   OK ->", str(e)[:60], "...")
 
-from libs.lwad_margin import suggest_margins, select_margins
+from libs.training.lwad_margin import suggest_margins, select_margins
 m = suggest_margins(lc.DetectorArchConfig(hidden_dims=(64, 32, 64)), X, y,
                     attack_mask=mask, verbose=False)
 assert m is not None and len(m) == 2 and all(v > 0 for v in m)
