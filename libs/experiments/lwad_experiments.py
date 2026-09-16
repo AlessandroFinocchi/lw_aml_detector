@@ -33,8 +33,8 @@ import libs.model.lwad_checkpoint as lcp
 # ===========================================================================
 # 1) PRESETS: every experiment is a delta of these experiments
 # ===========================================================================
-DET = lc.DetectorArchConfig(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
-ALI = lc.AlignmentArchConfig(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
+DET = lc.DetectorModelConfig(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
+ALI = lc.AdvTrainingModelConfig(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
 
 #DATASETS = list(pp.KaggleDataset)
 DATASETS = list([pp.KaggleDataset.UNSW_BW15])
@@ -48,7 +48,7 @@ DATASETS = list([pp.KaggleDataset.UNSW_BW15])
 # ===========================================================================
 def _table():
     return [
-        # --- architecture 1: detector ---------------------------------------
+        # --- detector model ------------------------------------------------
         #Exp("det/base",           DET),
         #Exp("det/no-actloss",     DET, use_act_loss=False),
         #Exp("det/score-max",      DET, score_reduce="max"),
@@ -60,12 +60,12 @@ def _table():
         #Exp("det/fat-head",       DET, detector_dims=(256, 128, 64)),
         #Exp("det/linear-head",    DET, detector_dims=()),
 
-        # --- architecture 2: alignment --------------------------------------
+        # --- adv training model --------------------------------------------
         #Exp("ali/base",           ALI),
         #Exp("ali/clean-task",     ALI, task_loss_on_adv=False),
         #Exp("ali/wide",           ALI, hidden_dims=(768, 320, 96), wrap_at=(1, 2)),
 
-        # --- sweeps ----------------------------------------------------------
+        # --- sweeps --------------------------------------------------------
         #Sweep("det/eps",     DET, eps=[0.05, 0.1, 0.2]),
         #Sweep("det/lr",      DET, lr=[1e-3, 3e-4], lr_det=[3e-3, 1e-3]),
         #Sweep("det/lambda",  DET, lambda_det=[0.5, 1.0, 2.0], lambda_act=[0.0, 1.0]),
@@ -93,21 +93,21 @@ def _fmt(v: Any) -> str:
 class Exp:
     """One experiment: a preset plus the overrides that make it different."""
 
-    def __init__(self, name: str, base: lc.ArchitectureConfig, **overrides):
+    def __init__(self, name: str, base: lc.ModelConfig, **overrides):
         self.name = name
         self.base = base
         self.overrides = overrides  # the params that differ from base
 
     # --- identity -----------------------------------------------------------
     # 
-    # Example for Exp('det/wide', DetectorArchConfig, hidden_dims=(512,256,96), wrap_at=(0,2))
-    # * .arch       -> 'det'
+    # Example for Exp('det/wide', DetectorModelConfig, hidden_dims=(512,256,96), wrap_at=(0,2))
+    # * .model      -> 'det'
     # * .describe() -> 'hidden_dims=(512,256,96), wrap_at=(0,2)'
-    # * repr()      -> Exp('det/wide', DetectorArchConfig, hidden_dims=(512,256,96), wrap_at=(0,2))
+    # * repr()      -> Exp('det/wide', DetectorModelConfig, hidden_dims=(512,256,96), wrap_at=(0,2))
 
     @property
-    def arch(self) -> str:
-        return type(self.base).__name__.replace("ArchConfig", "")[:3].lower()
+    def model(self) -> str:
+        return type(self.base).__name__.replace("ModelConfig", "")[:3].lower()
 
     def describe(self) -> str:
         return ", ".join(f"{k}={_fmt(v)}" for k, v in self.overrides.items())
@@ -117,7 +117,7 @@ class Exp:
         return f"Exp({self.name!r}, {type(self.base).__name__}{', ' + d if d else ''})"
 
     # --- materialization ----------------------------------------------------
-    def config(self, **extra) -> lc.ArchitectureConfig:
+    def config(self, **extra) -> lc.ModelConfig:
         """The config for this run. Careful: pgd_alpha gets materialized at
         post init time (based on eps) if not passed, and the replace method 
         calls the __init__ method, thus also the __post_init__.
@@ -157,7 +157,7 @@ class Exp:
             if getattr(cfg, which) == la.Attack.PGD_ADAPTIVE.value and not cfg.uses_detectors:
                 raise ValueError(
                     f"{self.name}: {which}='pgd_adaptive' requires a detector-based "
-                    f"architecture, but {cls.__name__} has none"
+                    f"model, but {cls.__name__} has none"
                 )
         # Check for correct wrap indexes
         cfg.resolved_wrap_at()
@@ -188,7 +188,7 @@ class Exp:
 class Sweep(Exp):
     """Cartesian product of the given axes: each axis is a list of values."""
 
-    def __init__(self, name: str, base: lc.ArchitectureConfig, **axes):
+    def __init__(self, name: str, base: lc.ModelConfig, **axes):
         super().__init__(name, base, **axes)
         for k, v in axes.items():
             if not isinstance(v, (list, tuple)) or not len(v):
@@ -215,7 +215,7 @@ class Sweep(Exp):
 class Paired(Sweep):
     """Axes advanced together instead of crossed: all must have the same length."""
 
-    def __init__(self, name: str, base: lc.ArchitectureConfig, **axes):
+    def __init__(self, name: str, base: lc.ModelConfig, **axes):
         super().__init__(name, base, **axes)
         lengths = {k: len(v) for k, v in axes.items()}
         if len(set(lengths.values())) > 1:
@@ -314,12 +314,11 @@ class DatasetBundle:
 # Run utilities
 # ===========================================================================
 def validation_score(metrics: dict, mode: str = lc.DEFAULT_SCORE_MODE) -> float:
-    """The single number every run is ranked on, IDENTICAL for both
-    architectures.
+    """The single number every run is ranked on, identical for both model types.
 
-    The old per-architecture formulas (detector balanced accuracy vs
-    adversarial task accuracy) were not commensurable, so they could not order
-    architecture 1 and architecture 2 in the same table. The end-to-end metrics
+    The old per-model formulas (detector balanced accuracy vs adversarial task 
+    accuracy) were not comparable, so they could not order detector models and
+    adversarial training models in the same table. The end-to-end metrics
     can: see lwad_evaluator for their definition.
 
     mode: "joint" (default) | "clean" | "robust" - see lc.ScoreMode.
@@ -403,7 +402,7 @@ def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
 # Results
 # ===========================================================================
 CSV_COLUMNS = [
-    "dataset", "experiment", "arch", "params", "seed", "epochs", "val_score",
+    "dataset", "experiment", "model", "params", "seed", "epochs", "val_score",
     "threshold_det", "train_attack", "eval_attack",
     "task_clean_acc", "task_clean_prec", "task_clean_rec",
     "task_adv_acc", "task_adv_prec", "task_adv_rec",
@@ -421,10 +420,10 @@ AGG_DECIMALS = {"epochs": 0, "duration_s": 0}
 class RunResult:
     experiment: str
     dataset: str
-    arch: str
+    model: str
     seed: int
     params: str
-    config: Optional[lc.ArchitectureConfig] = None
+    config: Optional[lc.ModelConfig] = None
     epochs_ran: int = 0
     best_val_score: float = float("nan")
     threshold_det: Optional[float] = None
@@ -438,9 +437,9 @@ class RunResult:
         return self.error is None and self.metrics is not None
 
     def row(self) -> dict:
-        """Defines a csv row with architecture specific values, others are ignored"""
+        """Defines a csv row with model type specific values, others are ignored"""
         r = {c: "" for c in CSV_COLUMNS}
-        r.update(dataset=self.dataset, experiment=self.experiment, arch=self.arch,
+        r.update(dataset=self.dataset, experiment=self.experiment, model=self.model,
                  params=self.params, seed=self.seed, epochs=self.epochs_ran,
                  duration_s=round(self.duration_s, 1),
                  checkpoint=self.checkpoint or "", error=self.error or "")
@@ -486,7 +485,7 @@ def _agg_cell(values: list, decimals: int = 4) -> str:
     """Mean of the values, with ±std as soon as there is more than one seed.
 
     Non numeric entries (the empty string a row carries for a metric that does
-    not apply to that architecture) are dropped, so a column that never applies
+    not apply to that model type) are dropped, so a column that never applies
     shows "-" rather than a misleading 0.
     """
     nums = [v for v in values if isinstance(v, (int, float))]
@@ -526,7 +525,7 @@ class SuiteResult:
            * the minus is for not-applicable metrics, ERR for failed runs
            * aggregate=False restores the old one-line-per-run view
         """
-        cols = ["experiment", "dataset", "arch", "n", "epochs", "task_clean_acc",
+        cols = ["experiment", "dataset", "model", "n", "epochs", "task_clean_acc",
                 "task_adv_acc", "det_clean_acc", "det_adv_acc",
                 "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "val_score",
                 "duration_s"]
@@ -549,13 +548,13 @@ class SuiteResult:
             n = str(len(rs)) if len(ok) == len(rs) else f"{len(ok)}/{len(rs)}"
             if not ok:
                 lines.append((ds, -1e9,
-                              [exp, ds, rs[0]["arch"], n] + ["ERR"] * (len(cols) - 4)))
+                              [exp, ds, rs[0]["model"], n] + ["ERR"] * (len(cols) - 4)))
                 continue
             cells = [_agg_cell([r[c] for r in ok], AGG_DECIMALS.get(c, 4))
                      for c in cols[4:]]
             keys = [r[sort_by] for r in ok if isinstance(r[sort_by], (int, float))]
             lines.append((ds, sum(keys) / len(keys) if keys else -1e9,
-                          [exp, ds, ok[0]["arch"], n] + cells))
+                          [exp, ds, ok[0]["model"], n] + cells))
         body = [line for _, _, line in sorted(lines, key=lambda t: (t[0], -t[1]))]
         return f"{head}\n{_render_table(body, cols)}"
 
@@ -618,7 +617,7 @@ def clear_margin_cache() -> None:
     _MARGIN_CACHE.clear()
 
 
-def _margin_cache_key(cfg: lc.DetectorArchConfig, dataset: str) -> tuple:
+def _margin_cache_key(cfg: lc.DetectorModelConfig, dataset: str) -> tuple:
     """What the measured natural distances d_i depend on.
 
     Deliberately out of the key:
@@ -626,19 +625,18 @@ def _margin_cache_key(cfg: lc.DetectorArchConfig, dataset: str) -> tuple:
     * lr / lr_det / batch_size (fixed during experiments)
     * warmup_epochs (fixed during experiments)
 
-
     """
     return (dataset, # margins change depending on the task
             cfg.input_norm, cfg.resolved_hidden_dims(), cfg.resolved_wrap_at(), # backbone info
             cfg.detector_norm, cfg.resolved_detector_dims(), # detector info
-            cfg.detach, # if the detector affects the backbone                                                     
+            cfg.detach, cfg.lambda_det, # if the detector affects the backbone                                                     
             cfg.task_loss_on_adv, # if training is also adversarial training
-            cfg.eps, cfg.train_attack) # attack configuration
+            cfg.eps, cfg.train_attack,) # attack configuration
 
 
-def _resolve_margins(cfg: lc.ArchitectureConfig, data: DatasetBundle, *,
+def _resolve_margins(cfg: lc.ModelConfig, data: DatasetBundle, *,
                      device: str = "cpu", verbose: int = 1
-                     ) -> lc.ArchitectureConfig:
+                     ) -> lc.ModelConfig:
     """Replaces act_margin with margin_factor * d_i, d_i measured per layer.
 
     Must run before torch.manual_seed(seed): the warmup inside suggest_margins
@@ -683,7 +681,7 @@ def _resolve_margins(cfg: lc.ArchitectureConfig, data: DatasetBundle, *,
 # ===========================================================================
 # Reusing an already trained model
 # ===========================================================================
-def _load_pretrained(cfg: lc.ArchitectureConfig, data: DatasetBundle, *,
+def _load_pretrained(cfg: lc.ModelConfig, data: DatasetBundle, *,
                      device: str = "cpu", verbose: int = 1):
     """Rebuilds a trained model from cfg.load_from instead of training one.
 
@@ -752,12 +750,12 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                          f"{_safe_filename(exp.name)}__{_safe_filename(data.name)}__seed{seed}.pt")
             if checkpoint_dir else None)
     cfg = exp.config(**({"checkpoint": ckpt} if ckpt else {}))
-    res = RunResult(experiment=exp.name, dataset=data.name, arch=exp.arch,
+    res = RunResult(experiment=exp.name, dataset=data.name, model=exp.model,
                     seed=seed, params=exp.describe(), config=cfg, checkpoint=ckpt)
 
     if verbose >= 2:
         print(f"{data.summary()}\n"
-              f"architecture = {type(cfg).__name__}\n"
+              f"model type = {type(cfg).__name__}\n"
               f"train attack = {cfg.train_attack}  |  eval attack = {cfg.eval_attack}\n")
 
     if cfg.load_from:
@@ -774,7 +772,7 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
         res.config = cfg
 
         torch.manual_seed(seed)
-        built = lc.create_architecture(cfg, data.n_features, device=device)
+        built = lc.create_model(cfg, data.n_features, device=device)
         model, optimizer = built.model, built.optimizer
 
         # --- training --------------------------------------------------------
@@ -811,8 +809,7 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
         print(_metrics_report(res.metrics))
 
     # ---- checkpoint ---------------------------------------------------------
-    # stores weights + architecture + config, so load_checkpoint() can rebuild
-    # the model without knowing which architecture produced it
+    # stores weights + model type + config, so load_checkpoint() can rebuild it
     if ckpt and not cfg.load_from:      # no overwriting the model just reused
         os.makedirs(checkpoint_dir, exist_ok=True)
         lcp.save_checkpoint(ckpt, model, cfg, data.feature_names,
@@ -834,8 +831,7 @@ def _metrics_report(m: dict) -> str:
                 f"  clean accuracy      : {m['det_clean_acc']:.4f}",
                 f"  adversarial accuracy: {m['det_adv_acc']:.4f}",
                 f"  precision / recall  : {det['precision']:.4f} / {det['recall']:.4f}",
-                f"  mean clean/adv score: {m['score_clean']:.4f} / {m['score_adv']:.4f}"]
-    out += ["END TO END (comparable across architectures)",
+                f"  end to end (comparable across model types)",
             f"  clean  : {m['clean_acc_e2e']:.4f}   (right AND not flagged)",
             f"  robust : {m['robust_acc_e2e']:.4f}   (right OR flagged)"]
     return "\n".join(out)
@@ -904,7 +900,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
               f"total max epochs={sum(e.config().epochs for e in runs) * len(datasets) * len(seeds)}")
     if dry_run:
         for e in runs:
-            print(f"   {e.arch}  {e.name:44s} {e.describe()}")
+            print(f"   {e.model}  {e.name:44s} {e.describe()}")
         return SuiteResult()
 
     # --- execute all experiments ---------------------------------------------
@@ -939,7 +935,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                     if on_error == "raise":
                         raise
                     res = RunResult(experiment=exp.name, dataset=data.name,
-                                    arch=exp.arch, seed=seed, params=exp.describe(),
+                                    model=exp.model, seed=seed, params=exp.describe(),
                                     error=f"{type(exc).__name__}: {exc}")
                     print(f"!! run failed: {res.error}")
                     if verbose >= 2:

@@ -28,7 +28,7 @@ class FlowState:
             )
             self.det_loss = loss if self.det_loss is None else self.det_loss + loss
 
-    # --- activation loss (for FurtherAL and NearestAL) ---------------------
+    # --- activation loss (for FurtherAL and CloserAL) ----------------------
     def add_act_loss(self, loss: torch.Tensor) -> None:
         self.act_loss = loss if self.act_loss is None else self.act_loss + loss
 
@@ -104,7 +104,7 @@ def default_detector(in_dim: int, hidden: int = 64) -> nn.Module:
 #             DetectorLayer   ActivationLoss
 #                    \          <abstract>
 #                     \         /        \
-#                      FurtherAL          NearestAL
+#                      FurtherAL          CloserAL
 #
 # Forward pass is defined once in PassThrough; subclasses contribute
 # overriding the collect() hook and combining with super().collect().
@@ -153,7 +153,7 @@ class ActivationLoss(PassThrough):
     """
     Abstract class, subclasses define only distance_to_loss(d)
 
-    - enabled: enables loss without changing architecture
+    - enabled: enables loss without changing model type
     - detach_reference: if true, real activations are treated as a fixed
                         anchor and grad only moves adv activations.
                         None -> DETACH_REFERENCE_DEFAULT of the subclass.
@@ -185,7 +185,7 @@ class ActivationLoss(PassThrough):
 
 class FurtherAL(DetectorLayer, ActivationLoss):
     """
-    Architecture 1: detector + contrastive loss. Pushes away adversarial activations 
+    Model 1: detector + contrastive loss. Pushes away adversarial activations 
     from clean ones in order to make them more recognizable by the detector.
 
     When FurtherAL invokes collect, the Method Resolution Order (MRO) is
@@ -214,9 +214,9 @@ class FurtherAL(DetectorLayer, ActivationLoss):
         return F.relu(self.margin - d).mean()
 
 
-class NearestAL(ActivationLoss):
+class CloserAL(ActivationLoss):
     """
-    Architecture 2 (adversarial training): attractive loss, brings adversarial
+    Model 2 (adversarial training): attractive loss, brings adversarial
     activations closer to the real ones. Incompatible with detectors, this 
     constraint is verified within DetectorSequential.
 
@@ -240,7 +240,7 @@ class LWADSequential(nn.Module):
     """Like nn.Sequential, but propagates (h(x), state).
        nn.Modules are automatically wrapped in PassThrough.
 
-       Upon building, architecture coherency is verified: NearestAL can't
+       Upon building, architecture coherency is verified: CloserAL can't
        cohexist with Detector-based layer within the same network."""
 
     def __init__(self, *modules: nn.Module):
@@ -253,10 +253,10 @@ class LWADSequential(nn.Module):
 
     def _validate(self) -> None:
         has_det = any(isinstance(m, DetectorLayer) for m in self.layers)
-        has_nearest = any(isinstance(m, NearestAL) for m in self.layers)
+        has_nearest = any(isinstance(m, CloserAL) for m in self.layers)
         if has_det and has_nearest:
             raise ValueError(
-                "Incoherent architecture: NearestAL can't "
+                "Incoherent architecture: CloserAL can't "
                 "cohexist with Detector-based layer within the same network."
             )
 

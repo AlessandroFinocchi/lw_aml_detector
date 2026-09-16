@@ -17,7 +17,7 @@ usage example:
     res = select_margins(cfg, X_train, y_train, X_val, y_val,
                          attack_mask=attack_mask, device=device,
                          class_weights=class_weights)
-    cfg = lc.DetectorArchConfig(act_margin=res.margins)
+    cfg = lc.DetectorModelConfig(act_margin=res.margins)
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def _measure_layer_distances(model, x, x_adv):
     """For every FurtherAL layer (in network order): mean squared distance d
     between real and adv activations, plus the activation scale.
     Only FurtherAL layers own a margin, so only those are measured: on an
-    architecture without FurtherAL the list comes back empty."""
+    model without FurtherAL the list comes back empty."""
     rows = []
     h_real, h_adv = x, x_adv
     for layer in model.layers:
@@ -57,14 +57,14 @@ def _measure_layer_distances(model, x, x_adv):
 
 
 def _warmup(config, X, y, attack_mask, device, epochs, class_weights=None):
-    """Trains the model briefly WITHOUT the activation loss (lambda_act=0).
+    """Trains the model briefly without the activation loss (lambda_act=0).
 
     The margin is a hyperparameter of training, so it cannot be computed on an
     already trained model. Training with lambda_act=0 breaks that: the warmed-up 
     model does not depend on the margin at all, yet its activations are about
     the order of magnitue the margin will actually operate in."""
     torch.manual_seed(lc.SEED)
-    built = lc.create_architecture(config, X.shape[1], device=device)
+    built = lc.create_model(config, X.shape[1], device=device)
     if epochs <= 0:
         return built.model
     loader = torch.utils.data.DataLoader(
@@ -109,7 +109,7 @@ def suggest_margins(config, X, y, attack_mask=None, device="cpu",
                     verbose=True) -> Optional[tuple]:
     """Proposes a PER-LAYER margin: margin_i = factor * natural d_i.
     Returns a tuple ordered like the FurtherAL layers of the network, or None
-    if the architecture has no layer with a margin (e.g. architecture 2).
+    if the architecture has no layer with a margin.
 
     warmup_epochs: epochs trained without the activation loss before measuring
     (0 = untrained model, NOT recommended, see _natural_distances)."""
@@ -160,7 +160,7 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
     Useful parameters:
       search_epochs : training epochs per candidate
       warmup_epochs : epochs trained without the activation loss before
-                      measuring d_i (0 = untrained model, not recommended:
+                      measuring d_i (0 = untrained model, not recommended,
                       the layers distances would be unrepresentative)
       max_train     : subsample the train set to speed the search up
       probe_size    : samples used to measure the natural d_i
@@ -177,7 +177,7 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
     if not base_d:
         raise ValueError(
             "select_margins requires FurtherAL layers: use a "
-            "DetectorArchConfig with use_act_loss=True"
+            "DetectorModelConfig with use_act_loss=True"
         )
 
     if max_train is not None:
@@ -197,7 +197,7 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
         margins = tuple(f * d for d in base_d)
         cand = dataclasses.replace(config, act_margin=margins)
         torch.manual_seed(lc.SEED)   # same init and same shuffle for all
-        built = lc.create_architecture(cand, X_train.shape[1], device=device)
+        built = lc.create_model(cand, X_train.shape[1], device=device)
         loader = torch.utils.data.DataLoader(
             torch.utils.data.TensorDataset(Xtr, ytr),
             batch_size=cand.batch_size, shuffle=True,

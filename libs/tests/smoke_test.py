@@ -16,11 +16,11 @@ mask = torch.ones(F_DIM)
 loader = torch.utils.data.DataLoader(
     torch.utils.data.TensorDataset(X, y), batch_size=64, shuffle=True)
 
-print("== 1) vincolo del contenitore: NearestAL + detector deve fallire ==")
+print("== 1) vincolo del contenitore: CloserAL + detector deve fallire ==")
 try:
     lw.LWADSequential(
         lw.DetectorLayer(nn.Linear(F_DIM, 8), detector=lw.default_detector(8)),
-        lw.NearestAL(nn.Linear(8, 2)),
+        lw.CloserAL(nn.Linear(8, 2)),
     )
     raise AssertionError("la validazione NON e' scattata!")
 except ValueError as e:
@@ -29,7 +29,7 @@ except ValueError as e:
 try:
     lw.LWADSequential(
         lw.FurtherAL(nn.Linear(F_DIM, 8), detector=lw.default_detector(8)),
-        lw.NearestAL(nn.Linear(8, 2)),
+        lw.CloserAL(nn.Linear(8, 2)),
     )
     raise AssertionError("la validazione NON e' scattata con FurtherAL!")
 except ValueError as e:
@@ -40,11 +40,11 @@ print("  ", [c.__name__ for c in lw.FurtherAL.__mro__[:5]])
 assert issubclass(lw.FurtherAL, lw.DetectorLayer)
 assert issubclass(lw.FurtherAL, lw.ActivationLoss)
 
-for name, cfg in [("Architettura 1 (DetectorArchConfig, FurtherAL)", lc.DetectorArchConfig(hidden_dims=(64, 32, 64), eps=0.1)),
-                  ("Architettura 1 senza act loss (DetectorLayer)", lc.DetectorArchConfig(hidden_dims=(64, 32, 64), use_act_loss=False)),
-                  ("Architettura 2 (AlignmentArchConfig, NearestAL)", lc.AlignmentArchConfig(hidden_dims=(32, 32, 64)))]:
+for name, cfg in [("Model 1 (DetectorModelConfig, FurtherAL)", lc.DetectorModelConfig(hidden_dims=(64, 32, 64), eps=0.1)),
+                  ("Model 1 no act loss (DetectorLayer)", lc.DetectorModelConfig(hidden_dims=(64, 32, 64), use_act_loss=False)),
+                  ("Model 2 (AdvTrainingModelConfig, CloserAL)", lc.AdvTrainingModelConfig(hidden_dims=(32, 32, 64)))]:
     print(f"\n== 3) {name} ==")
-    built = lc.create_architecture(cfg, F_DIM)
+    built = lc.create_model(cfg, F_DIM)
     model, opt = built.model, built.optimizer
     print("   has_detectors =", model.has_detectors,
           "| task_loss_on_adv =", cfg.task_loss_on_adv,
@@ -106,7 +106,7 @@ for name, cfg in [("Architettura 1 (DetectorArchConfig, FurtherAL)", lc.Detector
             print("   select_threshold senza detector: rifiutato correttamente")
 
 print("\n== 4) split_pairs con batch sbilanciato deve fallire ==")
-built = lc.create_architecture(lc.AlignmentArchConfig(hidden_dims=(16, 16, 64)), F_DIM)
+built = lc.create_model(lc.AdvTrainingModelConfig(hidden_dims=(16, 16, 64)), F_DIM)
 try:
     bad_flag = torch.cat([torch.zeros(10), torch.ones(22)])
     built.model(X[:32], is_adv=bad_flag)
@@ -115,42 +115,42 @@ except ValueError as e:
     print("   OK ->", str(e)[:60], "...")
 
 print("\n== 5) margini per layer ==")
-cfg = lc.DetectorArchConfig(hidden_dims=(64, 32, 64), act_margin=(0.5, 0.05))
+cfg = lc.DetectorModelConfig(hidden_dims=(64, 32, 64), act_margin=(0.5, 0.05))
 model = cfg.build_model(F_DIM)
 ms = [l.margin for l in model.layers if isinstance(l, lw.FurtherAL)]
 assert ms == [0.5, 0.05], ms
 print("   margini applicati in ordine:", ms)
 
 try:
-    lc.DetectorArchConfig(hidden_dims=(64, 32, 64), act_margin=(0.5, 0.05, 0.1)).build_model(F_DIM)
+    lc.DetectorModelConfig(hidden_dims=(64, 32, 64), act_margin=(0.5, 0.05, 0.1)).build_model(F_DIM)
     raise AssertionError("lunghezza margini errata NON rilevata!")
 except ValueError as e:
     print("   OK ->", str(e)[:60], "...")
 
 from libs.training.lwad_margin import suggest_margins, select_margins
-m = suggest_margins(lc.DetectorArchConfig(hidden_dims=(64, 32, 64)), X, y,
+m = suggest_margins(lc.DetectorModelConfig(hidden_dims=(64, 32, 64)), X, y,
                     attack_mask=mask, verbose=False)
 assert m is not None and len(m) == 2 and all(v > 0 for v in m)
 print("   suggest_margins:", tuple(round(v, 5) for v in m))
-assert suggest_margins(lc.AlignmentArchConfig(hidden_dims=(32, 32, 64)), X, y,
+assert suggest_margins(lc.AdvTrainingModelConfig(hidden_dims=(32, 32, 64)), X, y,
                        attack_mask=mask, verbose=False) is None
 print("   suggest_margins su architettura 2: None (corretto)")
 
-res = select_margins(lc.DetectorArchConfig(hidden_dims=(64, 32, 64)), X, y, X, y,
+res = select_margins(lc.DetectorModelConfig(hidden_dims=(64, 32, 64)), X, y, X, y,
                      attack_mask=mask, factors=(2.0, 20.0),
                      search_epochs=1, verbose=False)
 assert len(res.margins) == 2 and res.factor in (2.0, 20.0)
 assert len(res.candidates) == 2
 print("   select_margins: factor =", res.factor,
       " margini =", tuple(round(v, 5) for v in res.margins))
-cfg_best = lc.DetectorArchConfig(hidden_dims=(64, 32, 64), act_margin=res.margins)
+cfg_best = lc.DetectorModelConfig(hidden_dims=(64, 32, 64), act_margin=res.margins)
 mm = [l.margin for l in cfg_best.build_model(F_DIM).layers
       if isinstance(l, lw.FurtherAL)]
 assert tuple(mm) == res.margins
 print("   margini selezionati applicabili alla config: OK")
 
 try:
-    select_margins(lc.AlignmentArchConfig(hidden_dims=(32, 32, 64)), X, y, X, y,
+    select_margins(lc.AdvTrainingModelConfig(hidden_dims=(32, 32, 64)), X, y, X, y,
                    attack_mask=mask, verbose=False)
     raise AssertionError("select_margins doveva fallire senza FurtherAL!")
 except ValueError:

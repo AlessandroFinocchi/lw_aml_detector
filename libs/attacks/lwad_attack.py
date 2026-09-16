@@ -82,8 +82,8 @@ def pgd_adaptive(model, x, y, eps, steps, alpha, mask=None, evade_weight=1.0,
                  reduce=DEFAULT_SCORE_REDUCE):
     if not any(isinstance(m, DetectorLayer) for m in model.modules()):
         raise ValueError(
-            "pgd_adaptive requires a detector-based architecture: "
-            "on model with NearestAL/PassThrough use pgd or fgsm"
+            "pgd_adaptive requires a detector-based model: "
+            "on model with Closer/PassThrough use pgd or fgsm"
         )
 
     x_orig = x.clone().detach()

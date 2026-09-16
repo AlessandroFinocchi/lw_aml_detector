@@ -16,7 +16,7 @@ def train_epoch(model, loader, optimizer, eps, lambda_det=1.0, lambda_act=1.0,
         loss = task + lambda_det * det_loss + lambda_act * act_loss
 
     where det_loss and act_loss appear only if the network contains the layers
-    that produce them (DetectorLayer for det_loss, FurtherAL/NearestAL for act_loss).
+    that produce them (DetectorLayer for det_loss, FurtherAL/CloserAL for act_loss).
     """
     
     model.train()
@@ -100,7 +100,7 @@ def select_threshold(model, X_val, y_val, eps, attack_mask=None, attack=DEFAULT_
     classified (score under the threshold)"""
 
     if not getattr(model, "has_detectors", True):
-        raise ValueError("select_threshold requires a detector-based architecture")
+        raise ValueError("select_threshold requires a detector-based model")
 
     model.eval()
     attack_kwargs = attack_kwargs or {}

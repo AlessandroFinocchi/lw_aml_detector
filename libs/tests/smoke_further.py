@@ -1,9 +1,9 @@
 """Smoke test: does FurtherAL actually push real and adversarial activations apart?
 
-Compares two architectures that are IDENTICAL except for the activation loss:
+Compares two architectures that are idential except for the activation loss:
 
-    A) DetectorArchConfig(use_act_loss=False)  -> plain DetectorLayer
-    B) DetectorArchConfig(use_act_loss=True)   -> FurtherAL (repulsive hinge)
+    A) DetectorModelConfig(use_act_loss=False)  -> plain DetectorLayer
+    B) DetectorModelConfig(use_act_loss=True)   -> FurtherAL (repulsive hinge)
 
 Same seed, same init, same batch order, same attack settings, so any
 difference in activation distance comes from the loss alone.
@@ -70,7 +70,7 @@ def train_and_measure(cfg, X_tr, y_tr, X_te, y_te, mask):
     The attack is regenerated against each model, so every model is measured
     against the attack it actually faces."""
     torch.manual_seed(lc.SEED)
-    built = lc.create_architecture(cfg, X_tr.shape[1])
+    built = lc.create_model(cfg, X_tr.shape[1])
     loader = torch.utils.data.DataLoader(
         torch.utils.data.TensorDataset(X_tr, y_tr),
         batch_size=cfg.batch_size, shuffle=True,
@@ -99,8 +99,8 @@ def main():
 
 
     # --- fairness check: identical structure and initial weights ----------
-    cfg_plain = lc.DetectorArchConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=False)
-    probe = lc.DetectorArchConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=True)
+    cfg_plain = lc.DetectorModelConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=False)
+    probe = lc.DetectorModelConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=True)
 
     torch.manual_seed(lc.SEED); m_a = cfg_plain.build_model(N_FEATURES)
     torch.manual_seed(lc.SEED); m_b = probe.build_model(N_FEATURES)
@@ -121,7 +121,7 @@ def main():
     print(f"margins ({MARGIN_FACTOR:g}x)      : {tuple(f'{m:.5f}' for m in margins)}")
     print(f"lambda_act         : {LAMBDA_ACT:g}\n")
 
-    cfg_further = lc.DetectorArchConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=True,
+    cfg_further = lc.DetectorModelConfig(hidden_dims=HIDDEN_DIMS, use_act_loss=True,
                                         lambda_act=LAMBDA_ACT, act_margin=margins)
     _, rows_further, val_further = train_and_measure(cfg_further, X_tr, y_tr, X_te, y_te, mask)
 

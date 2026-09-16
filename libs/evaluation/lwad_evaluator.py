@@ -6,10 +6,10 @@ from libs.attacks.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
 
 
 # ===========================================================================
-# Experiment comparison metric within different architectures
+# Experiment comparison metric within different models
 #
-# The two architectures cannot be ranked on their own metrics: ali. architecture
-# defends by FLAGGING adversarial samples, det. architecture by CLASSIFYING them. 
+# The two models cannot be ranked on their own metrics: adv. training model
+# defends by FLAGGING adversarial samples, det. moel by classifying them. 
 # The end-to-end view makes them comparable:
 #
 #   clean_acc_e2e  = clean sample classified right AND not flagged
@@ -29,7 +29,7 @@ def combined_score(metrics: dict, mode=DEFAULT_SCORE_MODE) -> float:
 @torch.no_grad()
 def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_REDUCE):
     """Returns (predicted labels, adversarial score, clean-adversarial flags).
-    For architectures of type 2 (NearestAL) score and flags are None."""
+    For models of type 2 (CloserAL) score and flags are None."""
     model.eval()
     logits, state = model(x)
     score = state.adv_score(reduce=reduce)
@@ -68,7 +68,7 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
       clean_acc_e2e : clean sample classified right AND not flagged
       robust_acc_e2e: adv sample classified right OR flagged
 
-    For architectures of type 2 (NearestAL) detector voices are None"""
+    For models of type 2 (CloserAL) detector voices are None"""
     model.eval()
     attack_kwargs = attack_kwargs or {}
     res = {"lab_c": [], "lab_a": [], "sc_c": [], "sc_a": []}
@@ -101,12 +101,12 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
            "score_clean": None,
            "score_adv": None,
            # no detector -> nothing is ever flagged, so the end-to-end view
-           # degenerates into the plain task accuracies (architecture 2)
+           # degenerates into the plain task accuracies
            "clean_acc_e2e": correct_clean.float().mean().item(),
            "robust_acc_e2e": correct_adv.float().mean().item()}
 
     # --- DETECTOR (positive = adversarial) ---------------------------------
-    # only for architecture of type 1
+    # only for detector models
     if res["sc_c"]:
         sc_c, sc_a = torch.cat(res["sc_c"]), torch.cat(res["sc_a"])
 

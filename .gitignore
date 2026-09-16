@@ -5,5 +5,5 @@ lwad_libs.egg-info
 lwad_model.pt
 notebooks/main*.py
 notebooks/params_calc.py
-results
+results/checkpoints
 res.log

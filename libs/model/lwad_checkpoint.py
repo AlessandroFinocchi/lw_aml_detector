@@ -1,14 +1,13 @@
 """Checkpoint saving and loading.
 
-A checkpoint stores everything needed to rebuild a trained model without
-knowing in advance which architecture produced it:
+A checkpoint stores everything needed to rebuild a trained model:
 
     state_dict     : model weights
-    architecture   : config class name (DetectorArchConfig / AlignmentArchConfig)
+    model_type     : config class name (DetectorModelConfig / AdvTrainingModelConfig)
     config         : all config fields, so build_model() can be replayed
     feature_names  : column order the model was trained on
     attack_mask    : which features are attackable (1.0) or categorical (0.0)
-    threshold_det  : selected detector threshold (None for architecture 2)
+    threshold_det  : selected detector threshold (None for adv training models)
 
 Typical use:
 
@@ -29,9 +28,9 @@ import libs.model.lwad_wrapper as lw
 
 
 def _config_classes() -> dict:
-    """Returns a dict: name -> class: crosses recursively ArchitectureConfig 
-    subclasses for easily adding new architectures"""
-    found, stack = {}, [lc.ArchitectureConfig]
+    """Returns a dict: name -> class: crosses recursively ModelConfig 
+    subclasses for easily adding new model types"""
+    found, stack = {}, [lc.ModelConfig]
     while stack:
         cls = stack.pop()
         for sub in cls.__subclasses__():
@@ -45,10 +44,10 @@ def _config_classes() -> dict:
 # ===========================================================================
 def save_checkpoint(path, model, config, feature_names,
                     attack_mask=None, threshold_det=None) -> None:
-    """Stores weights + everything needed to rebuild the architecture.
+    """Stores weights + everything needed to rebuild the model.
     The checkpoint can be reloaded with weights_only=True."""
     torch.save({"state_dict": model.state_dict(),
-                "architecture": type(config).__name__,
+                "model_type": type(config).__name__,
                 "config": dict(config.__dict__),
                 "feature_names": list(feature_names),
                 "attack_mask": attack_mask,
@@ -62,7 +61,7 @@ def save_checkpoint(path, model, config, feature_names,
 @dataclasses.dataclass
 class LoadedCheckpoint:
     model: lw.LWADSequential
-    config: lc.ArchitectureConfig
+    config: lc.ModelConfig
     feature_names: list
     attack_mask: Optional[torch.Tensor]
     threshold_det: Optional[float]
@@ -72,12 +71,12 @@ class LoadedCheckpoint:
         return self.config.uses_detectors
 
 
-def _rebuild_config(name: str, saved: dict) -> lc.ArchitectureConfig:
+def _rebuild_config(name: str, saved: dict) -> lc.ModelConfig:
     """Rebuilds the config object, tolerating updates"""
     registry = _config_classes()
     if name not in registry:
         raise ValueError(
-            f"unknown architecture {name!r} in checkpoint; "
+            f"unknown model type {name!r} in checkpoint; "
             f"available: {sorted(registry)}"
         )
     cls = registry[name]
@@ -96,18 +95,18 @@ def _rebuild_config(name: str, saved: dict) -> lc.ArchitectureConfig:
 
 def load_checkpoint(path, device="cpu", eval_mode=True) -> LoadedCheckpoint:
     """Rebuilds model + config from a checkpoint written by save_checkpoint.
-    The architecture is replayed through config.build_model, so weights and
+    The model is replayed through config.build_model, so weights and
     module names always line up."""
     ck = torch.load(path, map_location=device)
 
-    for key in ("state_dict", "architecture", "config", "feature_names"):
+    for key in ("state_dict", "model_type", "config", "feature_names"):
         if key not in ck:
             raise KeyError(
                 f"checkpoint missing {key!r}: it was probably written by an "
                 "older version, re-train or save it with save_checkpoint"
             )
 
-    config = _rebuild_config(ck["architecture"], ck["config"])
+    config = _rebuild_config(ck["model_type"], ck["config"])
     feature_names = list(ck["feature_names"])
 
     model = config.build_model(len(feature_names))

@@ -1,7 +1,7 @@
 # ===========================================================================
-# cfg = DetectorArchConfig(...)   # architecture 1: detector-based (+ FurtherAL)
-# cfg = AlignmentArchConfig(...)  # architecture 2: adv training (NearestAL)
-# built = create_architecture(cfg, n_features, device)
+# cfg = DetectorModelConfig(...)     # model 1: detector-based (+ FurtherAL)
+# cfg = AdvTrainingModelConfig(...)  # model 2: adv training (CloserAL)
+# built = create_model(cfg, n_features, device)
 # ===========================================================================
 from __future__ import annotations
 
@@ -34,17 +34,17 @@ DEFAULT_LAMBDA_DET = 1.0            # detector loss weight
 DEFAULT_THRESHOLD_DET = 0.5         # detector threshold
 
 # --- activations ------------------------------------------------------------
-DEFAULT_LAMBDA_ACT = 1.0            # activation loss weight (FurtherAL / NearestAL)
+DEFAULT_LAMBDA_ACT = 1.0            # act loss weight (FurtherAL / CloserAL)
 
-# --- network shape ----------------------------------------------------------
+# --- network architecture ---------------------------------------------------
 # One entry per hidden layer, in network order
-DEFAULT_HIDDEN_DIMS     = (256, 128, 64)   # detector architecture backbone
-DEFAULT_ALI_HIDDEN_DIMS = (320, 128, 64)   # alignment architecture backbone
+DEFAULT_HIDDEN_DIMS     = (256, 128, 64)   # detector model backbone
+DEFAULT_ALI_HIDDEN_DIMS = (320, 128, 64)   # alignment model backbone
 DEFAULT_DETECTOR_DIMS   = (64, 32)         # detector
 
 # Which hidden layers carry the special layer, by index
-DEFAULT_WRAP_AT     = (0, 2)               # detector architecture
-DEFAULT_ALI_WRAP_AT = (1, 2)               # alignment architecture
+DEFAULT_WRAP_AT     = (0, 2)               # detector model
+DEFAULT_ALI_WRAP_AT = (1, 2)               # adv training model
 
 # --- early stopping config --------------------------------------------------
 DEFAULT_PATIENCE = 3                # epochs without improvements before stopping
@@ -58,7 +58,7 @@ DEFAULT_MARGIN_WARMUP_EPOCHS = 3    # epochs trained without the activation loss
 
 
 # ===========================================================================
-# The end-to-end comparison metric between different architectures too
+# The end-to-end comparison metric between different models too
 # ===========================================================================
 class ScoreMode(Enum):
     JOINT  = "joint"    # 0.5 * (clean_acc_e2e + robust_acc_e2e)
@@ -72,8 +72,8 @@ DEFAULT_SCORE_MODE = ScoreMode.JOINT.value
 # Config objects: each one represent an experiment
 # ===========================================================================
 @dataclass
-class ArchitectureConfig:
-    """ Common class: hyperparameters shared between architectures """
+class ModelConfig:
+    """ Common class: hyperparameters shared between models """
 
     # --- training -----------------------------------------------------------
     epochs:           int = DEFAULT_EPOCHS
@@ -98,7 +98,7 @@ class ArchitectureConfig:
     train_attack:     str = la.DEFAULT_TRAIN_ATTACK
     eval_attack:      str = la.DEFAULT_EVAL_ATTACK
 
-    # --- model --------------------------------------------------------------
+    # --- architecture -------------------------------------------------------
     hidden_dims:      Tuple[int, ...] = DEFAULT_HIDDEN_DIMS # one width per hidden
                                                             # layer, in network order
     wrap_at:          Tuple[int, ...] = DEFAULT_WRAP_AT     # indices of the hidden
@@ -110,12 +110,12 @@ class ArchitectureConfig:
     lambda_act:       float = DEFAULT_LAMBDA_ACT
     detach_reference: Optional[bool] = None # None: each activation loss uses its
                                             #       own default (True for FurtherAL
-                                            #       and False for NearestAL)
+                                            #       and False for CloserAL)
 
     # abstract class
     def __new__(cls, *args, **kwargs):
-        if cls is ArchitectureConfig:
-            raise TypeError("ArchitectureConfig is abstract, use a specialized class")
+        if cls is ModelConfig:
+            raise TypeError("ModelConfig is abstract, use a specialized class")
         return super().__new__(cls)
 
     def __post_init__(self):
@@ -133,7 +133,7 @@ class ArchitectureConfig:
         self.hidden_dims = tuple(int(w) for w in self.hidden_dims)
         self.wrap_at = tuple(int(i) for i in self.wrap_at)
 
-    # --- network shape ------------------------------------------------------
+    # --- network architecture -----------------------------------------------
     def resolved_hidden_dims(self) -> Tuple[int, ...]:
         dims = tuple(self.hidden_dims)
         if not dims:
@@ -195,15 +195,15 @@ class ArchitectureConfig:
     @property
     def score_reduce(self) -> str:
         """How FlowState.adv_score merges the detectors classifications.
-        Only needed in architectures with detectors (this check is made
+        Only needed in models with detectors (this check is made
         into the Exp class during validation)
         """
         return la.DEFAULT_SCORE_REDUCE
 
 
 @dataclass
-class DetectorArchConfig(ArchitectureConfig):
-    """Architecture 1: detector on arbitrary layer, optional with contrastive 
+class DetectorModelConfig(ModelConfig):
+    """Model 1: detector on arbitrary layer, optional with contrastive 
     loss using FurtherAL (use_act_loss=False -> DetectorLayer)."""
 
     lr_det:          float = DEFAULT_LR_DET           # det learning rate
@@ -279,9 +279,9 @@ class DetectorArchConfig(ArchitectureConfig):
 
 
 @dataclass
-class AlignmentArchConfig(ArchitectureConfig):
-    """Architecture 2: adversarial training via NearestAL, no detector. Only 
-    PassThrough e NearestAL. Task loss on adversarial sample is active by default"""
+class AdvTrainingModelConfig(ModelConfig):
+    """Model 2: adversarial training via CloserAL, no detector. Only 
+    PassThrough e CloserAL. Task loss on adversarial sample is active by default"""
 
     task_loss_on_adv: bool = True                           # base default override
     hidden_dims: Tuple[int, ...] = DEFAULT_ALI_HIDDEN_DIMS  # base default override
@@ -289,23 +289,23 @@ class AlignmentArchConfig(ArchitectureConfig):
 
     def _wrap_layer(self, base: nn.Module, out_dim: int,
                     idx: int, total: int) -> nn.Module:
-        return lw.NearestAL(base, detach_reference=self.detach_reference)
+        return lw.CloserAL(base, detach_reference=self.detach_reference)
 
 
 # ===========================================================================
 # Factory
 # ===========================================================================
 @dataclass
-class BuiltArchitecture:
+class BuiltModel:
     model: lw.LWADSequential
     optimizer: torch.optim.Optimizer
-    config: ArchitectureConfig
+    config: ModelConfig
 
 
-def create_architecture(config: ArchitectureConfig, n_features: int,
-                        device: str = "cpu") -> BuiltArchitecture:
+def create_model(config: ModelConfig, n_features: int,
+                        device: str = "cpu") -> BuiltModel:
     """Builds model and optimizer depending on the given config.
-    Architecture coherency is checked within DetectorSequential."""
+    Model coherency is checked within DetectorSequential."""
     model = config.build_model(n_features).to(device)
     optimizer = config.build_optimizer(model)
-    return BuiltArchitecture(model=model, optimizer=optimizer, config=config)
+    return BuiltModel(model=model, optimizer=optimizer, config=config)
