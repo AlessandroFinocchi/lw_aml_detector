@@ -38,13 +38,15 @@ DEFAULT_LAMBDA_ACT = 1.0            # act loss weight (FurtherAL / CloserAL)
 
 # --- network architecture ---------------------------------------------------
 # One entry per hidden layer, in network order
-DEFAULT_HIDDEN_DIMS     = (256, 128, 64)   # detector model backbone
-DEFAULT_ALI_HIDDEN_DIMS = (320, 128, 64)   # alignment model backbone
-DEFAULT_DETECTOR_DIMS   = (64, 32)         # detector
+DEFAULT_BB_DIMS   = (256, 128, 64)  # backbone architecture
+DEFAULT_DET_DIMS  = (64, 32)        # detector architecture
 
 # Which hidden layers carry the special layer, by index
-DEFAULT_WRAP_AT     = (0, 2)               # detector model
-DEFAULT_ALI_WRAP_AT = (1, 2)               # adv training model
+DEFAULT_BB_WRAP_AT = (0, 2)         # backbone model layers wrapped
+
+# Wheater architecture begins with an input norm layer
+DEFAULT_BB_INPUT_NORM  = True
+DEFAULT_DET_INPUT_NORM = True
 
 # --- early stopping config --------------------------------------------------
 DEFAULT_PATIENCE = 3                # epochs without improvements before stopping
@@ -99,11 +101,11 @@ class ModelConfig:
     eval_attack:      str = la.DEFAULT_EVAL_ATTACK
 
     # --- architecture -------------------------------------------------------
-    hidden_dims:      Tuple[int, ...] = DEFAULT_HIDDEN_DIMS # one width per hidden
+    hidden_dims:      Tuple[int, ...] = DEFAULT_BB_DIMS # one width per hidden
                                                             # layer, in network order
-    wrap_at:          Tuple[int, ...] = DEFAULT_WRAP_AT     # indices of the hidden
+    wrap_at:          Tuple[int, ...] = DEFAULT_BB_WRAP_AT     # indices of the hidden
                                                             # layers that get wrapped
-    input_norm:       bool = True       
+    input_norm:       bool = DEFAULT_BB_INPUT_NORM       
     n_classes:        int = 2
 
     # --- activation loss ----------------------------------------------------
@@ -210,8 +212,8 @@ class DetectorModelConfig(ModelConfig):
     lambda_det:      float = DEFAULT_LAMBDA_DET       # det loss weight
     threshold_det:   float = DEFAULT_THRESHOLD_DET    # det initial threshold
     detach:          bool = True                      # det loss doesn't affect backbone
-    detector_dims:   Tuple[int, ...] = DEFAULT_DETECTOR_DIMS  # detector head widths
-    detector_norm:   bool = True                      # LayerNorm at the detector input
+    detector_dims:   Tuple[int, ...] = DEFAULT_DET_DIMS  # detector head widths
+    detector_norm:   bool = DEFAULT_DET_INPUT_NORM                      # LayerNorm at the detector input
     score_reduce:    str = la.DEFAULT_SCORE_REDUCE    # "mean" | "max": how detector 
                                                       # classifications are merged
     use_act_loss:    bool = True                      # true -> FurtherAL, false -> DetectorLayer
@@ -283,9 +285,7 @@ class AdvTrainingModelConfig(ModelConfig):
     """Model 2: adversarial training via CloserAL, no detector. Only 
     PassThrough e CloserAL. Task loss on adversarial sample is active by default"""
 
-    task_loss_on_adv: bool = True                           # base default override
-    hidden_dims: Tuple[int, ...] = DEFAULT_ALI_HIDDEN_DIMS  # base default override
-    wrap_at:     Tuple[int, ...] = DEFAULT_ALI_WRAP_AT      # base default override
+    task_loss_on_adv: bool = True   # base override, mandatory for adv training
 
     def _wrap_layer(self, base: nn.Module, out_dim: int,
                     idx: int, total: int) -> nn.Module:

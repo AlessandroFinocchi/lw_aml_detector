@@ -839,6 +839,7 @@ def _metrics_report(m: dict) -> str:
 
 def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
               device: Optional[str] = None, out_dir: str = "results",
+              summary_file: str = "summary.csv",
               seeds: Sequence[int] = (lc.SEED,), verbose: int = 1,
               only: Optional[str] = None, dry_run: bool = False,
               resume: bool = False, download: bool = False,
@@ -849,8 +850,9 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
 
     Datasets are the outer loop: preprocessing dominates the non-training cost,
     so each one is loaded and moved to the device exactly once for the whole
-    table. Results are appended to <out_dir>/summary.csv after every run, so an
-    interrupted suite keeps what it already produced (and resume=True skips it).
+    table. Results are appended to <out_dir>/<summary_file> after every run, so
+    an interrupted suite keeps what it already produced (and resume=True skips
+    it).
 
     Args:
         datasets: accepts KaggleDataset members or DatasetBundle objects.
@@ -864,7 +866,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
     experiments = EXPERIMENTS if experiments is None else experiments
     datasets = DATASETS if datasets is None else datasets
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-    csv_path = os.path.join(out_dir, "summary.csv")
+    csv_path = os.path.join(out_dir, summary_file)
     ckpt_dir = os.path.join(out_dir, "checkpoints") if save_checkpoints else None
     done = _done_runs(csv_path) if resume else set()
 

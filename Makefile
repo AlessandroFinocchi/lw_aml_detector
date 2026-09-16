@@ -40,9 +40,9 @@ install_libs:
 	pip install -e .
 
 
-# RUN DEGLI ESPERIMENTI
-exp:
+# RUN DEGLI ESPERIMENTI (make exp1/make exp2...)
+exp%:
 	nohup env PYTHONUNBUFFERED=1 /home/finocchi/conda/miniconda3/envs/lwad_gpu_env/bin/python \
 	/home/finocchi/finocchi/lw_aml_detector/notebooks/experiment.py \
-	--only s1/ --verbose 1 \
-	> res.log 2>&1 &
+	--only s$*/ --verbose 1 \
+	> res_$*.log 2>&1 &

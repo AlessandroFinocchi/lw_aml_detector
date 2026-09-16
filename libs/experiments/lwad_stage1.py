@@ -1,6 +1,6 @@
 """Stage 1: baselines, verification and validation.
 
-    python notebooks/experiment.py --only s1/ --verbose 2
+    python notebooks/experiment.py --only s1/ --verbose 1
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ COMMON = dict(epochs=10, eps=0.2, train_attack="pgd", eval_attack="pgd",
 
 DET = lc.DetectorModelConfig(**COMMON, use_act_loss=False)      # DetectorLayer
 FUR = lc.DetectorModelConfig(**COMMON, use_act_loss=True,       # FurtherAL
-                            margin_factor=5.0, lambda_act=10.0)
+                            margin_factor=5.0)
 ALI = lc.AdvTrainingModelConfig(**COMMON)                       # CloserAL
 
 
