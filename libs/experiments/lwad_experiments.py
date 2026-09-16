@@ -30,56 +30,17 @@ import libs.evaluation.lwad_evaluator as le
 import libs.model.lwad_checkpoint as lcp
 
 
-# ===========================================================================
-# 1) PRESETS: every experiment is a delta of these experiments
-# ===========================================================================
-DET = lc.DetectorModelConfig(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
-ALI = lc.AdvTrainingModelConfig(epochs=10, eps=0.1, train_attack="pgd", eval_attack="pgd")
-
 #DATASETS = list(pp.KaggleDataset)
 DATASETS = list([pp.KaggleDataset.UNSW_BW15])
 
 # ===========================================================================
-# 2) EXPERIMENTS: name, preset, and only what changes
+# EXPERIMENTS: name, preset, and only what changes
 #
 #    Exp    : a single run
 #    Sweep  : cartesian product of the given axes
 #    Paired : axes advanced together (same length), not crossed
 # ===========================================================================
-def _table():
-    return [
-        # --- detector model ------------------------------------------------
-        #Exp("det/base",           DET),
-        #Exp("det/no-actloss",     DET, use_act_loss=False),
-        #Exp("det/score-max",      DET, score_reduce="max"),
-        #Exp("det/attached",       DET, detach=False),
-        #Exp("det/no-input-norm",  DET, input_norm=False),
-        #Exp("det/wide",           DET, hidden_dims=(512, 256, 96), wrap_at=(0, 2)),
-        #Exp("det/3-det",          DET, hidden_dims=(256, 128, 64), wrap_at=(0, 1, 2),
-        #                               act_margin=(9e-4, 9e-4, 9e-4)),
-        #Exp("det/fat-head",       DET, detector_dims=(256, 128, 64)),
-        #Exp("det/linear-head",    DET, detector_dims=()),
 
-        # --- adv training model --------------------------------------------
-        #Exp("ali/base",           ALI),
-        #Exp("ali/clean-task",     ALI, task_loss_on_adv=False),
-        #Exp("ali/wide",           ALI, hidden_dims=(768, 320, 96), wrap_at=(1, 2)),
-
-        # --- sweeps --------------------------------------------------------
-        #Sweep("det/eps",     DET, eps=[0.05, 0.1, 0.2]),
-        #Sweep("det/lr",      DET, lr=[1e-3, 3e-4], lr_det=[3e-3, 1e-3]),
-        #Sweep("det/lambda",  DET, lambda_det=[0.5, 1.0, 2.0], lambda_act=[0.0, 1.0]),
-        #Sweep("det/atk",     DET, train_attack=["fgsm", "pgd"],
-        #                          eval_attack=["pgd", "pgd_adaptive"]),
-        #Paired("det/steps",  DET, pgd_steps=[10, 20],
-        #                          pgd_alpha=[0.05, 0.025]),
-        #Sweep("ali/eps",     ALI, eps=[0.05, 0.1, 0.2]),
-    ]
-
-
-# ===========================================================================
-# Declaration layer
-# ===========================================================================
 def _fmt(v: Any) -> str:
     """Compact rendering of a value for names and tables."""
     if isinstance(v, float):
@@ -100,17 +61,30 @@ class Exp:
 
     # --- identity -----------------------------------------------------------
     # 
-    # Example for Exp('det/wide', DetectorModelConfig, hidden_dims=(512,256,96), wrap_at=(0,2))
+    # Example for Exp('det/wide', DET, hidden_dims=(512,256,96), wrap_at=(0,2))
+    # with DET = DetectorModelConfig(epochs=10, eps=0.1)
     # * .model      -> 'det'
-    # * .describe() -> 'hidden_dims=(512,256,96), wrap_at=(0,2)'
-    # * repr()      -> Exp('det/wide', DetectorModelConfig, hidden_dims=(512,256,96), wrap_at=(0,2))
+    # * .describe() -> 'epochs=10, eps=0.1, hidden_dims=(512,256,96), wrap_at=(0,2)'
+    # * repr()      -> Exp('det/wide', DetectorModelConfig, epochs=10, eps=0.1,
+    #                      hidden_dims=(512,256,96), wrap_at=(0,2))
 
     @property
     def model(self) -> str:
         return type(self.base).__name__.replace("ModelConfig", "")[:3].lower()
 
     def describe(self) -> str:
-        return ", ".join(f"{k}={_fmt(v)}" for k, v in self.overrides.items())
+        """What the preset changed w.r.t. its class defaults"""
+        cls = type(self.base)
+        defaults, params = cls(), {}
+        for f in dataclasses.fields(cls):
+            v = getattr(self.base, f.name)
+            # pgd_alpha can be derived from eps by __post_init__
+            if f.name == "pgd_alpha" and v == self.base.eps / 4:
+                continue
+            if v != getattr(defaults, f.name):
+                params[f.name] = v
+        params.update(self.overrides)
+        return ", ".join(f"{k}={_fmt(v)}" for k, v in params.items())
 
     def __repr__(self) -> str:
         d = self.describe()
@@ -926,8 +900,9 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                                               verbose=verbose >= 2,
                                               test_max_rows=test_max_rows)
                 if verbose >= 1:
+                    desc = exp.describe()
                     print(f"\n### [{n:3d}/{total}] {exp.name} | {data.name} | "
-                          f"seed {seed}{' | ' + exp.describe() if exp.overrides else ''} ###")
+                          f"seed {seed}{' | ' + desc if desc else ''} ###")
                 try:
                     res = run_experiment(exp, data, device=device, seed=seed,
                                          verbose=verbose, checkpoint_dir=ckpt_dir)
@@ -953,4 +928,4 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
     return suite
 
 
-EXPERIMENTS = _table()
+EXPERIMENTS = []

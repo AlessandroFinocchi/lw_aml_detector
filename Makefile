@@ -41,8 +41,28 @@ install_libs:
 
 
 # RUN DEGLI ESPERIMENTI (make exp1/make exp2...)
+#   make exp2                        default
+#   make exp2 DATASET=UNSW_BW15      log e summary dedicati, per istanze paralelle
+#   DATASET: UNSW_BW15 | CICIDS2017 | CTU13 | CSECICIDS2018
+
 exp%:
-	nohup env PYTHONUNBUFFERED=1 /home/finocchi/conda/miniconda3/envs/lwad_gpu_env/bin/python \
-	/home/finocchi/finocchi/lw_aml_detector/notebooks/experiment.py \
-	--only s$*/ --verbose 1 \
-	> res_$*.log 2>&1 &
+	nohup env PYTHONUNBUFFERED=1 \
+	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
+	notebooks/experiment.py \
+		--only s$*/ \
+		$(if $(DATASET),--dataset $(DATASET),) \
+		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
+		--verbose 1 \
+		--resume \
+	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
+
+clean:
+	rm -rf results/
+	rm res*.log
+
+gpu_usage:
+	nvidia-smi -i 0 \
+		--query-gpu=utilization.gpu \
+		--format=csv,noheader,nounits -l 1 | \
+	head -n 30 | \
+	awk '{sum+=$$1; n++} END {if (n>0) printf "Utilizzo medio GPU 0: %.2f%%\n", sum/n}'

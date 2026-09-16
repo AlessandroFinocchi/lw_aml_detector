@@ -16,9 +16,8 @@ COMMON = dict(epochs=10, eps=0.2, train_attack="pgd", eval_attack="pgd",
               hidden_dims=(64, 32), wrap_at=(0,1))
 
 DET = lc.DetectorModelConfig(**COMMON, use_act_loss=False)      # DetectorLayer
-FUR = lc.DetectorModelConfig(**COMMON, use_act_loss=True,       # FurtherAL
-                            margin_factor=5.0)
-ALI = lc.AdvTrainingModelConfig(**COMMON)                       # CloserAL
+FUR = lc.DetectorModelConfig(**COMMON, use_act_loss=True)       # FurtherAL
+ADV = lc.AdvTrainingModelConfig(**COMMON)                       # CloserAL
 
 
 # ===========================================================================
@@ -28,7 +27,7 @@ def table() -> list[Exp]:
     return [
         # --- baselines: one reference plus two per model type --------------
         # No defense
-        Exp("s1/base/undefended",        ALI, lambda_act=0.0,
+        Exp("s1/base/undefended",        ADV, lambda_act=0.0,
                                               task_loss_on_adv=False),
 
         # Detector Model
@@ -43,8 +42,8 @@ def table() -> list[Exp]:
         # Adversarial Training Model
         # The second run answers whether pulling clean and adversarial
         # activations together improves performances.
-        Exp("s1/base/nearest",           ALI),
-        Exp("s1/base/nearest-clean",     ALI, task_loss_on_adv=False),
+        Exp("s1/base/nearest",           ADV),
+        Exp("s1/base/nearest-clean",     ADV, task_loss_on_adv=False),
 
         # --- V&V -----------------------------------------------------------
         # (1) Must be equal to s1/base/detlayer, metric by metric. A FurtherAL

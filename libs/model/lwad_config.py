@@ -55,6 +55,7 @@ DEFAULT_MIN_EPOCHS = 5              # never stop before this many epochs
 
 # --- margin -----------------------------------------------------------------
 DEFAULT_ACT_MARGIN = 9e-4           # contrastive loss margin (FurtherAL)
+DEFAULT_MARGIN_FACTOR = 5.0
 DEFAULT_MARGIN_WARMUP_EPOCHS = 3    # epochs trained without the activation loss
                                     # before measuring the natural distances
 
@@ -220,7 +221,7 @@ class DetectorModelConfig(ModelConfig):
     act_margin:      Union[float, Tuple[float, ...]] = DEFAULT_ACT_MARGIN # contrastive loss margin
                                                                           # single float for all layers
                                                                           # tuple with values for each FurtherAL
-    margin_factor:   Optional[float] = None
+    margin_factor:   Optional[float] = DEFAULT_MARGIN_FACTOR
     margin_warmup_epochs: int = DEFAULT_MARGIN_WARMUP_EPOCHS
 
     def __post_init__(self):
