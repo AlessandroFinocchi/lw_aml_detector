@@ -12,6 +12,7 @@ import argparse
 
 import libs.preprocess.preprocess as pp
 import libs.model.lwad_config as lc
+import libs.evaluation.lwad_evaluator as le
 import libs.experiments.lwad_experiments as lx
 
 # appending stage experiments to lx.EXPERIMENTS
@@ -42,6 +43,9 @@ parser.add_argument("--seeds", default=str(lc.SEED),
                          "difference from run to run noise")
 parser.add_argument("--test-max-rows", type=int, default=pp.DEFAULT_TEST_MAX_ROWS,
                     help="cap on the test split, balancing the attack categories (0 disables it)")
+parser.add_argument("--infer-samples", type=int, default=le.DEFAULT_INFER_SAMPLES,
+                    help="test samples timed one at a time for the inference "
+                         "latency (0 disables it)")
 args = parser.parse_args()
 
 datasets = ([pp.KaggleDataset[args.dataset]] if args.dataset else lx.DATASETS)
@@ -55,4 +59,5 @@ lx.run_suite(lx.EXPERIMENTS, datasets,
              only=args.only, dry_run=args.dry_run,
              resume=args.resume, download=args.download, seeds=seeds,
              test_max_rows=args.test_max_rows or None,
+             infer_samples=args.infer_samples,
              save_checkpoints=not args.no_checkpoints, verbose=args.verbose)

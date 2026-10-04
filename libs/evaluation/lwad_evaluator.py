@@ -1,3 +1,6 @@
+import statistics
+import time
+
 import torch
 import torch.nn as nn
 
@@ -32,6 +35,9 @@ def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_
     """Returns (predicted labels, adversarial score, clean-adversarial flags).
     For models of type 2 (CloserAL) score and flags are None."""
     model.eval()
+    return _infer(model, x, threshold_det, reduce)
+
+def _infer(model, x, threshold_det, reduce):
     logits, state = model(x)
     score = state.adv_score(reduce=reduce)
     flags = (score > threshold_det) if score is not None else None
@@ -157,3 +163,44 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
         out["robust_acc_e2e"] = (correct_adv | flag_a).float().mean().item()
 
     return out
+
+
+# ===========================================================================
+# Inference latency
+# ===========================================================================
+DEFAULT_INFER_SAMPLES = 1024    # samples timed, one forward each
+DEFAULT_INFER_WARMUP = 256      # untimed forwards: cuBLAS init, allocator, caches
+
+@torch.no_grad()
+def inference_time(model, X, n_samples=DEFAULT_INFER_SAMPLES,
+                   warmup=DEFAULT_INFER_WARMUP, threshold_det=DEFAULT_THRESHOLD_DET,
+                   reduce=DEFAULT_SCORE_REDUCE):
+    """Single-sample inference latency on the first n_samples rows of X.
+
+    Every sample goes through the full decision (label, adversarial score and
+    flag) alone, as a flow would when it reaches a deployed detector: batching
+    them would hide the per-sample overhead and leave no per-sample spread to
+    measure. CUDA launches are asynchronous, hence the synchronize on both
+    sides of the timed call.
+
+    Returns inference time in ms."""
+    model.eval()
+    n = min(n_samples, len(X))
+    sync = torch.cuda.synchronize if X.is_cuda else (lambda: None)
+    for i in range(min(warmup, len(X))):
+        _infer(model, X[i:i + 1], threshold_det, reduce)
+
+    times = []
+    for i in range(n):
+        x = X[i:i + 1]
+        sync()
+        t0 = time.perf_counter()
+        _infer(model, x, threshold_det, reduce)
+        sync()
+        times.append((time.perf_counter() - t0) * 1e3)
+
+    if not times:
+        return {"infer_ms": float("nan"), "infer_ms_std": float("nan"), "infer_n": 0}
+    return {"infer_ms": statistics.fmean(times),
+            "infer_ms_std": statistics.stdev(times) if n > 1 else 0.0,
+            "infer_n": n}

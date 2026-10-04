@@ -384,6 +384,7 @@ CSV_COLUMNS = [
     "score_clean", "score_adv",
     "clean_acc_e2e", "robust_acc_e2e",
     "slav", "slav_rel",
+    "infer_ms", "infer_ms_std",
     "duration_s", "checkpoint", "error",
 ]
 
@@ -442,6 +443,9 @@ class RunResult:
                      clean_acc_e2e=round(m["clean_acc_e2e"], 4),
                      robust_acc_e2e=round(m["robust_acc_e2e"], 4),
                      slav=_vec(m["slav"]), slav_rel=_vec(m["slav_rel"]))
+            if "infer_ms" in m:
+                r.update(infer_ms=round(m["infer_ms"], 4),
+                         infer_ms_std=round(m["infer_ms_std"], 4))
             if m["detector"] is not None:
                 r.update(det_clean_acc=round(m["det_clean_acc"], 4),
                          det_adv_acc=round(m["det_adv_acc"], 4),
@@ -483,6 +487,22 @@ def _agg_cell(values: list, decimals: int = 4) -> str:
     return f"{mean:.{decimals}f}\u00b1{sd:.{decimals}f}"
 
 
+def _latency_cell(rows: list[dict], decimals: int = 4) -> str:
+    """Inference latency mean±std over every sample.
+
+    Unlike _agg_cell, the ± is the per-sample spread, shown even for a single
+    seed, not the seed-to-seed one. With more seeds the pooled variance is the 
+    mean of the per-seed variances plus the variance of the per-seed means.
+    """
+    runs = [(r["infer_ms"], r["infer_ms_std"]) for r in rows
+            if isinstance(r.get("infer_ms"), (int, float))]
+    if not runs:
+        return "-"
+    mean = sum(m for m, _ in runs) / len(runs)
+    sd = (sum(s ** 2 + (m - mean) ** 2 for m, s in runs) / len(runs)) ** 0.5
+    return f"{mean:.{decimals}f}\u00b1{sd:.{decimals}f}"
+
+
 def _group_by_run(rows: list[dict]) -> dict:
     """(experiment, dataset) -> its rows, one per seed."""
     groups: dict = {}
@@ -513,7 +533,7 @@ class SuiteResult:
         cols = ["experiment", "dataset", "model", "n", "epochs", "task_clean_acc",
                 "task_adv_acc", "det_clean_acc", "det_adv_acc",
                 "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "val_score",
-                "duration_s"]
+                "infer_ms", "duration_s"]
         n_bad = len(self.failures())
         head = (f"== summary ({len(self.results)} run"
                 f"{f', {n_bad} failed' if n_bad else ''}) ==")
@@ -523,7 +543,8 @@ class SuiteResult:
             rows = sorted(self.rows(),
                           key=lambda r: (r["dataset"],
                                          -(r[sort_by] if r[sort_by] != "" else -1e9)))
-            body = [[str(r[c]) if r[c] != "" else ("ERR" if r["error"] else "-")
+            body = [[("ERR" if r["error"] else "-") if r[c] == "" else
+                     _latency_cell([r]) if c == "infer_ms" else str(r[c])
                      for c in plain] for r in rows]
             return f"{head}\n{_render_table(body, plain)}"
 
@@ -535,7 +556,8 @@ class SuiteResult:
                 lines.append((ds, -1e9,
                               [exp, ds, rs[0]["model"], n] + ["ERR"] * (len(cols) - 4)))
                 continue
-            cells = [_agg_cell([r[c] for r in ok], AGG_DECIMALS.get(c, 4))
+            cells = [_latency_cell(ok) if c == "infer_ms" else
+                     _agg_cell([r[c] for r in ok], AGG_DECIMALS.get(c, 4))
                      for c in cols[4:]]
             keys = [r[sort_by] for r in ok if isinstance(r[sort_by], (int, float))]
             lines.append((ds, sum(keys) / len(keys) if keys else -1e9,
@@ -559,6 +581,7 @@ class SuiteResult:
         for (exp, ds), rs in _group_by_run(rows).items():
             ok = [r for r in rs if not r["error"]]
             cell[(ds, exp)] = ("ERR" if not ok else
+                               _latency_cell(ok) if metric == "infer_ms" else
                                _agg_cell([r.get(metric, "") for r in ok],
                                          AGG_DECIMALS.get(metric, 4)))
         body = [[e] + [cell.get((d, e), "") for d in datasets] for e in experiments]
@@ -724,10 +747,12 @@ def _safe_filename(name: str) -> str:
 
 def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                    seed: int = lc.SEED, verbose: int = 1,
-                   checkpoint_dir: Optional[str] = None) -> RunResult:
+                   checkpoint_dir: Optional[str] = None,
+                   infer_samples: int = le.DEFAULT_INFER_SAMPLES) -> RunResult:
     """Trains, picks the detector threshold and evaluates one config on one
     dataset. With cfg.load_from set, training and threshold selection are
-    skipped and the stored model is evaluated as it is."""
+    skipped and the stored model is evaluated as it is. infer_samples test
+    samples are then timed one at a time (0 skips it)."""
 
     # --- setting up ----------------------------------------------------------
     started = time.time()
@@ -790,6 +815,13 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                               device=device, threshold_det=threshold_det,
                               attack_kwargs=cfg.attack_kwargs(),
                               reduce=cfg.score_reduce)
+
+    # --- inference latency ---------------------------------------------------
+    if infer_samples:
+        res.metrics.update(le.inference_time(model, data.X_test,
+                                             n_samples=infer_samples,
+                                             threshold_det=threshold_det,
+                                             reduce=cfg.score_reduce))
     if verbose >= 2:
         print(_metrics_report(res.metrics))
 
@@ -822,6 +854,9 @@ def _metrics_report(m: dict) -> str:
     out += ["LAYER-WISE VULNERABILITY (one entry per hidden layer)",
             f"  SLAV     : {_vec(m['slav'])}",
             f"  SLAV rel : {_vec(m['slav_rel'])}"]
+    if "infer_ms" in m:
+        out += [f"INFERENCE (one sample at a time, n={m['infer_n']})",
+                f"  latency  : {m['infer_ms']:.4f} ± {m['infer_ms_std']:.4f} ms"]
     return "\n".join(out)
 
 
@@ -833,6 +868,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
               resume: bool = False, download: bool = False,
               save_checkpoints: bool = True,
               test_max_rows: Optional[int] = pp.DEFAULT_TEST_MAX_ROWS,
+              infer_samples: int = le.DEFAULT_INFER_SAMPLES,
               on_error: str = "record") -> SuiteResult:
     """Runs every experiment on every dataset.
 
@@ -850,6 +886,8 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
         on_error: "record" keeps going and marks the run failed, "raise" stops.
         only: run only the experiments whose name starts with this prefix
         test_max_rows: caps and balances the test split
+        infer_samples: test samples timed one at a time for the inference
+                       latency (mean±std per run), 0 disables it
     """
     experiments = EXPERIMENTS if experiments is None else experiments
     datasets = DATASETS if datasets is None else datasets
@@ -886,7 +924,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
         print(f"== suite: {len(runs)} experiments x {len(datasets)} datasets "
               f"x {len(seeds)} seeds = {total} runs ==")
         print(f"   device={device}  out_dir={out_dir}  "
-              f"test_max_rows={test_max_rows}  "
+              f"test_max_rows={test_max_rows}  infer_samples={infer_samples}  "
               f"total max epochs={sum(e.config().epochs for e in runs) * len(datasets) * len(seeds)}")
     if dry_run:
         for e in runs:
@@ -919,7 +957,8 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                           f"seed {seed}{' | ' + desc if desc else ''} ###")
                 try:
                     res = run_experiment(exp, data, device=device, seed=seed,
-                                         verbose=verbose, checkpoint_dir=ckpt_dir)
+                                         verbose=verbose, checkpoint_dir=ckpt_dir,
+                                         infer_samples=infer_samples)
                     if verbose == 1:
                         print(_metrics_report(res.metrics))
                 except Exception as exc: # one bad run doesn't kill the suite
