@@ -1,7 +1,7 @@
 .PHONY: create_cpu create_gpu create_all export_cpu export_gpu check_active_kernels install_libs
 
 
-# CREAZIONE DEGLI AMBIENTI
+# CREAZIONE DEGLI AMBIENTI ===========================================================
 create_cpu:
 	conda env create -f lwad_cpu_env.yml
 
@@ -12,7 +12,7 @@ create_gpu:
 create_all: create_cpu create_gpu
 
 
-# ATTIVAZIONE DEGLI AMBIENTI
+# ATTIVAZIONE DEGLI AMBIENTI =========================================================
 activate_cpu:
 	@echo "Esegui il comando direttamente nella tua shell attuale:"
 	@echo "  conda activate lwad_cpu_env"
@@ -22,7 +22,7 @@ activate_gpu:
 	@echo "  conda activate lwad_gpu_env"
 
 
-# ESPORTAZIONE DELLE CONFIGURAZIONI
+# ESPORTAZIONE DELLE CONFIGURAZIONI ==================================================
 export_cpu:
 	conda env export -n lwad_cpu_env > new_lwad_cpu_env.yml
 
@@ -30,18 +30,19 @@ export_gpu:
 	conda env export -n lwad_gpu_env > new_lwad_gpu_env.yml
 
 
-# CONTROLLO DEI KERNEL ATTIVI
+# CONTROLLO DEI KERNEL ATTIVI ========================================================
 check_active_kernels:
 	ps -eo pid,user,%mem,rss,command --sort=-%mem | grep "[i]pykernel"
 
 
-# INSTALLAZIONE LIBRERIE IN libs/
+# INSTALLAZIONE LIBRERIE IN libs/ ====================================================
 install_libs:
 	pip install -e .
 
 
-# RUN DEGLI ESPERIMENTI (make exp1/make exp2...)
-#   make exp2                        default
+# RUN DEGLI ESPERIMENTI ==============================================================
+#   make exp1                        --only s1...
+#   make exp1 ONLY=base              --only s1/base...
 #   make exp2 DATASET=UNSW_BW15      log e summary dedicati, per istanze paralelle
 #   DATASET: UNSW_BW15 | CICIDS2017 | CTU13 | CSECICIDS2018
 
@@ -49,7 +50,7 @@ exp%:
 	nohup env PYTHONUNBUFFERED=1 \
 	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
 	notebooks/experiment.py \
-		--only s$*/ \
+		--only s$*/$(ONLY) \
 		$(if $(DATASET),--dataset $(DATASET),) \
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
 		--verbose 1 \
@@ -60,7 +61,7 @@ clean:
 	rm -rf results/
 	rm res*.log
 
-# RESOURCE USAGE
+# RESOURCE USAGE =====================================================================
 WINDOW ?= 30 # Finestra temporale di campionamento (in secondi)
 
 # 1. Utilizzo medio GPU (%) su finestra di campionamento

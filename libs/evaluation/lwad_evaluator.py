@@ -1,4 +1,5 @@
 import torch
+import torch.nn as nn
 
 from libs.model.lwad_config import DEFAULT_THRESHOLD_DET, ScoreMode, DEFAULT_SCORE_MODE
 from libs.attacks.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
@@ -36,6 +37,17 @@ def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_
     flags = (score > threshold_det) if score is not None else None
     return logits.argmax(-1), score, flags
 
+@torch.no_grad()
+def _hidden_preacts(model, x):
+    """Pre-activations a^(l) of every hidden Linear, in network order. Runs
+    the bare base modules (no detectors); the output Linear (logits) is dropped."""
+    acts = []
+    for layer in model.layers:
+        x = layer.base(x)
+        if isinstance(layer.base, nn.Linear):
+            acts.append(x)
+    return acts[:-1]
+
 def _binary_metrics(pred, true, positive=1):
     """Accuracy, precision and recall for binary classification.
     `positive` indicates which class counts as "positive" for precision/recall"""
@@ -67,11 +79,13 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
                       adversarial mixed set
       clean_acc_e2e : clean sample classified right AND not flagged
       robust_acc_e2e: adv sample classified right OR flagged
+      slav          : SLAV of every hidden layer, list of N floats
+      slav_rel      : SLAV over the clean activation scale, list of N floats
 
     For models of type 2 (CloserAL) detector voices are None"""
     model.eval()
     attack_kwargs = attack_kwargs or {}
-    res = {"lab_c": [], "lab_a": [], "sc_c": [], "sc_a": []}
+    res = {"lab_c": [], "lab_a": [], "sc_c": [], "sc_a": [], "dev": [], "ref": []}
     for i in range(0, len(X_te), batch_size):
         x = X_te[i:i + batch_size]
         y = y_te[i:i + batch_size]
@@ -84,7 +98,16 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
         if sc_c is not None:
             res["sc_c"].append(sc_c); res["sc_a"].append(sc_a)
 
+        # per sample, per layer 
+        a_c, a_a = _hidden_preacts(model, x), _hidden_preacts(model, x_adv)
+        # slav = (1/d_l) ||a(x_adv) - a(x)||^2
+        res["dev"].append(torch.stack([(a - c).pow(2).mean(-1) for c, a in zip(a_c, a_a)]))
+        # rho =  (1/d_l) ||a(x)||^2
+        res["ref"].append(torch.stack([c.pow(2).mean(-1) for c in a_c]))
+
     lab_c, lab_a = torch.cat(res["lab_c"]), torch.cat(res["lab_a"])
+    slav = torch.cat(res["dev"], dim=1).mean(dim=1)
+    rho = torch.cat(res["ref"], dim=1).mean(dim=1)
 
     # --- TASK (positive = attack = label 1) --------------------------------
     task_clean = _binary_metrics(lab_c, y_te, positive=1)
@@ -103,7 +126,9 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
            # no detector -> nothing is ever flagged, so the end-to-end view
            # degenerates into the plain task accuracies
            "clean_acc_e2e": correct_clean.float().mean().item(),
-           "robust_acc_e2e": correct_adv.float().mean().item()}
+           "robust_acc_e2e": correct_adv.float().mean().item(),
+           "slav": slav.tolist(),
+           "slav_rel": (slav / rho).tolist()}
 
     # --- DETECTOR (positive = adversarial) ---------------------------------
     # only for detector models

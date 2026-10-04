@@ -383,11 +383,17 @@ CSV_COLUMNS = [
     "det_clean_acc", "det_adv_acc", "det_precision", "det_recall",
     "score_clean", "score_adv",
     "clean_acc_e2e", "robust_acc_e2e",
+    "slav", "slav_rel",
     "duration_s", "checkpoint", "error",
 ]
 
-# decimals of columns for summary_table and pivot that must have ≠4 decimals 
+# decimals of columns for summary_table and pivot that must have ≠4 decimals
 AGG_DECIMALS = {"epochs": 0, "duration_s": 0}
+
+
+def _vec(values) -> list:
+    """Per-layer metric, one entry per hidden layer, at 4 significant digits."""
+    return [float(f"{v:.4g}") for v in values]
 
 
 @dataclass
@@ -434,7 +440,8 @@ class RunResult:
                      task_adv_prec=round(ta["precision"], 4),
                      task_adv_rec=round(ta["recall"], 4),
                      clean_acc_e2e=round(m["clean_acc_e2e"], 4),
-                     robust_acc_e2e=round(m["robust_acc_e2e"], 4))
+                     robust_acc_e2e=round(m["robust_acc_e2e"], 4),
+                     slav=_vec(m["slav"]), slav_rel=_vec(m["slav_rel"]))
             if m["detector"] is not None:
                 r.update(det_clean_acc=round(m["det_clean_acc"], 4),
                          det_adv_acc=round(m["det_adv_acc"], 4),
@@ -460,8 +467,12 @@ def _agg_cell(values: list, decimals: int = 4) -> str:
 
     Non numeric entries (the empty string a row carries for a metric that does
     not apply to that model type) are dropped, so a column that never applies
-    shows "-" rather than a misleading 0.
+    shows "-" rather than a misleading 0. Per-layer vectors get the
+    element-wise mean.
     """
+    vecs = [v for v in values if isinstance(v, list)]
+    if vecs:
+        return str(_vec(sum(c) / len(c) for c in zip(*vecs)))
     nums = [v for v in values if isinstance(v, (int, float))]
     if not nums:
         return "-"
@@ -808,6 +819,9 @@ def _metrics_report(m: dict) -> str:
                 f"  end to end (comparable across model types)",
             f"  clean  : {m['clean_acc_e2e']:.4f}   (right AND not flagged)",
             f"  robust : {m['robust_acc_e2e']:.4f}   (right OR flagged)"]
+    out += ["LAYER-WISE VULNERABILITY (one entry per hidden layer)",
+            f"  SLAV     : {_vec(m['slav'])}",
+            f"  SLAV rel : {_vec(m['slav_rel'])}"]
     return "\n".join(out)
 
 
