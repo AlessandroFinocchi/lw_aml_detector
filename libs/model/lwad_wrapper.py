@@ -18,6 +18,7 @@ class FlowState:
         self.detections: list[torch.Tensor] = []
         self.det_loss: Optional[torch.Tensor] = None # detector loss (BCE)
         self.act_loss: Optional[torch.Tensor] = None # activation loss (Further/Nearest)
+        self.exit_layer: Optional[int] = None        # layer the forward stopped at (early exit)
 
     # --- detection (for DetectorLayer) -------------------------------------
     def add_detection(self, logit: torch.Tensor) -> None:
@@ -264,10 +265,21 @@ class LWADSequential(nn.Module):
     def has_detectors(self) -> bool:
         return any(isinstance(m, DetectorLayer) for m in self.modules())
 
-    def forward(self, x, labels=None, is_adv=None):
+    def forward(self, x, labels=None, is_adv=None, exit_threshold=None):
+        """exit_threshold (inference only): the forward stops as soon as every
+        sample of the batch has been flagged by some detector reached so far,
+        returning None logits and the exit layer in state.exit_layer.
+        Exact under the "max" reduce only: max_i p_i > t <=> some p_i > t."""
         state = FlowState(labels=labels, is_adv=is_adv)
-        for layer in self.layers:
+        flagged = None  # per sample: some detector so far was over the threshold
+        for idx, layer in enumerate(self.layers):
             x, state = layer(x, state)
+            if exit_threshold is not None and isinstance(layer, DetectorLayer):
+                over = torch.sigmoid(state.detections[-1]) > exit_threshold
+                flagged = over if flagged is None else flagged | over
+                if bool(flagged.all()):
+                    state.exit_layer = idx
+                    return None, state
         return x, state
 
     def detector_parameters(self) -> Iterable[nn.Parameter]:

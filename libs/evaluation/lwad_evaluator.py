@@ -4,7 +4,8 @@ import time
 import torch
 import torch.nn as nn
 
-from libs.model.lwad_config import DEFAULT_THRESHOLD_DET, ScoreMode, DEFAULT_SCORE_MODE
+from libs.model.lwad_config import (DEFAULT_THRESHOLD_DET, ScoreMode, 
+                                    DEFAULT_SCORE_MODE, DEFAULT_EARLY_EXIT)
 from libs.attacks.lwad_attack import (generate_attack, DEFAULT_EVAL_ATTACK,
                               DEFAULT_SCORE_REDUCE)
 
@@ -31,17 +32,33 @@ def combined_score(metrics: dict, mode=DEFAULT_SCORE_MODE) -> float:
     return 0.5 * (clean + robust)
 
 @torch.no_grad()
-def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_REDUCE):
+def predict(model, x, threshold_det=DEFAULT_THRESHOLD_DET, reduce=DEFAULT_SCORE_REDUCE,
+            early_exit=False):
     """Returns (predicted labels, adversarial score, clean-adversarial flags).
-    For models of type 2 (CloserAL) score and flags are None."""
-    model.eval()
-    return _infer(model, x, threshold_det, reduce)
+    For models of type 2 (CloserAL) score and flags are None.
 
-def _infer(model, x, threshold_det, reduce):
-    logits, state = model(x)
+    early_exit stops the forward once every sample of the batch has been
+    flagged by some detector: flags are unchanged, but labels are None (never
+    computed) and the score is the max over the detectors reached so far."""
+    model.eval()
+    if early_exit:
+        _check_early_exit(model, reduce)
+    return _infer(model, x, threshold_det, reduce, early_exit)
+
+def _check_early_exit(model, reduce):
+    """Early exit gives the full forward flags only under the "max" reduce:
+    with "mean" a later clean detector could pull the score back under."""
+    if reduce != "max":
+        raise ValueError(f"early_exit requires reduce='max', got {reduce!r}")
+    if not model.has_detectors:
+        raise ValueError("early_exit requires a detector-based model")
+
+def _infer(model, x, threshold_det, reduce, early_exit=False):
+    logits, state = model(x, exit_threshold=threshold_det if early_exit else None)
     score = state.adv_score(reduce=reduce)
     flags = (score > threshold_det) if score is not None else None
-    return logits.argmax(-1), score, flags
+    labels = logits.argmax(-1) if logits is not None else None
+    return labels, score, flags
 
 @torch.no_grad()
 def _hidden_preacts(model, x):
@@ -168,13 +185,13 @@ def evaluate(model, X_te, y_te, eps, attack_mask=None, attack=DEFAULT_EVAL_ATTAC
 # ===========================================================================
 # Inference latency
 # ===========================================================================
-DEFAULT_INFER_SAMPLES = 1024    # samples timed, one forward each
-DEFAULT_INFER_WARMUP = 256      # untimed forwards: cuBLAS init, allocator, caches
+DEFAULT_TIMED_INFER_SAMPLES = 1024    # samples timed, one forward each
+DEFAULT_TIMED_INFER_WARMUP = 256      # untimed forwards: cuBLAS init, allocator, caches
 
 @torch.no_grad()
-def inference_time(model, X, n_samples=DEFAULT_INFER_SAMPLES,
-                   warmup=DEFAULT_INFER_WARMUP, threshold_det=DEFAULT_THRESHOLD_DET,
-                   reduce=DEFAULT_SCORE_REDUCE):
+def inference_time(model, X, n_samples=DEFAULT_TIMED_INFER_SAMPLES,
+                   warmup=DEFAULT_TIMED_INFER_WARMUP, threshold_det=DEFAULT_THRESHOLD_DET,
+                   reduce=DEFAULT_SCORE_REDUCE, early_exit=DEFAULT_EARLY_EXIT):
     """Single-sample inference latency on the first n_samples rows of X.
 
     Every sample goes through the full decision (label, adversarial score and
@@ -183,24 +200,32 @@ def inference_time(model, X, n_samples=DEFAULT_INFER_SAMPLES,
     measure. CUDA launches are asynchronous, hence the synchronize on both
     sides of the timed call.
 
+    With early_exit a flagged sample stops at the first detector over the
+    threshold; infer_exit_rate is the fraction of timed samples that did.
+
     Returns inference time in ms."""
     model.eval()
+    if early_exit:
+        _check_early_exit(model, reduce)
     n = min(n_samples, len(X))
     sync = torch.cuda.synchronize if X.is_cuda else (lambda: None)
     for i in range(min(warmup, len(X))):
-        _infer(model, X[i:i + 1], threshold_det, reduce)
+        _infer(model, X[i:i + 1], threshold_det, reduce, early_exit)
 
-    times = []
+    times, exits = [], 0
     for i in range(n):
         x = X[i:i + 1]
         sync()
         t0 = time.perf_counter()
-        _infer(model, x, threshold_det, reduce)
+        labels, _, _ = _infer(model, x, threshold_det, reduce, early_exit)
         sync()
         times.append((time.perf_counter() - t0) * 1e3)
+        exits += labels is None
 
     if not times:
-        return {"infer_ms": float("nan"), "infer_ms_std": float("nan"), "infer_n": 0}
+        return {"infer_ms": float("nan"), "infer_ms_std": float("nan"), "infer_n": 0,
+                "infer_exit_rate": float("nan")}
     return {"infer_ms": statistics.fmean(times),
             "infer_ms_std": statistics.stdev(times) if n > 1 else 0.0,
-            "infer_n": n}
+            "infer_n": n,
+            "infer_exit_rate": exits / n}

@@ -384,9 +384,13 @@ CSV_COLUMNS = [
     "score_clean", "score_adv",
     "clean_acc_e2e", "robust_acc_e2e",
     "slav", "slav_rel",
-    "infer_ms", "infer_ms_std",
+    "infer_ms", "infer_ms_std", "infer_exit_rate",
+    "infer_ms_adv", "infer_ms_adv_std", "infer_exit_rate_adv",
     "duration_s", "checkpoint", "error",
 ]
+
+# inference latencies, rendered as mean±(per-sample std) by _latency_cell
+LATENCY_COLUMNS = ("infer_ms", "infer_ms_adv")
 
 # decimals of columns for summary_table and pivot that must have ≠4 decimals
 AGG_DECIMALS = {"epochs": 0, "duration_s": 0}
@@ -443,9 +447,10 @@ class RunResult:
                      clean_acc_e2e=round(m["clean_acc_e2e"], 4),
                      robust_acc_e2e=round(m["robust_acc_e2e"], 4),
                      slav=_vec(m["slav"]), slav_rel=_vec(m["slav_rel"]))
-            if "infer_ms" in m:
-                r.update(infer_ms=round(m["infer_ms"], 4),
-                         infer_ms_std=round(m["infer_ms_std"], 4))
+            for k in ("infer_ms", "infer_ms_std", "infer_exit_rate",
+                      "infer_ms_adv", "infer_ms_adv_std", "infer_exit_rate_adv"):
+                if k in m:
+                    r[k] = round(m[k], 4)
             if m["detector"] is not None:
                 r.update(det_clean_acc=round(m["det_clean_acc"], 4),
                          det_adv_acc=round(m["det_adv_acc"], 4),
@@ -487,15 +492,16 @@ def _agg_cell(values: list, decimals: int = 4) -> str:
     return f"{mean:.{decimals}f}\u00b1{sd:.{decimals}f}"
 
 
-def _latency_cell(rows: list[dict], decimals: int = 4) -> str:
+def _latency_cell(rows: list[dict], decimals: int = 4, key: str = "infer_ms") -> str:
     """Inference latency mean±std over every sample.
 
     Unlike _agg_cell, the ± is the per-sample spread, shown even for a single
-    seed, not the seed-to-seed one. With more seeds the pooled variance is the 
+    seed, not the seed-to-seed one. With more seeds the pooled variance is the
     mean of the per-seed variances plus the variance of the per-seed means.
+    key picks the latency column, its spread being in key + "_std".
     """
-    runs = [(r["infer_ms"], r["infer_ms_std"]) for r in rows
-            if isinstance(r.get("infer_ms"), (int, float))]
+    runs = [(r[key], r[f"{key}_std"]) for r in rows
+            if isinstance(r.get(key), (int, float))]
     if not runs:
         return "-"
     mean = sum(m for m, _ in runs) / len(runs)
@@ -533,7 +539,7 @@ class SuiteResult:
         cols = ["experiment", "dataset", "model", "n", "epochs", "task_clean_acc",
                 "task_adv_acc", "det_clean_acc", "det_adv_acc",
                 "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "val_score",
-                "infer_ms", "duration_s"]
+                "infer_ms", "infer_ms_adv", "infer_exit_rate_adv", "duration_s"]
         n_bad = len(self.failures())
         head = (f"== summary ({len(self.results)} run"
                 f"{f', {n_bad} failed' if n_bad else ''}) ==")
@@ -544,7 +550,7 @@ class SuiteResult:
                           key=lambda r: (r["dataset"],
                                          -(r[sort_by] if r[sort_by] != "" else -1e9)))
             body = [[("ERR" if r["error"] else "-") if r[c] == "" else
-                     _latency_cell([r]) if c == "infer_ms" else str(r[c])
+                     _latency_cell([r], key=c) if c in LATENCY_COLUMNS else str(r[c])
                      for c in plain] for r in rows]
             return f"{head}\n{_render_table(body, plain)}"
 
@@ -556,7 +562,7 @@ class SuiteResult:
                 lines.append((ds, -1e9,
                               [exp, ds, rs[0]["model"], n] + ["ERR"] * (len(cols) - 4)))
                 continue
-            cells = [_latency_cell(ok) if c == "infer_ms" else
+            cells = [_latency_cell(ok, key=c) if c in LATENCY_COLUMNS else
                      _agg_cell([r[c] for r in ok], AGG_DECIMALS.get(c, 4))
                      for c in cols[4:]]
             keys = [r[sort_by] for r in ok if isinstance(r[sort_by], (int, float))]
@@ -581,7 +587,7 @@ class SuiteResult:
         for (exp, ds), rs in _group_by_run(rows).items():
             ok = [r for r in rs if not r["error"]]
             cell[(ds, exp)] = ("ERR" if not ok else
-                               _latency_cell(ok) if metric == "infer_ms" else
+                               _latency_cell(ok, key=metric) if metric in LATENCY_COLUMNS else
                                _agg_cell([r.get(metric, "") for r in ok],
                                          AGG_DECIMALS.get(metric, 4)))
         body = [[e] + [cell.get((d, e), "") for d in datasets] for e in experiments]
@@ -748,7 +754,7 @@ def _safe_filename(name: str) -> str:
 def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                    seed: int = lc.SEED, verbose: int = 1,
                    checkpoint_dir: Optional[str] = None,
-                   infer_samples: int = le.DEFAULT_INFER_SAMPLES) -> RunResult:
+                   timed_infer_samples: int = le.DEFAULT_TIMED_INFER_SAMPLES) -> RunResult:
     """Trains, picks the detector threshold and evaluates one config on one
     dataset. With cfg.load_from set, training and threshold selection are
     skipped and the stored model is evaluated as it is. infer_samples test
@@ -817,11 +823,20 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                               reduce=cfg.score_reduce)
 
     # --- inference latency ---------------------------------------------------
-    if infer_samples:
-        res.metrics.update(le.inference_time(model, data.X_test,
-                                             n_samples=infer_samples,
-                                             threshold_det=threshold_det,
-                                             reduce=cfg.score_reduce))
+    # timed on clean and on adversarial flows
+    if timed_infer_samples:
+        timing = dict(n_samples=timed_infer_samples, threshold_det=threshold_det,
+                      reduce=cfg.score_reduce, early_exit=cfg.early_exit)
+        res.metrics.update(le.inference_time(model, data.X_test, **timing))
+        n = min(timed_infer_samples, len(data.X_test))
+        x_adv = la.generate_attack(model, data.X_test[:n], data.y_test[:n], cfg.eps,
+                                   cfg.eval_attack, mask=data.attack_mask,
+                                   **cfg.attack_kwargs())
+        adv = le.inference_time(model, x_adv, **timing)
+        res.metrics.update(infer_ms_adv=adv["infer_ms"],
+                           infer_ms_adv_std=adv["infer_ms_std"],
+                           infer_n_adv=adv["infer_n"],
+                           infer_exit_rate_adv=adv["infer_exit_rate"])
     if verbose >= 2:
         print(_metrics_report(res.metrics))
 
@@ -856,7 +871,11 @@ def _metrics_report(m: dict) -> str:
             f"  SLAV rel : {_vec(m['slav_rel'])}"]
     if "infer_ms" in m:
         out += [f"INFERENCE (one sample at a time, n={m['infer_n']})",
-                f"  latency  : {m['infer_ms']:.4f} ± {m['infer_ms_std']:.4f} ms"]
+                f"  latency clean : {m['infer_ms']:.4f} ± {m['infer_ms_std']:.4f} ms"
+                f"   (early exit {m['infer_exit_rate']:.2%})"]
+    if "infer_ms_adv" in m:
+        out += [f"  latency adv   : {m['infer_ms_adv']:.4f} ± {m['infer_ms_adv_std']:.4f} ms"
+                f"   (early exit {m['infer_exit_rate_adv']:.2%})"]
     return "\n".join(out)
 
 
@@ -868,7 +887,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
               resume: bool = False, download: bool = False,
               save_checkpoints: bool = True,
               test_max_rows: Optional[int] = pp.DEFAULT_TEST_MAX_ROWS,
-              infer_samples: int = le.DEFAULT_INFER_SAMPLES,
+              timed_infer_samples: int = le.DEFAULT_TIMED_INFER_SAMPLES,
               on_error: str = "record") -> SuiteResult:
     """Runs every experiment on every dataset.
 
@@ -924,7 +943,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
         print(f"== suite: {len(runs)} experiments x {len(datasets)} datasets "
               f"x {len(seeds)} seeds = {total} runs ==")
         print(f"   device={device}  out_dir={out_dir}  "
-              f"test_max_rows={test_max_rows}  infer_samples={infer_samples}  "
+              f"test_max_rows={test_max_rows}  infer_samples={timed_infer_samples}  "
               f"total max epochs={sum(e.config().epochs for e in runs) * len(datasets) * len(seeds)}")
     if dry_run:
         for e in runs:
@@ -958,7 +977,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                 try:
                     res = run_experiment(exp, data, device=device, seed=seed,
                                          verbose=verbose, checkpoint_dir=ckpt_dir,
-                                         infer_samples=infer_samples)
+                                         timed_infer_samples=timed_infer_samples)
                     if verbose == 1:
                         print(_metrics_report(res.metrics))
                 except Exception as exc: # one bad run doesn't kill the suite

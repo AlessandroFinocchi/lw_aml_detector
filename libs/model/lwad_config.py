@@ -32,6 +32,7 @@ DEFAULT_TASK_LOSS_ON_ADV = False    # true = backbone adversarial training
 DEFAULT_LR_DET = 3e-3               # detector learning rate
 DEFAULT_LAMBDA_DET = 1.0            # detector loss weight
 DEFAULT_THRESHOLD_DET = 0.5         # detector threshold
+DEFAULT_EARLY_EXIT = False          # max det score policy forward management
 
 # --- activations ------------------------------------------------------------
 DEFAULT_LAMBDA_ACT = 1.0            # act loss weight (FurtherAL / CloserAL)
@@ -203,6 +204,11 @@ class ModelConfig:
         """
         return la.DEFAULT_SCORE_REDUCE
 
+    @property
+    def early_exit(self) -> bool:
+        """Only models with detectors can exit early."""
+        return False
+
 
 @dataclass
 class DetectorModelConfig(ModelConfig):
@@ -217,7 +223,9 @@ class DetectorModelConfig(ModelConfig):
     detector_norm:   bool = DEFAULT_DET_INPUT_NORM                      # LayerNorm at the detector input
     score_reduce:    str = la.DEFAULT_SCORE_REDUCE    # "mean" | "max": how detector 
                                                       # classifications are merged
-    use_act_loss:    bool = True                      # true -> FurtherAL, false -> DetectorLayer
+    early_exit:      bool = DEFAULT_EARLY_EXIT        # inference stops at the first flagging
+                                                      # detector (requires score_reduce="max")
+    use_act_loss:    bool = True                     # true -> FurtherAL, false -> DetectorLayer
     act_margin:      Union[float, Tuple[float, ...]] = DEFAULT_ACT_MARGIN # contrastive loss margin
                                                                           # single float for all layers
                                                                           # tuple with values for each FurtherAL
@@ -233,6 +241,11 @@ class DetectorModelConfig(ModelConfig):
             raise ValueError(
                 f"score_reduce: unknown value {self.score_reduce!r}, "
                 f"expected one of {lw.FlowState.REDUCE_MODES}"
+            )
+        if self.early_exit and self.score_reduce != "max":
+            raise ValueError(
+                f"early_exit requires score_reduce='max', got {self.score_reduce!r}: "
+                "under 'mean' stopping early would change the detector decision"
             )
 
     @property

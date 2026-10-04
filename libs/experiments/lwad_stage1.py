@@ -59,6 +59,10 @@ def table() -> list[Exp]:
         # should be identical if seeding is correctly managed.
         Exp("s1/vv/repro-cold",     FUR, hidden_dims=(64, 16), wrap_at=(1,)),
         Exp("s1/vv/repro-warm",     FUR, hidden_dims=(64, 16), wrap_at=(1,)),
+
+        # (4) Early exit with detector models.
+        Exp("s1/vv/exit-off",       FUR, score_reduce="max"),
+        Exp("s1/vv/exit-on",        FUR, score_reduce="max", early_exit=True),
     ]
 
 

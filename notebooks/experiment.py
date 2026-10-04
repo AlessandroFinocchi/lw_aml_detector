@@ -43,7 +43,7 @@ parser.add_argument("--seeds", default=str(lc.SEED),
                          "difference from run to run noise")
 parser.add_argument("--test-max-rows", type=int, default=pp.DEFAULT_TEST_MAX_ROWS,
                     help="cap on the test split, balancing the attack categories (0 disables it)")
-parser.add_argument("--infer-samples", type=int, default=le.DEFAULT_INFER_SAMPLES,
+parser.add_argument("--infer-samples", type=int, default=le.DEFAULT_TIMED_INFER_SAMPLES,
                     help="test samples timed one at a time for the inference "
                          "latency (0 disables it)")
 args = parser.parse_args()
@@ -59,5 +59,5 @@ lx.run_suite(lx.EXPERIMENTS, datasets,
              only=args.only, dry_run=args.dry_run,
              resume=args.resume, download=args.download, seeds=seeds,
              test_max_rows=args.test_max_rows or None,
-             infer_samples=args.infer_samples,
+             timed_infer_samples=args.infer_samples,
              save_checkpoints=not args.no_checkpoints, verbose=args.verbose)
