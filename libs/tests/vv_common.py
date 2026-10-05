@@ -95,16 +95,14 @@ FUR_S = lc.DetectorModelConfig(**COMMON_S, use_act_loss=True, margin_warmup_epoc
 ADV_S = lc.AdvTrainingModelConfig(**COMMON_S)
 
 # --- stage 1 experiments the spec relies on ---------------------------------
-# The ones not declared in lwad_stage1.table(): the names below are the ones
-# the validation looks for in the stage 1 CSV, add these Exp to the stage 1
-# table (with at least 3 seeds) to feed it.
-DEEP_DIMS = (256, 128, 64, 32)
+# All declared in lwad_stage1.table(): the validation looks their names up in
+# the stage 1 CSV (with at least 3 seeds).
 S1_REQUIRED = [e.name for e in s1.table()]
 
 
 def s1_experiment(name: str) -> lx.Exp:
     """The Exp a stage 1 run was produced by."""
-    for e in s1.table() + S1_EXTRA:
+    for e in s1.table():
         if e.name == name:
             return e
     raise KeyError(f"{name!r} is not a stage 1 experiment")
@@ -609,8 +607,7 @@ def print_stage1_inventory(S: Session) -> None:
         print(f"   {name:28s} {status}")
     missing = [n for n in S1_REQUIRED if not st.seeds(n)]
     if missing:
-        print(f"   {len(missing)} esperimenti assenti: definizioni in "
-              f"lwad_stage1.table() e vv_common.S1_EXTRA")
+        print(f"   {len(missing)} esperimenti assenti: definizioni in lwad_stage1.table()")
 
 
 def run_test(spec: TestSpec, S: Session) -> Report:

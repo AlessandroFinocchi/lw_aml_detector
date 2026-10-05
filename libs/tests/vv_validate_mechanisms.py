@@ -1,9 +1,8 @@
 """V&V suite - Validazione: meccanismi del metodo (M1-M6).
 
 Works on the stage 1 CSV and checkpoints, with at least 3 seeds
-(--min-seeds). Comparisons between configurations use S1, one-sided.
-Experiments the stage 1 table does not declare yet are listed, with their
-definition, in vv_common.S1_EXTRA.
+(--min-seeds). Comparisons between configurations use S1, one-sided. The
+experiments are the ones declared in lwad_stage1.table() (s1/base, s1/mech).
 
     M1  FurtherAL hinge active during training (measured on a replay)
     M2  FurtherAL separates in relative terms, not by inflating the scale
