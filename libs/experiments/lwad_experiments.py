@@ -686,7 +686,7 @@ def _resolve_margins(cfg: lc.ModelConfig, data: DatasetBundle, *,
     margins = tuple(cfg.margin_factor * d for d in base_d)
     if verbose >= 1:
         print(f"act_margin = {tuple(round(m, 6) for m in margins)}  "
-              f"({cfg.margin_factor:g}x natural d="
+              f"({cfg.margin_factor:g}x natural rel="
               f"{tuple(round(d, 6) for d in base_d)}, "
               f"{'cached' if cached else 'measured'})")
     return dataclasses.replace(cfg, act_margin=margins)

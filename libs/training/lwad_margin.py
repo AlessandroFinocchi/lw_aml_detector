@@ -1,5 +1,9 @@
 """Per-layer calibration and automatic selection of FurtherAL margins.
 
+
+d_i is the RELATIVE distance FurtherAL puts its hinge on, so margins 
+are scale-free.
+
 Two levels:
 
   suggest_margins  - fast calibration: measures the natural real/adv distance
@@ -39,7 +43,8 @@ from libs.attacks.lwad_attack import generate_attack
 @torch.no_grad()
 def _measure_layer_distances(model, x, x_adv):
     """For every FurtherAL layer (in network order): mean squared distance d
-    between real and adv activations, plus the activation scale.
+    between real and adv activations, the activation scale and the relative
+    distance rel = d / scale^2, the one the FurtherAL margin is compared to.
     Only FurtherAL layers own a margin, so only those are measured: on an
     model without FurtherAL the list comes back empty."""
     rows = []
@@ -52,7 +57,8 @@ def _measure_layer_distances(model, x, x_adv):
             d = (h_adv - h_real).pow(2).mean(dim=-1).mean().item()  # real/adv act. distance
             scale = h_real.pow(2).mean().item() ** 0.5              # layer activation magnitude
             rows.append({"layer": type(layer).__name__,
-                         "d": d, "scale": scale})
+                         "d": d, "scale": scale,
+                         "rel": d / (scale ** 2 + lw.FurtherAL.SCALE_EPS)})
     return rows
 
 
@@ -97,7 +103,7 @@ def _natural_distances(config, X, y, attack_mask, device, warmup_epochs=3,
     x_adv = generate_attack(model, x, yy, config.eps, config.train_attack,
                             mask=attack_mask, **config.attack_kwargs())
     rows = _measure_layer_distances(model, x, x_adv)
-    base_d = tuple(max(r["d"], 1e-8) for r in rows)  # for not 0 margins
+    base_d = tuple(max(r["rel"], 1e-8) for r in rows)  # for not 0 margins
     return base_d, rows
 
 
@@ -122,7 +128,7 @@ def suggest_margins(config, X, y, attack_mask=None, device="cpu",
         for r in rows:
             print(f"   {r['layer']:12s}  d={r['d']:.5f}   "
                   f"|activations|={r['scale']:.3f}   "
-                  f"d/scale={r['d'] / (r['scale'] ** 2 + 1e-12):.5f}")
+                  f"rel={r['rel']:.5f}")
     if not base_d:
         if verbose:
             print("no FurtherAL layer: margins not applicable")
@@ -130,7 +136,7 @@ def suggest_margins(config, X, y, attack_mask=None, device="cpu",
     margins = tuple(factor * d for d in base_d)
     if verbose:
         print(f"\nsuggested act_margin = {tuple(round(m, 5) for m in margins)}  "
-              f"({factor:g}x the natural distance of each layer)")
+              f"({factor:g}x the natural relative distance of each layer)")
     return margins
 
 
@@ -186,7 +192,7 @@ def select_margins(config, X_train, y_train, X_val, y_val, attack_mask=None,
         Xtr, ytr = X_train, y_train
 
     if verbose:
-        print(f"select_margins: natural d = "
+        print(f"select_margins: natural rel = "
               f"{tuple(round(d, 5) for d in base_d)}  "
               f"(measured after {warmup_epochs} warmup epochs; "
               f"{search_epochs} epochs x {len(factors)} candidates, "

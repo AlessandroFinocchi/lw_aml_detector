@@ -55,7 +55,8 @@ DEFAULT_MIN_DELTA = 1e-4            # minimum improvement for patience reset
 DEFAULT_MIN_EPOCHS = 5              # never stop before this many epochs
 
 # --- margin -----------------------------------------------------------------
-DEFAULT_ACT_MARGIN = 9e-4           # contrastive loss margin (FurtherAL)
+DEFAULT_ACT_MARGIN = 0.1            # contrastive loss margin (FurtherAL), relative:
+                                    # squared real/adv gap over activation energy
 DEFAULT_MARGIN_FACTOR = 5.0
 DEFAULT_MARGIN_WARMUP_EPOCHS = 3    # epochs trained without the activation loss
                                     # before measuring the natural distances

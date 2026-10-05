@@ -152,7 +152,8 @@ class DetectorLayer(PassThrough):
 
 class ActivationLoss(PassThrough):
     """
-    Abstract class, subclasses define only distance_to_loss(d)
+    Abstract class, subclasses define distance_to_loss(d) and can override
+    distance(adv, ref) (default: absolute mean squared distance)
 
     - enabled: enables loss without changing model type
     - detach_reference: if true, real activations are treated as a fixed
@@ -175,10 +176,13 @@ class ActivationLoss(PassThrough):
         if self.enabled and state.is_adv is not None:
             real, adv = state.split_pairs(y)
             ref = real.detach() if self.detach_reference else real
-            # mean square distance, comparable between layers with different width
-            d = (adv - ref).pow(2).mean(dim=-1)
-            state.add_act_loss(self.distance_to_loss(d))
+            state.add_act_loss(self.distance_to_loss(self.distance(adv, ref)))
         super().collect(x, y, state)
+
+    def distance(self, adv: torch.Tensor, ref: torch.Tensor) -> torch.Tensor:
+        """Per-pair distance. Mean square distance, comparable between layers
+        with different width"""
+        return (adv - ref).pow(2).mean(dim=-1)
 
     def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
         raise NotImplementedError("subclasses define distance_to_loss")
@@ -193,23 +197,39 @@ class FurtherAL(DetectorLayer, ActivationLoss):
 
             DetectorLayer -> ActivationLoss -> PassThrough
 
-    Contrastiva Loss: ReLU(margin - distance). 
+    Contrastive Loss: ReLU(margin - distance).
     Pushes away until the distance exceeds the margin, then gets zero.
     Maximizing distance without any constraints would make it diverge to infinity.
 
-    Keeps DETACH_REFERENCE_DEFAULT = True: clean activations are the
-    anchor, adversarial ones are pushed away from, so that the clean
-    representation is not dragged around to satisfy the repulsion. Safe here
-    because ReLU(margin - d) is bounded by margin and switches off once the
-    layers are far enough apart (distance = margin)
+    The distance is relative. With an absolute distance the cheapest way to reach 
+    the margin is to inflate every activation (the gap grows with the scale), 
+    which separates nothing.
+
+    DETACH_REFERENCE_DEFAULT = False. Detaching the real branch does not make
+    it an anchor: real and adv share the weights, so the gradient on W of a
+    linear layer becomes (W delta)(x + delta)^T instead of (W delta) delta^T,
+    and the extra (W delta) x^T term drags the real activations along with
+    the adv ones, inflating the scale far faster than the gap. The
+    normalization must not be detached either, otherwise the scale invariance
+    holds only within a single step. Safe because ReLU(margin - d) is bounded
+    by margin and switches off once the layers are far enough apart.
     """
 
-    DETACH_REFERENCE_DEFAULT: bool = True
+    DETACH_REFERENCE_DEFAULT: bool = False
+
+    # keeps the relative distance finite when the real activations vanish
+    SCALE_EPS: float = 1e-8
 
     def __init__(self, base: nn.Module, detector: nn.Module,
                  margin: float = 1.0, **kwargs):
         super().__init__(base, detector=detector, **kwargs)
         self.margin = margin
+
+    def distance(self, adv: torch.Tensor, ref: torch.Tensor) -> torch.Tensor:
+        """Per-pair squared gap over the batch L2 norm of the real activations.
+        Normalized by the batch, not per pair: a single sample with near-zero
+        activations would otherwise dominate the loss."""
+        return super().distance(adv, ref) / (ref.pow(2).mean() + self.SCALE_EPS)
 
     def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
         return F.relu(self.margin - d).mean()

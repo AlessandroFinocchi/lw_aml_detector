@@ -15,9 +15,11 @@ Reported per detector-bearing layer:
 
 The normalized column matters: a model could raise d simply by inflating all
 its activations, which separates nothing in relative terms and gives the
-detector no extra signal. A real improvement raises d/scale too.
+detector no extra signal. A real improvement raises d/scale too. FurtherAL
+puts its hinge on exactly this relative distance, so the margins are
+calibrated on it.
 
-Run:  python smoke_test_further.py
+Run:  python -m libs.tests.smoke_further
 """
 import torch
 
@@ -33,8 +35,8 @@ EPOCHS = 15
 HIDDEN_DIMS = (128, 64, 64)
 N_TRAIN, N_TEST, N_FEATURES = 6000, 2000, 42
 
-# The margin must sit ABOVE the distance the model reaches on its own,
-# otherwise the hinge is already at zero and FurtherAL pushes nothing.
+# The margin must sit ABOVE the relative distance the model reaches on its
+# own, otherwise the hinge is already at zero and FurtherAL pushes nothing.
 # It is calibrated on the TRAINED baseline, not on the untrained model:
 # training grows the natural distance by orders of magnitude.
 MARGIN_FACTOR = 5.0
@@ -115,9 +117,9 @@ def main():
     _, rows_plain, val_plain = train_and_measure(cfg_plain, X_tr, y_tr, X_te, y_te, mask)
 
     # --- 2) margins calibrated on what the baseline actually reaches ------
-    margins = tuple(MARGIN_FACTOR * r["d"] for r in rows_plain)
-    distances = tuple(f"{r['d']:.5f}" for r in rows_plain)
-    print(f"baseline distances : {distances}")
+    margins = tuple(MARGIN_FACTOR * r["rel"] for r in rows_plain)
+    distances = tuple(f"{r['rel']:.5f}" for r in rows_plain)
+    print(f"baseline rel dist. : {distances}")
     print(f"margins ({MARGIN_FACTOR:g}x)      : {tuple(f'{m:.5f}' for m in margins)}")
     print(f"lambda_act         : {LAMBDA_ACT:g}\n")
 
@@ -148,25 +150,23 @@ def main():
     # --- assertions -------------------------------------------------------
     print()
     for i, (p, f) in enumerate(zip(rows_plain, rows_further)):
-        assert f["d"] > p["d"], (
-            f"layer {i}: FurtherAL did NOT increase the distance "
-            f"({f['d']:.6f} <= {p['d']:.6f}). Raise LAMBDA_ACT or MARGIN_FACTOR: "
-            f"with a low weight the adaptive attack cancels the repulsion"
-        )
-        print(f"   layer {i}: distance increased  {p['d']:.5f} -> {f['d']:.5f}  "
-              f"({f['d'] / (p['d'] + 1e-12):.2f}x)")
-        # a larger d with the same d/scale is scale inflation, not separation
+        # Only d/scale is asserted. The raw d is not what the detector sees
+        # (it starts with a LayerNorm) and the scale-invariant loss leaves the
+        # scale free: d can drop because the activations shrank while the
+        # separation grew, and vice versa a larger d can be pure inflation
         assert f["rel"] > p["rel"], (
             f"layer {i}: FurtherAL did NOT increase the normalized distance "
-            f"({f['rel']:.6f} <= {p['rel']:.6f}): d grew only because the "
-            f"activations inflated, the detector gets no extra signal"
+            f"({f['rel']:.6f} <= {p['rel']:.6f}). Raise LAMBDA_ACT or "
+            f"MARGIN_FACTOR: with a low weight the adaptive attack cancels "
+            f"the repulsion"
         )
         print(f"   layer {i}: d/scale increased   {p['rel']:.5f} -> {f['rel']:.5f}  "
-              f"({f['rel'] / (p['rel'] + 1e-12):.2f}x)")
+              f"({f['rel'] / (p['rel'] + 1e-12):.2f}x)   "
+              f"[raw d {p['d']:.5f} -> {f['d']:.5f}]")
 
-    mean_plain = sum(r["d"] for r in rows_plain) / len(rows_plain)
-    mean_further = sum(r["d"] for r in rows_further) / len(rows_further)
-    print(f"\nmean distance over layers: DetectorLayer={mean_plain:.5f}  "
+    mean_plain = sum(r["rel"] for r in rows_plain) / len(rows_plain)
+    mean_further = sum(r["rel"] for r in rows_further) / len(rows_further)
+    print(f"\nmean d/scale over layers: DetectorLayer={mean_plain:.5f}  "
           f"FurtherAL={mean_further:.5f}  ({mean_further / mean_plain:.2f}x)")
     print("\nTEST PASSED")
     return {"plain": rows_plain, "further": rows_further, "margins": margins,
