@@ -42,6 +42,7 @@ def table() -> list[Exp]:
         # Adversarial Training Model
         # The second run answers whether pulling clean and adversarial
         # activations together improves performances.
+        Exp("s1/base/advtrain",          ADV, lambda_act=0.0),
         Exp("s1/base/nearest",           ADV),
         Exp("s1/base/nearest-clean",     ADV, task_loss_on_adv=False),
 
@@ -63,6 +64,15 @@ def table() -> list[Exp]:
         # (4) Early exit with detector models.
         Exp("s1/vv/exit-off",       FUR, score_reduce="max"),
         Exp("s1/vv/exit-on",        FUR, score_reduce="max", early_exit=True),
+
+        # (5) Extras for tests
+        Exp("s1/mech/detlayer-wide3",    DET, hidden_dims=(128, 64, 32), wrap_at=(0,)),
+        Exp("s1/mech/further-wide3",     FUR, hidden_dims=(128, 64, 32), wrap_at=(0,)),
+        Exp("s1/mech/undefended-deep",   ADV, lambda_act=0.0, task_loss_on_adv=False,
+                                              hidden_dims=(256, 128, 64, 32)),
+        Exp("s1/mech/detlayer-deep",     DET, hidden_dims=(256, 128, 64, 32), wrap_at=(0, 1, 2, 3)),
+        Exp("s1/mech/further-exit-deep", FUR, hidden_dims=(256, 128, 64, 32), wrap_at=(0, 1, 2, 3),
+                                              score_reduce="max", early_exit=True),
     ]
 
 

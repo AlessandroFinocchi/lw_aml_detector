@@ -1,4 +1,4 @@
-.PHONY: create_cpu create_gpu create_all export_cpu export_gpu check_active_kernels install_libs
+.PHONY: create_cpu create_gpu create_all export_cpu export_gpu check_active_kernels install_libs tests
 
 
 # CREAZIONE DEGLI AMBIENTI ===========================================================
@@ -54,8 +54,22 @@ exp%:
 		$(if $(DATASET),--dataset $(DATASET),) \
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
 		--verbose 1 \
+		--seeds 42,43,44 \
 		--resume \
 	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
+
+
+# SUITE V&V (libs/tests/vv_suite.py) =================================================
+#   make tests                       tutta la suite (~1h), log in res_vv_suite.log
+#   make tests ONLY=V1,V2            solo i test con questi prefissi di id
+#   make tests MIN_SEEDS=1           validazione esplorativa con meno di 3 seed
+tests:
+	nohup env PYTHONUNBUFFERED=1 \
+	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
+	-m libs.tests.vv_suite \
+		$(if $(ONLY),--only $(ONLY),) \
+		$(if $(MIN_SEEDS),--min-seeds $(MIN_SEEDS),) \
+	> res_vv_suite.log 2>&1 &
 
 clean:
 	rm -rf results/

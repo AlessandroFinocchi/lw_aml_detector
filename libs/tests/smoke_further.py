@@ -93,7 +93,7 @@ def train_and_measure(cfg, X_tr, y_tr, X_te, y_te, mask):
 
 
 def main():
-    X_tr, y_tr, _, _, X_te, y_te, _, _ = pp.load_unsw(DATASET_PATH, False, True)
+    X_tr, y_tr, _, _, X_te, y_te, _, _ = pp.load_unsw(False, True)
 
     mask = torch.ones(N_FEATURES)
 
@@ -155,6 +155,14 @@ def main():
         )
         print(f"   layer {i}: distance increased  {p['d']:.5f} -> {f['d']:.5f}  "
               f"({f['d'] / (p['d'] + 1e-12):.2f}x)")
+        # a larger d with the same d/scale is scale inflation, not separation
+        assert f["rel"] > p["rel"], (
+            f"layer {i}: FurtherAL did NOT increase the normalized distance "
+            f"({f['rel']:.6f} <= {p['rel']:.6f}): d grew only because the "
+            f"activations inflated, the detector gets no extra signal"
+        )
+        print(f"   layer {i}: d/scale increased   {p['rel']:.5f} -> {f['rel']:.5f}  "
+              f"({f['rel'] / (p['rel'] + 1e-12):.2f}x)")
 
     mean_plain = sum(r["d"] for r in rows_plain) / len(rows_plain)
     mean_further = sum(r["d"] for r in rows_further) / len(rows_further)
