@@ -78,8 +78,8 @@ class Exp:
         defaults, params = cls(), {}
         for f in dataclasses.fields(cls):
             v = getattr(self.base, f.name)
-            # pgd_alpha can be derived from eps by __post_init__
-            if f.name == "pgd_alpha" and v == self.base.eps / 4:
+            # pgd_alpha can be derived from eps and steps by __post_init__
+            if f.name == "pgd_alpha" and v == 2 * self.base.eps / self.base.pgd_steps:
                 continue
             if v != getattr(defaults, f.name):
                 params[f.name] = v
@@ -97,7 +97,7 @@ class Exp:
         calls the __init__ method, thus also the __post_init__.
         """
         ov = dict(self.overrides, **extra)
-        if "eps" in ov and "pgd_alpha" not in ov:
+        if ("eps" in ov or "pgd_steps" in ov) and "pgd_alpha" not in ov:
             ov["pgd_alpha"] = None
         return dataclasses.replace(self.base, **ov)
 

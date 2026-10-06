@@ -14,11 +14,11 @@ class Attack(Enum):
 # Default values, the ones being used are in lwad_config.py
 DEFAULT_TRAIN_ATTACK = Attack.PGD.value   # attack to train defense
 DEFAULT_EVAL_ATTACK  = Attack.PGD.value   # attack to evaluate defense
-DEFAULT_EPS              = 0.1             # attack intensity, in standardized measurement unit
-DEFAULT_PGD_STEPS        = 20              # iterations number for PGD / adaptive PGD
-DEFAULT_PGD_ALPHA        = DEFAULT_EPS / 4 # amplitude of iteration step
-DEFAULT_PGD_EVADE_WEIGHT = 1.0             # evade term weight in adaptive PGD
-DEFAULT_SCORE_REDUCE     = "mean"          # how adv_score merges the detectors
+DEFAULT_EPS              = 0.1                                    # attack intensity, in standardized measurement unit
+DEFAULT_PGD_STEPS        = 20                                     # iterations number for PGD / adaptive PGD
+DEFAULT_PGD_ALPHA        = 2*DEFAULT_EPS / DEFAULT_PGD_STEPS      # amplitude of iteration step
+DEFAULT_PGD_EVADE_WEIGHT = 1.0                                    # evade term weight in adaptive PGD
+DEFAULT_SCORE_REDUCE     = "mean"                                 # how adv_score merges the detectors
 
 
 # ===========================================================================
@@ -118,7 +118,7 @@ def generate_attack(model, x, y, eps, attack, mask=None,
                     steps=None, alpha=None, evade_weight=None, reduce=None):
     attack = Attack(attack)
     steps = DEFAULT_PGD_STEPS if steps is None else steps
-    alpha = (eps / 4) if alpha is None else alpha
+    alpha = (2 * eps / steps) if alpha is None else alpha
     evade_weight = DEFAULT_PGD_EVADE_WEIGHT if evade_weight is None else evade_weight
     reduce = DEFAULT_SCORE_REDUCE if reduce is None else reduce
 

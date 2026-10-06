@@ -393,7 +393,7 @@ def _attack(S, kind, attack, eps, mask, reduce=None, evade_weight=None):
     x, y = S.rows("test", V2_SAMPLES)
     torch.manual_seed(vc.SEED)
     return la.generate_attack(model, x, y, eps, attack, mask=mask, steps=V2_STEPS,
-                              alpha=eps / 4, evade_weight=evade_weight, reduce=reduce)
+                              alpha=2*eps / V2_STEPS, evade_weight=evade_weight, reduce=reduce)
 
 
 @vc.vv_test(TESTS, "V2.1", "Ammissibilita' L-inf", vc.VERIFY,

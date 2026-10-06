@@ -98,7 +98,7 @@ class ModelConfig:
     # --- attack -------------------------------------------------------------
     eps:              float = la.DEFAULT_EPS
     pgd_steps:        int = la.DEFAULT_PGD_STEPS
-    pgd_alpha:        Optional[float] = None # None -> eps / 4
+    pgd_alpha:        Optional[float] = None # None -> 2 *eps / steps
     pgd_evade_weight: float = la.DEFAULT_PGD_EVADE_WEIGHT
     train_attack:     str = la.DEFAULT_TRAIN_ATTACK
     eval_attack:      str = la.DEFAULT_EVAL_ATTACK
@@ -133,7 +133,7 @@ class ModelConfig:
             ) from None
         # pgd_alpha can also be passed as an argument in new
         if self.pgd_alpha is None:
-            self.pgd_alpha = self.eps / 4 # amplitude of iteration step
+            self.pgd_alpha = 2 * self.eps / self.pgd_steps # amplitude of iteration step
         # accept lists too, but store tuples: must stay checkpoint-serializable
         self.hidden_dims = tuple(int(w) for w in self.hidden_dims)
         self.wrap_at = tuple(int(i) for i in self.wrap_at)

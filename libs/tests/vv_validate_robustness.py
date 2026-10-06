@@ -2,7 +2,7 @@
 
 The stage 1 checkpoints are re-evaluated with their saved threshold on a
 fixed subset of 2000 test samples. The seed is fixed before every
-evaluation and alpha = eps/4 is recomputed for every eps.
+evaluation and alpha = 2*eps/steps is recomputed for every eps.
 
     m_task = task_adv.acc     (adversarial accuracy of the classifier)
     m_e2e  = robust_acc_e2e   (adversarial sample classified right OR flagged)
@@ -62,7 +62,7 @@ def robust_eval(ck, X, y, attack: str, eps: float, *, mask, steps: Optional[int]
     model, cfg = ck.model, ck.config
     thr = ck.threshold_det if ck.threshold_det is not None else lc.DEFAULT_THRESHOLD_DET
     steps = cfg.pgd_steps if steps is None else steps
-    alpha = eps / 4 if alpha is None else alpha
+    alpha = 2* eps / steps if alpha is None else alpha
     torch.manual_seed(vc.SEED)
     robust_task = robust_e2e = None
     det_adv_acc = None
@@ -166,7 +166,8 @@ def a3(t:vc.Report, S:vc.Session):
         torch.manual_seed(vc.SEED)
         ev = le.evaluate(ck.model, X, y, eps=r["eps"], attack_mask=ck.attack_mask,
                          attack="pgd", threshold_det=ck.threshold_det,
-                         attack_kwargs=dict(ck.config.attack_kwargs(), alpha=r["eps"] / 4),
+                         attack_kwargs=dict(ck.config.attack_kwargs(), 
+                                            alpha=2 * r["eps"] / ck.config.pgd_steps),
                          reduce=ck.config.score_reduce)
         t.check(f"{short} seed {seed}: m_task e m_e2e coincidono con le.evaluate",
                 (ev["task_adv"]["acc"], ev["robust_acc_e2e"]) == (pgd.m_task, pgd.m_e2e),
