@@ -20,6 +20,8 @@ import libs.experiments.lwad_experiments as lx
 TESTS: list = []
 
 MARGIN_TINY_ACTIVE_MAX = 0.01   # V4.2: above it the hinge is not saturated at zero
+RELOAD_TOL = 0.005              # V4.4, V4.6: a load_from run evaluates without reseeding,
+                                # so the random start of its PGD differs
 
 
 # ===========================================================================
@@ -40,6 +42,16 @@ def compare_runs(t, label, a: lx.RunResult, b: lx.RunResult,
             f"{a.threshold_det!r} vs {b.threshold_det!r}")
     d = vc.diff_checkpoints(a.checkpoint, b.checkpoint)
     t.check(f"{label}: checkpoint identici", not d, vc.summarize(d))
+
+
+def check_close(t, label: str, diff, *args, **kwargs) -> None:
+    """Metrics equal within RELOAD_TOL, diff being vc.diff_metrics or
+    vc.diff_rows; the detail still counts the values not bit-identical."""
+    over, exact = diff(*args, **kwargs, tol=RELOAD_TOL), diff(*args, **kwargs)
+    detail = (vc.summarize(over) if over
+              else f"{len(exact)} valori non identici, tutti entro la tolleranza" if exact
+              else None)
+    t.check(f"{label} entro {RELOAD_TOL:g}", not over, detail)
 
 
 def compare_stage1(t, S, name_a: str, name_b: str, exclude=(), act_margin=False) -> list[int]:
@@ -144,7 +156,8 @@ def v4_3(t:vc.Report, S:vc.Session):
 
 @vc.vv_test(TESTS, "V4.4", "Seed e ordine di esecuzione", vc.VERIFY,
             "Solo mini-campagna: il seed cambia il risultato, l'ordine delle run nella suite no "
-            "(anche per una run con load_from).")
+            f"(anche per una run con load_from, che non reimposta il seed dell'attacco: "
+            f"metriche entro {RELOAD_TOL:g}, relativa per slav e slav_rel).")
 def v4_4(t:vc.Report, S:vc.Session):
     # 1) the seed matters
     res = S.run_suite([lx.Exp("vv/seed", vc.FUR_S)], "v44-seed", seeds=(42, 43))
@@ -172,8 +185,8 @@ def v4_4(t:vc.Report, S:vc.Session):
     L = lx.Exp("vv/L", vc.DET_S, load_from=S.reference_run("det").checkpoint)
     cl = {r.experiment: r for r in S.run_suite([C, L], "v44-CL").results}
     lc_ = {r.experiment: r for r in S.run_suite([L, C], "v44-LC").results}
-    d = vc.diff_metrics(cl["vv/L"].metrics, lc_["vv/L"].metrics, vc.LATENCY_KEYS)
-    t.check("[C, L] vs [L, C]: metriche di L (load_from) identiche", not d, vc.summarize(d))
+    check_close(t, "[C, L] vs [L, C]: metriche di L (load_from) uguali", vc.diff_metrics,
+                cl["vv/L"].metrics, lc_["vv/L"].metrics, vc.LATENCY_KEYS)
 
 
 @vc.vv_test(TESTS, "V4.5", "L'early exit cambia solo la latenza", vc.VERIFY,
@@ -203,15 +216,16 @@ def v4_5(t:vc.Report, S:vc.Session):
 
 @vc.vv_test(TESTS, "V4.6", "Un checkpoint ricaricato riproduce la run", vc.VERIFY,
             "Rivalutare con load_from e lo stesso seed un modello addestrato deve dare le "
-            "stesse metriche (e per i detector la stessa soglia).")
+            f"stesse metriche entro {RELOAD_TOL:g} (relativa per slav e slav_rel: la "
+            "valutazione non reimposta il seed dell'attacco) e per i detector la stessa soglia.")
 def v4_6(t:vc.Report, S:vc.Session):
     det, adv = S.reference_run("det"), S.reference_run("adv")
     rd, ra = S.run_suite([lx.Exp("vv/reload-det", vc.DET_S, load_from=det.checkpoint),
                           lx.Exp("vv/reload-adv", vc.ADV_S, load_from=adv.checkpoint)],
                          "v46").results
     for label, a, b in (("DET_S", det, rd), ("ADV_S", adv, ra)):
-        d = vc.diff_metrics(a.metrics, b.metrics, vc.LATENCY_KEYS)
-        t.check(f"{label} addestrato vs ricaricato: metriche identiche", not d, vc.summarize(d))
+        check_close(t, f"{label} addestrato vs ricaricato: metriche uguali", vc.diff_metrics,
+                    a.metrics, b.metrics, vc.LATENCY_KEYS)
     t.check("DET_S addestrato vs ricaricato: soglia identica",
             rd.threshold_det == det.threshold_det, f"{det.threshold_det!r} vs {rd.threshold_det!r}")
 
@@ -228,9 +242,8 @@ def v4_6(t:vc.Report, S:vc.Session):
         res = S.run_suite([reload_exp], f"v46-{name.split('/')[-1]}",
                           infer=le.DEFAULT_TIMED_INFER_SAMPLES).results[0]
         row, saved = vc.normalize_row(res.row()), st.row(name, vc.SEED)
-        d = vc.diff_rows(saved, row, exclude=("epochs", "val_score"))
-        t.check(f"reale {name} seed {vc.SEED}: metriche identiche dopo load_from", not d,
-                vc.summarize(d))
+        check_close(t, f"reale {name} seed {vc.SEED}: metriche uguali dopo load_from",
+                    vc.diff_rows, saved, row, exclude=("epochs", "val_score"))
         if exp.config().uses_detectors:
             t.check(f"reale {name} seed {vc.SEED}: soglia identica",
                     vc.same_value(row["threshold_det"], saved["threshold_det"]),

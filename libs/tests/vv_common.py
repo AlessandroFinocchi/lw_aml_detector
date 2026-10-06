@@ -215,8 +215,26 @@ def same_value(a, b) -> bool:
     return a == b
 
 
-def diff_metrics(a, b, exclude=(), path: str = "") -> list[str]:
-    """Recursive comparison of two metric dicts: the paths that differ."""
+# per-layer distances, whose scale depends on the model (slav ~ 1e-3 on a
+# CloserAL model): a tolerance on them is relative, an absolute one would
+# accept anything
+SCALE_METRICS = ("slav", "slav_rel")
+
+
+def close_value(a, b, tol: float = 0.0, relative: bool = False) -> bool:
+    """same_value, or two numbers with |a - b| <= tol (<= tol * max(|a|, |b|)
+    when relative)."""
+    if same_value(a, b):
+        return True
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in (a, b)):
+        return False
+    return abs(a - b) <= tol * (max(abs(a), abs(b)) if relative else 1)
+
+
+def diff_metrics(a, b, exclude=(), path: str = "", tol: float = 0.0) -> list[str]:
+    """Recursive comparison of two metric dicts: the paths that differ, or
+    with tol > 0 the paths that differ by more than tol (relative on
+    SCALE_METRICS)."""
     if isinstance(a, dict) and isinstance(b, dict):
         out = []
         for k in sorted(set(a) | set(b), key=str):
@@ -225,16 +243,17 @@ def diff_metrics(a, b, exclude=(), path: str = "") -> list[str]:
             if k not in a or k not in b:
                 out.append(f"{path}{k} presente in uno solo")
             else:
-                out += diff_metrics(a[k], b[k], exclude, f"{path}{k}.")
+                out += diff_metrics(a[k], b[k], exclude, f"{path}{k}.", tol)
         return out
     if isinstance(a, (list, tuple)) and isinstance(b, (list, tuple)):
         if len(a) != len(b):
             return [f"{path.rstrip('.')}: lunghezza {len(a)} != {len(b)}"]
         out = []
         for i, (x, y) in enumerate(zip(a, b)):
-            out += diff_metrics(x, y, exclude, f"{path}{i}.")
+            out += diff_metrics(x, y, exclude, f"{path}{i}.", tol)
         return out
-    return [] if same_value(a, b) else [f"{path.rstrip('.')}: {a!r} != {b!r}"]
+    relative = path.split(".", 1)[0] in SCALE_METRICS
+    return [] if close_value(a, b, tol, relative) else [f"{path.rstrip('.')}: {a!r} != {b!r}"]
 
 
 def summarize(diffs: list[str], n: int = 3) -> Optional[str]:
@@ -268,11 +287,12 @@ ROW_IGNORED = ("dataset", "experiment", "model", "params", "seed", "duration_s",
                "checkpoint", "error") + LATENCY_KEYS
 
 
-def diff_rows(a: dict, b: dict, exclude=()) -> list[str]:
-    """Identical metrics between two CSV rows (stage 1 or RunResult.row())."""
+def diff_rows(a: dict, b: dict, exclude=(), tol: float = 0.0) -> list[str]:
+    """Identical metrics between two CSV rows (stage 1 or RunResult.row()),
+    or within tol as in diff_metrics."""
     skip = set(ROW_IGNORED) | set(exclude)
-    return [f"{k}: {a.get(k)!r} != {b.get(k)!r}"
-            for k in lx.CSV_COLUMNS if k not in skip and not same_value(a.get(k), b.get(k))]
+    return [d for k in lx.CSV_COLUMNS if k not in skip
+            for d in diff_metrics(a.get(k), b.get(k), path=f"{k}.", tol=tol)]
 
 
 def _parse_cell(v: str):
