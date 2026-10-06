@@ -1,14 +1,14 @@
 """Shared infrastructure of the V&V suite (libs/tests/vv_*.py).
 
-Spec: "Suite di test V&V - specifica per Claude Code". Every section module
-registers its tests in a TESTS list; vv_suite runs them all, in spec order:
+Every section module registers its tests in a TESTS list; 
+vv_suite runs them all:
 
     python -m libs.tests.vv_suite                    # whole suite
     python -m libs.tests.vv_suite --only V1,V2.4,A3  # by id prefix
     python -m libs.tests.vv_verify_model             # one section
 
 Every test prints its id, a short description and the outcome of each check
-it makes; the run ends with the final report (RESOCONTO FINALE).
+it makes; the run ends with the final report .
 
 Determinism is configured here, at import time and before any CUDA
 operation: CUBLAS_WORKSPACE_CONFIG is read when cuBLAS creates its first
@@ -437,6 +437,30 @@ def hinge_fractions(rec: dict) -> tuple[list[float], list[list[float]]]:
 # ===========================================================================
 # Session: data, models and runs shared by the tests
 # ===========================================================================
+def train_model(cfg: lc.ModelConfig, bundle: lx.DatasetBundle, X: torch.Tensor,
+                y: torch.Tensor, epochs: int, seed: int = SEED) -> lw.LWADSequential:
+    """cfg built at seed and trained for `epochs` lt.train_epoch epochs on
+    (X, y), with the class weights and the attack mask of the bundle, in eval
+    mode. The seed fixes both the initial weights and the batch order."""
+    torch.manual_seed(seed)
+    built = lc.create_model(cfg, bundle.n_features, device=DEVICE)
+    loader = torch.utils.data.DataLoader(torch.utils.data.TensorDataset(X, y),
+                                         batch_size=cfg.batch_size, shuffle=True)
+    for _ in range(epochs):
+        lt.train_epoch(built.model, loader, built.optimizer, eps=cfg.eps,
+                       lambda_det=getattr(cfg, "lambda_det", 0.0),
+                       lambda_act=cfg.lambda_act,
+                       task_loss_on_adv=cfg.task_loss_on_adv,
+                       class_weights=bundle.class_weights,
+                       attack_mask=bundle.attack_mask,
+                       attack=cfg.train_attack,
+                       threshold_det=getattr(cfg, "threshold_det", lc.DEFAULT_THRESHOLD_DET),
+                       attack_kwargs=cfg.attack_kwargs(), device=DEVICE,
+                       reduce=cfg.score_reduce)
+    built.model.eval()
+    return built.model
+
+
 class Session:
     """Everything the tests share, built lazily: a test selected alone with
     --only pays only for what it uses."""
@@ -483,30 +507,12 @@ class Session:
         epochs on the fixed train subset, in eval mode."""
         key = ("small", kind, trained)
         if key not in self.store:
-            cfg = SMALL[kind]
-            torch.manual_seed(SEED)
-            built = lc.create_model(cfg, self.bundle.n_features, device=DEVICE)
             if trained:
                 progress(f"addestramento del modello piccolo {kind} "
                          f"({SMALL_EPOCHS} epoche su {SUBSET_ROWS} righe)")
-                X, y = self.rows("train", SUBSET_ROWS)
-                loader = torch.utils.data.DataLoader(
-                    torch.utils.data.TensorDataset(X, y),
-                    batch_size=cfg.batch_size, shuffle=True)
-                for _ in range(SMALL_EPOCHS):
-                    lt.train_epoch(built.model, loader, built.optimizer, eps=cfg.eps,
-                                   lambda_det=getattr(cfg, "lambda_det", 0.0),
-                                   lambda_act=cfg.lambda_act,
-                                   task_loss_on_adv=cfg.task_loss_on_adv,
-                                   class_weights=self.bundle.class_weights,
-                                   attack_mask=self.bundle.attack_mask,
-                                   attack=cfg.train_attack,
-                                   threshold_det=getattr(cfg, "threshold_det",
-                                                         lc.DEFAULT_THRESHOLD_DET),
-                                   attack_kwargs=cfg.attack_kwargs(), device=DEVICE,
-                                   reduce=cfg.score_reduce)
-            built.model.eval()
-            self.store[key] = built.model
+            X, y = self.rows("train", SUBSET_ROWS)
+            self.store[key] = train_model(SMALL[kind], self.bundle, X, y,
+                                          SMALL_EPOCHS if trained else 0)
         return self.store[key]
 
     def run_suite(self, exps: list, tag: str, seeds=(SEED,),

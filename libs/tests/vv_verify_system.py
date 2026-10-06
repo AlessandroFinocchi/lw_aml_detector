@@ -76,7 +76,7 @@ def compare_stage1(t, S, name_a: str, name_b: str, exclude=(), act_margin=False)
 @vc.vv_test(TESTS, "V4.1", "FurtherAL con lambda_act = 0 coincide con DetectorLayer", vc.VERIFY,
             "Una activation loss di peso nullo non deve cambiare nulla: DET_S e FUR_S "
             "(lambda_act=0, margin_factor=None) identici al bit.")
-def v4_1(t, S):
+def v4_1(t:vc.Report, S:vc.Session):
     det = S.reference_run("det")
     fur = S.run_suite([lx.Exp("vv/fur-lambda0", vc.FUR_S, lambda_act=0.0,
                               margin_factor=None)], "v41").results[0]
@@ -87,7 +87,7 @@ def v4_1(t, S):
 @vc.vv_test(TESTS, "V4.2", "FurtherAL con kappa << 1 vicino a DetectorLayer", vc.VERIFY,
             "Solo reale: s1/vv/margin-tiny contro s1/base/detlayer; identici, oppure "
             "equivalenti entro il rumore (S2) se la hinge resta spenta.")
-def v4_2(t, S):
+def v4_2(t:vc.Report, S:vc.Session):
     st = S.stage1
     tiny, ref = "s1/vv/margin-tiny", "s1/base/detlayer"
     seeds = st.paired_seeds(tiny, ref)
@@ -129,7 +129,7 @@ def v4_2(t, S):
 @vc.vv_test(TESTS, "V4.3", "Riproducibilita' con cache fredda e calda", vc.VERIFY,
             "Due run identiche di FUR_S su un'architettura nuova: la seconda usa i margini "
             "in cache e deve coincidere con la prima.")
-def v4_3(t, S):
+def v4_3(t:vc.Report, S:vc.Session):
     arch = dict(hidden_dims=(32, 8), wrap_at=(1,))
     res = S.run_suite([lx.Exp("vv/repro-cold", vc.FUR_S, **arch),
                        lx.Exp("vv/repro-warm", vc.FUR_S, **arch)], "v43")
@@ -145,7 +145,7 @@ def v4_3(t, S):
 @vc.vv_test(TESTS, "V4.4", "Seed e ordine di esecuzione", vc.VERIFY,
             "Solo mini-campagna: il seed cambia il risultato, l'ordine delle run nella suite no "
             "(anche per una run con load_from).")
-def v4_4(t, S):
+def v4_4(t:vc.Report, S:vc.Session):
     # 1) the seed matters
     res = S.run_suite([lx.Exp("vv/seed", vc.FUR_S)], "v44-seed", seeds=(42, 43))
     r42, r43 = sorted(res.results, key=lambda r: r.seed)
@@ -179,7 +179,7 @@ def v4_4(t, S):
 @vc.vv_test(TESTS, "V4.5", "L'early exit cambia solo la latenza", vc.VERIFY,
             "FUR_S con score_reduce='max', con e senza early_exit: stesse metriche e checkpoint, "
             "solo i tassi di uscita cambiano.")
-def v4_5(t, S):
+def v4_5(t:vc.Report, S:vc.Session):
     exclude = vc.LATENCY_KEYS + vc.EXIT_RATE_KEYS
     off, on = S.run_suite([lx.Exp("vv/exit-off", vc.FUR_S, score_reduce="max"),
                            lx.Exp("vv/exit-on", vc.FUR_S, score_reduce="max", early_exit=True)],
@@ -204,7 +204,7 @@ def v4_5(t, S):
 @vc.vv_test(TESTS, "V4.6", "Un checkpoint ricaricato riproduce la run", vc.VERIFY,
             "Rivalutare con load_from e lo stesso seed un modello addestrato deve dare le "
             "stesse metriche (e per i detector la stessa soglia).")
-def v4_6(t, S):
+def v4_6(t:vc.Report, S:vc.Session):
     det, adv = S.reference_run("det"), S.reference_run("adv")
     rd, ra = S.run_suite([lx.Exp("vv/reload-det", vc.DET_S, load_from=det.checkpoint),
                           lx.Exp("vv/reload-adv", vc.ADV_S, load_from=adv.checkpoint)],

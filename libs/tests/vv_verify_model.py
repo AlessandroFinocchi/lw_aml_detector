@@ -1,4 +1,4 @@
-"""V&V suite - Verifica: modello e attacchi (V1.1-V1.4, V2.1-V2.5).
+"""V&V suite - Verifica: modello e attacchi (V1.1-V1.6, V2.1-V2.5).
 
 V1 checks the construction rules and that the wrappers leave the backbone
 untouched; V2 checks the attacks on the small models trained for 3 epochs on
@@ -8,6 +8,7 @@ Run:  python -m libs.tests.vv_verify_model [--only V2]
 """
 import libs.tests.vv_common as vc    # first: sets up determinism before any CUDA op
 
+import math
 import sys
 from dataclasses import replace
 
@@ -18,10 +19,20 @@ import libs.model.lwad_wrapper as lw
 import libs.model.lwad_config as lc
 import libs.attacks.lwad_attack as la
 import libs.training.lwad_trainer as lt
+import libs.training.lwad_margin as lm
 import libs.evaluation.lwad_evaluator as le
 import libs.experiments.lwad_experiments as lx
 
 TESTS: list = []
+
+GRAD_NOISE = 1e-8           # V1.4: a gradient under it is rounding, not signal
+
+# --- early exit (V1.5) ------------------------------------------------------
+EE_SAMPLES = 512
+EE_SCORE_TOL = 1e-6
+
+# --- margins (V1.6) ---------------------------------------------------------
+MARGIN_FACTORS = (2.0, 20.0)
 
 # --- attack setup (V2) ------------------------------------------------------
 V2_SAMPLES = 128
@@ -34,7 +45,7 @@ V2_STEPS = 10
 # ===========================================================================
 @vc.vv_test(TESTS, "V1.1", "Vincoli di costruzione", vc.VERIFY,
             "Combinazioni incoerenti di layer, flag e opzioni devono sollevare ValueError.")
-def v1_1(t, S):
+def v1_1(t:vc.Report, S:vc.Session):
     x, y = S.rows("train", vc.SUBSET_ROWS)
     mask, nf = S.bundle.attack_mask, S.bundle.n_features
 
@@ -92,7 +103,7 @@ def v1_1(t, S):
 
 @vc.vv_test(TESTS, "V1.2", "Validazioni di configurazione", vc.VERIFY,
             "Indici, larghezze e opzioni fuori dominio devono essere rifiutati dalla config.")
-def v1_2(t, S):
+def v1_2(t:vc.Report, S:vc.Session):
     nf = S.bundle.n_features
     for cls in (lc.DetectorModelConfig, lc.AdvTrainingModelConfig):
         n = cls.__name__
@@ -127,8 +138,17 @@ def _paired_batch(S, n: int = 32):
 @vc.vv_test(TESTS, "V1.3", "I wrapper non alterano la backbone", vc.VERIFY,
             "Su det, fur e adv non addestrati i logit coincidono con la sola backbone e "
             "ogni detector legge la pre-attivazione del suo base.")
-def v1_3(t, S):
+def v1_3(t:vc.Report, S:vc.Session):
     x, xb, flag = _paired_batch(S)
+
+    # FurtherAL adds no parameter: from the same seed det and fur start from
+    # the same weights, so comparing them measures the activation loss alone
+    sd_d = S.small_model("det", trained=False).state_dict()
+    sd_f = S.small_model("fur", trained=False).state_dict()
+    t.check("det e fur non addestrati: stesse chiavi e stessi tensori nello state_dict",
+            sd_d.keys() == sd_f.keys() and all(torch.equal(sd_d[k], sd_f[k]) for k in sd_d),
+            f"{len(sd_d)} vs {len(sd_f)} tensori")
+
     for kind in ("det", "fur", "adv"):
         model = S.small_model(kind, trained=False)
         with torch.no_grad():
@@ -169,8 +189,8 @@ def v1_3(t, S):
 
 @vc.vv_test(TESTS, "V1.4", "Contenuto di FlowState", vc.VERIFY,
             "Loss, detection e exit_layer prodotti dal forward, con e senza is_adv, "
-            "su cat([x, x + 0.05]).")
-def v1_4(t, S):
+            "su cat([x, x + 0.05]); il gradiente di act_loss arriva al primo Linear.")
+def v1_4(t:vc.Report, S:vc.Session):
     _, xb, flag = _paired_batch(S)
     B = len(xb)
     # model: (det_loss is a tensor, act_loss is a tensor, number of detections)
@@ -215,6 +235,139 @@ def v1_4(t, S):
         t.check(f"{kind}: senza exit_threshold state.exit_layer None",
                 st.exit_layer is None and st0.exit_layer is None)
 
+        # the activation loss trains the backbone, down to its first Linear.
+        # Not on xb: the input LayerNorm cancels the constant shift of
+        # x + 0.05, real and adv coincide and the gradient is rounding noise
+        if want_act:
+            x0 = xb[:B // 2]
+            sign = torch.ones(x0.shape[1], device=x0.device)
+            sign[1::2] = -1
+            _, st_g = model(torch.cat([x0, x0 + 0.05 * sign]), is_adv=flag)
+            first = next(layer.base for layer in model.layers
+                         if isinstance(layer.base, nn.Linear))
+            (g,) = torch.autograd.grad(st_g.act_loss, first.weight, allow_unused=True)
+            g_max = 0.0 if g is None else g.abs().max().item()
+            t.check(f"{kind}: con x + 0.05 * (+1, -1, ...) il gradiente di act_loss raggiunge "
+                    f"il primo Linear, sopra il rumore numerico ({GRAD_NOISE:g})",
+                    g_max > GRAD_NOISE, "None" if g is None else f"max |g| = {g_max:.3g}")
+
+
+@vc.vv_test(TESTS, "V1.5", "Early exit equivalente al forward completo", vc.VERIFY,
+            "Con reduce='max' vale max_i p_i > t <=> qualche p_i > t: un campione alla volta "
+            "l'early exit segnala gli stessi campioni del forward completo e lascia label e score "
+            f"di chi non esce ({EE_SAMPLES} campioni di test, puliti e adversarial); un batch "
+            "esce solo se tutti i suoi campioni sono segnalati.")
+def v1_5(t:vc.Report, S:vc.Session):
+    X, y = S.rows("test", EE_SAMPLES)
+    Xv, yv = S.rows("val", EE_SAMPLES)
+    mask = S.bundle.attack_mask
+    for kind in ("det", "fur"):
+        model, cfg = S.small_model(kind, trained=True), vc.SMALL[kind]
+        # threshold from the validation procedure, as run_experiment picks it
+        torch.manual_seed(vc.SEED)
+        thr, _ = lt.select_threshold(model, Xv, yv, eps=cfg.eps, attack_mask=mask,
+                                     attack=cfg.train_attack,
+                                     attack_kwargs=cfg.attack_kwargs(), reduce="max")
+        torch.manual_seed(vc.SEED)
+        x_adv = la.generate_attack(model, X, y, cfg.eps, cfg.eval_attack, mask=mask,
+                                   **cfg.attack_kwargs())
+        t.info(f"{kind}: soglia {thr:.3f} con reduce='max'")
+
+        # 1) sample by sample, as le.inference_time runs
+        exits = {}
+        for name, data in (("puliti", X), ("adversarial", x_adv)):
+            n_exit = bad_flag = bad_exit = bad_keep = 0
+            for i in range(len(data)):
+                x = data[i:i + 1]
+                lab_f, sc_f, fl_f = le.predict(model, x, threshold_det=thr, reduce="max")
+                lab_e, sc_e, fl_e = le.predict(model, x, threshold_det=thr, reduce="max",
+                                               early_exit=True)
+                bad_flag += bool(fl_f) != bool(fl_e)
+                if lab_e is None:
+                    # the partial max is a lower bound of the full one, still over t
+                    n_exit += 1
+                    bad_exit += (not bool(fl_f)) or float(sc_e) > float(sc_f) + EE_SCORE_TOL
+                else:
+                    bad_keep += not (torch.equal(lab_f, lab_e) and torch.allclose(sc_f, sc_e))
+            exits[name] = n_exit
+            t.check(f"{kind} {name}: flag identici al forward completo", bad_flag == 0,
+                    f"{bad_flag} diversi su {len(data)}, {n_exit} uscite anticipate")
+            t.check(f"{kind} {name}: chi esce e' segnalato, con score parziale <= completo",
+                    bad_exit == 0, f"{bad_exit} violazioni su {n_exit} uscite")
+            t.check(f"{kind} {name}: chi non esce ha label e score del forward completo",
+                    bad_keep == 0, f"{bad_keep} diversi su {len(data) - n_exit}")
+        t.check(f"{kind}: almeno un adversarial esce in anticipo (controllo non vuoto)",
+                exits["adversarial"] > 0, f"{exits['adversarial']}/{len(x_adv)}")
+
+        # 2) a batch exits only when every sample in it is flagged
+        _, _, flags = le.predict(model, x_adv, threshold_det=thr, reduce="max")
+        flagged, unflagged = x_adv[flags], x_adv[~flags]
+        if len(flagged):
+            lab, _, _ = le.predict(model, flagged, threshold_det=thr, reduce="max",
+                                   early_exit=True)
+            t.check(f"{kind}: batch di {len(flagged)} adversarial tutti segnalati esce "
+                    f"(label None)", lab is None)
+        if not (len(flagged) and len(unflagged)):
+            t.skip(f"{kind}: batch misto", "servono campioni segnalati e non segnalati")
+            continue
+        mixed = torch.cat([flagged[:4], unflagged[:1]])
+        lab, _, fl = le.predict(model, mixed, threshold_det=thr, reduce="max", early_exit=True)
+        _, _, fl_full = le.predict(model, mixed, threshold_det=thr, reduce="max")
+        t.check(f"{kind}: batch misto ({len(mixed) - 1} segnalati + 1 no) non esce, "
+                f"flag come il forward completo",
+                lab is not None and len(lab) == len(mixed) and torch.equal(fl, fl_full))
+
+
+@vc.vv_test(TESTS, "V1.6", "Calibrazione e selezione dei margini", vc.VERIFY,
+            "suggest_margins e select_margins danno un margine positivo per FurtherAL, pari a "
+            "factor * distanza naturale, nell'ordine della rete e applicabile alla config; "
+            "senza FurtherAL rispondono None e ValueError.")
+def v1_6(t:vc.Report, S:vc.Session):
+    X, y = S.rows("train", vc.SUBSET_ROWS)
+    Xv, yv = S.rows("val", vc.SUBSET_ROWS)
+    nf = S.bundle.n_features
+    kw = dict(attack_mask=S.bundle.attack_mask, device=vc.DEVICE,
+              class_weights=S.bundle.class_weights, verbose=False)
+    n_fur = sum(isinstance(layer, lw.FurtherAL) for layer in vc.FUR.build_model(nf).layers)
+
+    # 1) calibration: margin_i = factor * d_i, d_i measured after a warmup at
+    #    a fixed seed, so two calls differ only by the factor
+    vc.progress("suggest_margins su fur con factor 2 e 4")
+    with vc.quiet():
+        m2 = lm.suggest_margins(vc.FUR, X, y, factor=2.0, **kw)
+        m4 = lm.suggest_margins(vc.FUR, X, y, factor=4.0, **kw)
+    t.check(f"suggest_margins su fur: {n_fur} margini positivi e finiti",
+            m2 is not None and len(m2) == n_fur and all(0 < v < math.inf for v in m2), f"{m2}")
+    t.check("suggest_margins: factor=4 da' il doppio di factor=2 (stessa distanza naturale)",
+            m2 is not None and m4 == tuple(2 * v for v in m2), f"{m2} -> {m4}")
+    with vc.quiet():
+        m_adv = lm.suggest_margins(vc.ADV, X, y, warmup_epochs=0, **kw)
+    t.check("suggest_margins su adv (nessun FurtherAL): None", m_adv is None, f"{m_adv!r}")
+
+    # 2) selection: one short training per factor, the best validation score wins
+    vc.progress(f"select_margins su fur con i fattori {MARGIN_FACTORS}")
+    with vc.quiet():
+        res = lm.select_margins(vc.FUR, X, y, Xv, yv, factors=MARGIN_FACTORS,
+                                search_epochs=1, **kw)
+    scores = [c["score"] for c in res.candidates]
+    t.check(f"select_margins: un candidato per fattore, nell'ordine {MARGIN_FACTORS}",
+            tuple(c["factor"] for c in res.candidates) == MARGIN_FACTORS,
+            f"{[c['factor'] for c in res.candidates]}")
+    t.check("select_margins: vince il candidato con lo score di validazione massimo",
+            res.factor in MARGIN_FACTORS and res.score == max(scores),
+            f"factor {res.factor:g}, score {res.score:.4f}, candidati "
+            f"{[round(s, 4) for s in scores]}")
+    t.check(f"select_margins: {n_fur} margini, factor * distanze naturali",
+            len(res.margins) == n_fur
+            and res.margins == tuple(res.factor * d for d in res.base_distances),
+            f"{res.margins}")
+    model = replace(vc.FUR, act_margin=res.margins).build_model(nf)
+    applied = tuple(layer.margin for layer in model.layers if isinstance(layer, lw.FurtherAL))
+    t.check("margini selezionati applicati dalla config nell'ordine della rete",
+            applied == res.margins, f"{applied}")
+    t.raises("select_margins su adv (nessun FurtherAL)", ValueError,
+             lambda: lm.select_margins(vc.ADV, X, y, Xv, yv, warmup_epochs=0, **kw))
+
 
 # ===========================================================================
 # V2 - attacks
@@ -246,7 +399,7 @@ def _attack(S, kind, attack, eps, mask, reduce=None, evade_weight=None):
 @vc.vv_test(TESTS, "V2.1", "Ammissibilita' L-inf", vc.VERIFY,
             f"Con e senza maschera x_adv resta nella palla L-inf di raggio eps, con forma, "
             f"dtype e device di x, valori finiti e senza grafo ({V2_SAMPLES} campioni di test).")
-def v2_1(t, S):
+def v2_1(t:vc.Report, S:vc.Session):
     x, _ = S.rows("test", V2_SAMPLES)
     for kind, attack, reduce in _cases():
         for eps in V2_EPS:
@@ -271,7 +424,7 @@ def v2_1(t, S):
 @vc.vv_test(TESTS, "V2.2", "Maschera rispettata", vc.VERIFY,
             "Le feature non attaccabili restano intatte, almeno una attaccabile cambia, "
             "e con maschera nulla l'attacco non modifica nulla.")
-def v2_2(t, S):
+def v2_2(t:vc.Report, S:vc.Session):
     x, _ = S.rows("test", V2_SAMPLES)
     mask = S.bundle.attack_mask
     frozen, free = mask == 0, mask != 0
@@ -294,7 +447,7 @@ def v2_2(t, S):
 @vc.vv_test(TESTS, "V2.4", "Con beta = 0 l'attacco adattivo coincide con PGD", vc.VERIFY,
             "A parita' di seed pgd_adaptive con evade_weight=0 riproduce PGD bit per bit; "
             "con evade_weight=1 se ne discosta.")
-def v2_4(t, S):
+def v2_4(t:vc.Report, S:vc.Session):
     mask = S.bundle.attack_mask
     for kind in ("det", "fur"):
         for eps in V2_EPS:
@@ -312,7 +465,7 @@ def v2_4(t, S):
 @vc.vv_test(TESTS, "V2.5", "Arresti del gradiente durante l'attacco", vc.VERIFY,
             "Su det (detach=True) il detector e' staccato fuori dall'attacco, collegato dentro, "
             "i flag tornano come prima e l'attacco non tocca i pesi.")
-def v2_5(t, S):
+def v2_5(t:vc.Report, S:vc.Session):
     model = S.small_model("det", trained=True)
     x, y = S.rows("test", V2_SAMPLES)
     layers = [m for m in model.modules() if isinstance(m, lw.DetectorLayer)]
@@ -374,6 +527,9 @@ def v2_5(t, S):
     t.check("dopo pgd_adaptive lo state_dict e' identico a prima",
             before.keys() == after_sd.keys() and not changed,
             f"{len(changed)} tensori cambiati" if changed else None)
+    after = [layer.detach for layer in layers]
+    t.check("dopo pgd_adaptive i flag detach sono quelli di prima", after == initial,
+            f"{after}, attesi {initial}")
     grads = [n for n, p in model.named_parameters() if p.grad is not None]
     t.check("dopo pgd_adaptive ogni p.grad e' None", not grads,
             f"{len(grads)} parametri con grad" if grads else None)

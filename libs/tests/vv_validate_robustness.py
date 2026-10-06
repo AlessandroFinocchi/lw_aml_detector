@@ -145,7 +145,7 @@ def beta_star(S, short: str, seed: int) -> float:
 @vc.vv_test(TESTS, "A3", "Attacco adattivo almeno efficace di PGD", vc.VALIDATE,
             "Sui modelli con detector, all'eps di addestramento, l'attacco adattivo con "
             "beta > 0 deve battere PGD di almeno TOL_A su m_e2e; sceglie beta*.")
-def a3(t, S):
+def a3(t:vc.Report, S:vc.Session):
     X, y = S.rows("test", A_SAMPLES)
     res = a3_results(S)
     for short in WITH_DET:
@@ -187,7 +187,7 @@ def a3(t, S):
 @vc.vv_test(TESTS, "A1", "Attacco iterativo almeno efficace del singolo passo", vc.VALIDATE,
             "PGD non deve fare peggio di FGSM su m_task; sui detector l'adattivo a 20 passi "
             "non deve fare peggio di quello a un passo su m_e2e.")
-def a1(t, S):
+def a1(t:vc.Report, S:vc.Session):
     if a3_blocked(t, S):
         return
     X, y = S.rows("test", A_SAMPLES)
@@ -217,7 +217,7 @@ def _monotone_violations(ms: dict) -> list[str]:
 @vc.vv_test(TESTS, "A2", "Successo crescente con eps", vc.VALIDATE,
             "Su EPS_GRID la robustezza non deve crescere con il budget: m_task con PGD su tutti "
             "i modelli, m_e2e con l'adattivo e beta* sui detector.")
-def a2(t, S):
+def a2(t:vc.Report, S:vc.Session):
     if a3_blocked(t, S):
         return
     X, y = S.rows("test", A_SAMPLES)
@@ -244,7 +244,7 @@ def a2(t, S):
 @vc.vv_test(TESTS, "A4", "Budget illimitato e convergenza", vc.VALIDATE,
             "Con eps enorme l'attacco deve azzerare la robustezza; piu' passi e ripartenze "
             "non devono abbassarla oltre TOL_CONV.")
-def a4(t, S):
+def a4(t:vc.Report, S:vc.Session):
     if a3_blocked(t, S):
         return
     X, y = S.rows("test", A_SAMPLES)

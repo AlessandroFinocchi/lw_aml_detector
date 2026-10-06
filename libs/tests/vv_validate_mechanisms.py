@@ -10,6 +10,7 @@ experiments are the ones declared in lwad_stage1.table() (s1/base, s1/mech).
     M4  the vulnerability of an undefended model grows with depth
     M5  per-layer detector profile in the isolated regime
     M6  the early exit saves real time on GPU
+    M7  FurtherAL separates in a controlled experiment (no stage 1 data)
 
 Run:  python -m libs.tests.vv_validate_mechanisms [--only M2]
 """
@@ -19,13 +20,16 @@ import math
 import statistics
 import sys
 import time
+from dataclasses import replace
 
 import scipy.stats
 import torch
 from sklearn.metrics import roc_auc_score
 
 import libs.model.lwad_wrapper as lw
+import libs.model.lwad_config as lc
 import libs.attacks.lwad_attack as la
+import libs.training.lwad_margin as lm
 import libs.evaluation.lwad_evaluator as le
 
 TESTS: list = []
@@ -39,6 +43,21 @@ PROFILE_STD_MAX = 0.03
 M_SAMPLES = 2000                        # clean test samples of M3 and M5
 TIMED_SAMPLES, TIMED_REPEATS = 500, 30  # M6: per sample, median of the repeats
 TIMED_WARMUP = 64
+
+# --- M7: DetectorLayer against FurtherAL, trained here ----------------------
+M7_SEEDS = (42, 43, 44)
+M7_TRAIN_ROWS, M7_EPOCHS = 16384, 15
+M7_CFG = lc.DetectorModelConfig(hidden_dims=(128, 64, 64), use_act_loss=False,
+                                margin_factor=None)
+# The margin must sit ABOVE the relative distance the model reaches on its
+# own, otherwise the hinge is already at zero and FurtherAL pushes nothing.
+# It is calibrated on the TRAINED baseline, not on the untrained model:
+# training grows the natural distance by orders of magnitude.
+M7_MARGIN_FACTOR = 5.0
+# With the default weight the repulsion loses to the task/detector losses,
+# because PGD regenerates the attack against the model at every batch and
+# undoes the separation. It needs a heavier weight to actually drive.
+M7_LAMBDA_ACT = 10.0
 
 
 def _short(name: str) -> str:
@@ -63,7 +82,7 @@ def _attack_like_eval(ck, X, y):
 @vc.vv_test(TESTS, "M1", "FurtherAL attivo", vc.VALIDATE,
             "La hinge di FurtherAL deve lavorare: quota di coppie con s < m, mediata sulle "
             f"epoche, >= {ACTIVE_MIN} e > 0 nella prima epoca (misurata su un replay).")
-def m1(t, S):
+def m1(t:vc.Report, S:vc.Session):
     for name in ("s1/base/further", "s1/base/further-advtrain"):
         seeds = S.stage1.seeds(name)
         if not vc.enough_seeds(t, S, _short(name), seeds):
@@ -92,7 +111,7 @@ M2_PAIRS = (("s1/base/further", "s1/base/detlayer"),
 @vc.vv_test(TESTS, "M2", "Separazione reale e persistente", vc.VALIDATE,
             "Nei livelli FurtherAL slav_rel deve superare quella di DetectorLayer (S1); "
             "se cresce solo slav e' inflazione di scala.")
-def m2(t, S):
+def m2(t:vc.Report, S:vc.Session):
     st = S.stage1
     for k, (fur, det) in enumerate(M2_PAIRS):
         label = f"{_short(fur)} vs {_short(det)}"
@@ -134,7 +153,7 @@ def _dispersion(model, X) -> list[float]:
 @vc.vv_test(TESTS, "M3", "Allineamento CloserAL non degenere", vc.VALIDATE,
             "nearest contro advtrain: nei livelli CloserAL scendono slav e slav_rel (S1), "
             "senza perdita di accuratezza ne' collasso della dispersione.")
-def m3(t, S):
+def m3(t:vc.Report, S:vc.Session):
     st = S.stage1
     near, adv = "s1/base/nearest", "s1/base/advtrain"
     seeds = st.paired_seeds(near, adv)
@@ -181,7 +200,7 @@ def m3(t, S):
 @vc.vv_test(TESTS, "M4", "Amplificazione con la profondita'", vc.VALIDATE,
             "Modello non difeso a 4 livelli: slav_rel dell'ultimo livello supera quella del "
             "primo e almeno 2 dei 3 guadagni sqrt(slav_rel(l) / slav_rel(l-1)) sono > 1.")
-def m4(t, S):
+def m4(t:vc.Report, S:vc.Session):
     name = "s1/mech/undefended-deep"
     seeds = S.stage1.seeds(name)
     if not vc.enough_seeds(t, S, _short(name), seeds):
@@ -207,7 +226,7 @@ def _detector_aurocs(ck, X, y, x_adv) -> list[float]:
 @vc.vv_test(TESTS, "M5", "Profilo dei detector nel regime isolato", vc.VALIDATE,
             "DET a 4 livelli con un detector per livello: il miglior AUROC medio deve essere "
             f">= {AUC_MAX_MIN} e il profilo stabile tra i seed.")
-def m5(t, S):
+def m5(t:vc.Report, S:vc.Session):
     name = "s1/mech/detlayer-deep"
     seeds = S.stage1.ckpt_seeds(name)
     if not vc.enough_seeds(t, S, _short(name), seeds):
@@ -257,7 +276,7 @@ def _median_ms(variants: dict, x) -> dict:
             f"FUR a 4 detector con early exit: sui campioni che escono al primo detector "
             f"l'early exit e' piu' veloce del forward completo (Wilcoxon), "
             f"{TIMED_SAMPLES} puliti + {TIMED_SAMPLES} adversarial.")
-def m6(t, S):
+def m6(t:vc.Report, S:vc.Session):
     name = "s1/mech/further-exit-deep"
     seeds = S.stage1.ckpt_seeds(name)
     if not seeds:
@@ -333,6 +352,79 @@ def m6(t, S):
     t.check("early exit piu' veloce del forward completo al primo detector "
             "(Wilcoxon unilaterale, p < 0.05)", w.pvalue < 0.05,
             f"n={len(first)}, p={w.pvalue:.3g}")
+
+
+def _m7_run(S, cfg, X, y, Xt, yt, seed: int):
+    """cfg trained at seed; per detector layer the real/adv distance d, the
+    activation scale and rel = d / scale^2, the quantity the FurtherAL hinge
+    acts on. The attack is regenerated against each model, so every model is
+    measured against the attack it actually faces."""
+    model = vc.train_model(cfg, S.bundle, X, y, M7_EPOCHS, seed=seed)
+    mask, kw = S.bundle.attack_mask, cfg.attack_kwargs()
+    torch.manual_seed(seed)
+    x_adv = la.generate_attack(model, Xt, yt, cfg.eps, cfg.eval_attack, mask=mask, **kw)
+    rows = lm._measure_layer_distances(model, Xt, x_adv)
+    torch.manual_seed(seed)
+    val = le.evaluate(model, Xt, yt, eps=cfg.eps, attack_mask=mask, attack=cfg.eval_attack,
+                      threshold_det=cfg.threshold_det, attack_kwargs=kw, device=vc.DEVICE)
+    return rows, val
+
+
+@vc.vv_test(TESTS, "M7", "Separazione relativa in un esperimento controllato", vc.VALIDATE,
+            "Senza dati dello stadio 1: DetectorLayer e FurtherAL con stessi seed, init e ordine "
+            f"dei batch, margini {M7_MARGIN_FACTOR:g}x la d/scale raggiunta da DetectorLayer, "
+            f"lambda_act={M7_LAMBDA_ACT:g}. FurtherAL deve alzare d/scale in ogni livello con "
+            f"detector, per seed e su {len(M7_SEEDS)} seed (S1); d grezza solo report.")
+def m7(t:vc.Report, S:vc.Session):
+    X, y = S.rows("train", M7_TRAIN_ROWS)
+    Xt, yt = S.rows("test", M_SAMPLES)
+    nf, wrap = S.bundle.n_features, M7_CFG.resolved_wrap_at()
+    fur_cfg = replace(M7_CFG, use_act_loss=True, lambda_act=M7_LAMBDA_ACT)
+
+    # the comparison isolates the activation loss only if both start alike
+    torch.manual_seed(vc.SEED)
+    sd_p = M7_CFG.build_model(nf).state_dict()
+    torch.manual_seed(vc.SEED)
+    sd_f = fur_cfg.build_model(nf).state_dict()
+    if not t.check("DetectorLayer e FurtherAL: stessa struttura e stessi pesi iniziali",
+                   sd_p.keys() == sd_f.keys()
+                   and all(torch.equal(sd_p[k], sd_f[k]) for k in sd_p),
+                   f"{len(sd_p)} vs {len(sd_f)} tensori"):
+        return
+
+    rel = {"plain": [], "further": []}      # per seed, per detector layer
+    for seed in M7_SEEDS:
+        vc.progress(f"seed {seed}: DetectorLayer e FurtherAL, {M7_EPOCHS} epoche "
+                    f"su {M7_TRAIN_ROWS} righe")
+        rows_p, val_p = _m7_run(S, M7_CFG, X, y, Xt, yt, seed)
+        margins = tuple(M7_MARGIN_FACTOR * r["rel"] for r in rows_p)
+        rows_f, val_f = _m7_run(S, replace(fur_cfg, act_margin=margins), X, y, Xt, yt, seed)
+        rel["plain"].append([r["rel"] for r in rows_p])
+        rel["further"].append([r["rel"] for r in rows_f])
+
+        t.info(f"seed {seed}: margini {tuple(round(m, 5) for m in margins)}")
+        t.info(f"{'livello':>7s}  {'':14s}{'d':>10s}{'|act|':>9s}{'d/scale':>10s}")
+        for layer, p, f in zip(wrap, rows_p, rows_f):
+            t.info(f"{layer:>7d}  {'DetectorLayer':14s}{p['d']:10.5f}{p['scale']:9.3f}"
+                   f"{p['rel']:10.5f}")
+            t.info(f"{'':7s}  {'FurtherAL':14s}{f['d']:10.5f}{f['scale']:9.3f}{f['rel']:10.5f}")
+        for name, v in (("DetectorLayer", val_p), ("FurtherAL", val_f)):
+            t.info(f"{name:14s} task_clean acc {v['task_clean']['acc']:.4f}, detector bal acc "
+                   f"{0.5 * (v['det_clean_acc'] + v['det_adv_acc']):.4f}")
+
+        # only d/scale is asserted: the detector starts with a LayerNorm and
+        # the scale-invariant loss leaves the scale free, so d can drop
+        # while the separation grows, and a larger d can be pure inflation
+        for layer, p, f in zip(wrap, rows_p, rows_f):
+            t.check(f"seed {seed} livello {layer}: d/scale FurtherAL > DetectorLayer",
+                    f["rel"] > p["rel"],
+                    f"{p['rel']:.5f} -> {f['rel']:.5f} ({f['rel'] / (p['rel'] + 1e-12):.2f}x), "
+                    f"d grezza {p['d']:.5f} -> {f['d']:.5f}")
+
+    for i, layer in enumerate(wrap):
+        outcome, detail = vc.s1_test([r[i] for r in rel["further"]],
+                                     [r[i] for r in rel["plain"]], "greater")
+        t.outcome(f"livello {layer}: d/scale FurtherAL > DetectorLayer (S1)", outcome, detail)
 
 
 if __name__ == "__main__":
