@@ -162,7 +162,7 @@ class ActivationLoss(PassThrough):
     """
 
     # Overridden per loss type
-    DETACH_REFERENCE_DEFAULT: bool = True
+    DETACH_REFERENCE_DEFAULT: bool = False
 
     def __init__(self, base: nn.Module, enabled: bool = True,
                  detach_reference: Optional[bool] = None, **kwargs):
@@ -215,8 +215,6 @@ class FurtherAL(DetectorLayer, ActivationLoss):
     by margin and switches off once the layers are far enough apart.
     """
 
-    DETACH_REFERENCE_DEFAULT: bool = False
-
     # keeps the relative distance finite when the real activations vanish
     SCALE_EPS: float = 1e-8
 
@@ -247,8 +245,6 @@ class CloserAL(ActivationLoss):
     clean and adversarial versions MEET, so both branches must be free
     to move. Anchoring the clean branch only makes sense for repulsion.
     """
-
-    DETACH_REFERENCE_DEFAULT: bool = False
 
     def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
         return d.mean()
