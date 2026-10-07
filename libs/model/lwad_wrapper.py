@@ -155,19 +155,15 @@ class ActivationLoss(PassThrough):
     Abstract class, subclasses define only distance_to_loss(d)
 
     The distance is relative for both losses: with an absolute one the
-    cheapest way to satisfy either loss is to rescale every activation
-    (inflating them for FurtherAL, shrinking them for CloserAL), which the
-    next Linear compensates and which neither separates nor aligns anything.
+    cheapest way to satisfy either loss is to rescale every activation.
 
     - enabled: enables loss without changing model type
     - detach_reference: if true, real activations are treated as a fixed
-                        anchor and grad only moves adv activations. It
-                        detaches the normalization of the distance too, so
-                        the loss is no longer scale-invariant (see distance).
+                        anchor and grad only moves adv activations.
                         None -> DETACH_REFERENCE_DEFAULT of the subclass.
     """
 
-    # Overridden per loss type
+    # overridden per loss type
     DETACH_REFERENCE_DEFAULT: bool = False
 
     # keeps the relative distance finite when the real activations vanish
@@ -189,11 +185,9 @@ class ActivationLoss(PassThrough):
         super().collect(x, y, state)
 
     def distance(self, adv: torch.Tensor, ref: torch.Tensor) -> torch.Tensor:
-        """Per-pair mean squared gap over the batch mean squared activation of
-        the real branch. Normalized by the batch, not per pair: a single
-        sample with near-zero activations would otherwise dominate the loss.
-        The normalization must stay in the graph, otherwise the scale
-        invariance holds only within a single step."""
+        """Per-pair mean squared gap over the batch mean squared activation.
+        Normalized by the batch, not per pair: a single sample with 
+        near-zero activations would otherwise dominate the loss."""
         return (adv - ref).pow(2).mean(dim=-1) / (ref.pow(2).mean() + self.SCALE_EPS)
 
     def distance_to_loss(self, d: torch.Tensor) -> torch.Tensor:
@@ -243,16 +237,11 @@ class CloserAL(ActivationLoss):
 
     The distance is relative (ActivationLoss.distance): an absolute one is
     lowered for free by shrinking every activation, which collapses the
-    scale instead of aligning the two versions. The relative one has its own
-    shortcut: the gap ignores a constant offset shared by all samples (the
-    bias of the Linear), the normalization does not, so growing that offset
-    lowers the loss without aligning anything. The dispersion check of the
-    V&V suite (M3) watches for it.
+    scale instead of aligning the two versions.
 
-    DETACH_REFERENCE_DEFAULT = False, as for FurtherAL.
-    Detaching here makes the loss diverge.
-    Intuitively, adversarial training wants a representation where
-    clean and adversarial versions MEET, so both branches must be free
+    DETACH_REFERENCE_DEFAULT = False, as for FurtherAL. Detaching here makes 
+    the loss diverge.Intuitively, adversarial training wants a representation 
+    where clean and adversarial versions meet, so both branches must be free
     to move.
     """
 

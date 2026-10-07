@@ -57,7 +57,7 @@ exp%:
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
 		--verbose 1 \
 		--resume \
-	> res_rel_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
+	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
 
 # SUITE V&V (libs/tests/vv_suite.py) =================================================
 #   make tests                       tutta la suite (~1h), log in res_vv_suite.log
