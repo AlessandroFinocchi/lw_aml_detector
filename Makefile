@@ -45,6 +45,8 @@ install_libs:
 #   make exp1 ONLY=base              --only s1/base...
 #   make exp2 DATASET=UNSW_BW15      log e summary dedicati, per istanze paralelle
 #   DATASET: UNSW_BW15 | CICIDS2017 | CTU13 | CSECICIDS2018
+# Other options:
+#	--seeds 42,43,44
 
 exp%:
 	nohup env PYTHONUNBUFFERED=1 \
@@ -54,10 +56,8 @@ exp%:
 		$(if $(DATASET),--dataset $(DATASET),) \
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
 		--verbose 1 \
-		--seeds 42,43,44 \
 		--resume \
-	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
-
+	> res_rel_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
 
 # SUITE V&V (libs/tests/vv_suite.py) =================================================
 #   make tests                       tutta la suite (~1h), log in res_vv_suite.log

@@ -58,7 +58,7 @@ def _measure_layer_distances(model, x, x_adv):
             scale = h_real.pow(2).mean().item() ** 0.5              # layer activation magnitude
             rows.append({"layer": type(layer).__name__,
                          "d": d, "scale": scale,
-                         "rel": d / (scale ** 2 + lw.FurtherAL.SCALE_EPS)})
+                         "rel": d / (scale ** 2 + lw.ActivationLoss.SCALE_EPS)})
     return rows
 
 

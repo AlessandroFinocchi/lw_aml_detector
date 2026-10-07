@@ -151,8 +151,9 @@ def _dispersion(model, X) -> list[float]:
 
 
 @vc.vv_test(TESTS, "M3", "Allineamento CloserAL non degenere", vc.VALIDATE,
-            "closer contro advtrain: nei livelli CloserAL scendono slav e slav_rel (S1), "
-            "senza perdita di accuratezza ne' collasso della dispersione.")
+            "closer contro advtrain: nei livelli CloserAL scende slav_rel (S1), senza perdita "
+            "di accuratezza ne' collasso della dispersione; se scende solo slav e' riduzione "
+            "di scala.")
 def m3(t:vc.Report, S:vc.Session):
     st = S.stage1
     closer, adv = "s1/base/closer", "s1/base/advtrain"
@@ -160,22 +161,26 @@ def m3(t:vc.Report, S:vc.Session):
     if not vc.enough_seeds(t, S, "closer vs advtrain", seeds):
         return
 
-    # 1) both the raw and the relative deviation go down
+    # 1) the relative deviation goes down. Only slav_rel is asserted: the
+    #    CloserAL loss is scale-invariant and leaves the scale free, so the
+    #    raw slav can stay put while the versions align, and drop by pure
+    #    shrinking
     for layer in vc.s1_experiment(closer).config().resolved_wrap_at():
         raw = vc.s1_test(st.column(closer, "slav", seeds, layer),
                          st.column(adv, "slav", seeds, layer), "less")
         rel = vc.s1_test(st.column(closer, "slav_rel", seeds, layer),
                          st.column(adv, "slav_rel", seeds, layer), "less")
-        what = f"livello {layer}: slav e slav_rel di closer < advtrain (S1)"
-        detail = f"slav {raw[1]}; slav_rel {rel[1]}"
-        if raw[0] == rel[0] == vc.PASS:
-            t.outcome(what, vc.PASS, detail)
-        elif vc.INCONCLUSIVE in (raw[0], rel[0]):
-            t.outcome(what, vc.INCONCLUSIVE, detail)
+        t.info(f"livello {layer}: slav_rel {_mean(st.column(closer, 'slav_rel', seeds, layer)):.4g}"
+               f" vs {_mean(st.column(adv, 'slav_rel', seeds, layer)):.4g}, slav "
+               f"{_mean(st.column(closer, 'slav', seeds, layer)):.4g} vs "
+               f"{_mean(st.column(adv, 'slav', seeds, layer)):.4g}")
+        what = f"livello {layer}: slav_rel di closer < advtrain (S1)"
+        if rel[0] in (vc.PASS, vc.INCONCLUSIVE):
+            t.outcome(what, rel[0], f"{rel[1]}; slav {raw[1]} (solo report)")
         elif raw[0] == vc.PASS:
-            t.outcome(what, vc.FAIL, f"{detail}: scende solo slav, riduzione di scala")
+            t.outcome(what, vc.FAIL, f"{rel[1]}; scende solo slav ({raw[1]}): riduzione di scala")
         else:
-            t.outcome(what, vc.FAIL, f"{detail}: slav non scende")
+            t.outcome(what, vc.FAIL, f"{rel[1]}: nessun allineamento significativo")
 
     # 2) no accuracy collapse
     acc_n = _mean(st.column(closer, "task_clean_acc", seeds))

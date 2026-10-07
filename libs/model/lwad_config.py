@@ -114,8 +114,8 @@ class ModelConfig:
     # --- activation loss ----------------------------------------------------
     lambda_act:       float = DEFAULT_LAMBDA_ACT
     detach_reference: Optional[bool] = None # None: each activation loss uses its
-                                            #       own default (True for FurtherAL
-                                            #       and False for CloserAL)
+                                            #       own default (False for both
+                                            #       FurtherAL and CloserAL)
 
     # abstract class
     def __new__(cls, *args, **kwargs):
