@@ -17,7 +17,7 @@ COMMON = dict(epochs=10, eps=0.2, train_attack="pgd", eval_attack="pgd",
 
 DET = lc.DetectorModelConfig(**COMMON, use_act_loss=False)      # DetectorLayer
 FUR = lc.DetectorModelConfig(**COMMON, use_act_loss=True)       # FurtherAL
-ADV = lc.AdvTrainingModelConfig(**COMMON)                       # CloserAL
+CLO = lc.AdvTrainingModelConfig(**COMMON)                       # CloserAL
 
 
 # ===========================================================================
@@ -27,7 +27,7 @@ def table() -> list[Exp]:
     return [
         # --- baselines: one reference plus two per model type --------------
         # No defense
-        Exp("s1/base/undefended",        ADV, lambda_act=0.0,
+        Exp("s1/base/undefended",        CLO, lambda_act=0.0,
                                               task_loss_on_adv=False),
 
         # Detector Model
@@ -42,9 +42,9 @@ def table() -> list[Exp]:
         # Adversarial Training Model
         # The second run answers whether pulling clean and adversarial
         # activations together improves performances.
-        Exp("s1/base/advtrain",          ADV, lambda_act=0.0),
-        Exp("s1/base/nearest",           ADV),
-        Exp("s1/base/nearest-clean",     ADV, task_loss_on_adv=False),
+        Exp("s1/base/advtrain",         CLO, lambda_act=0.0),
+        Exp("s1/base/closer",           CLO),
+        Exp("s1/base/closer-clean",     CLO, task_loss_on_adv=False),
 
         # --- V&V -----------------------------------------------------------
         # (1) Must be equal to s1/base/detlayer, metric by metric. A FurtherAL
@@ -68,7 +68,7 @@ def table() -> list[Exp]:
         # (5) Extras for tests
         Exp("s1/mech/detlayer-wide3",    DET, hidden_dims=(128, 64, 32), wrap_at=(0,)),
         Exp("s1/mech/further-wide3",     FUR, hidden_dims=(128, 64, 32), wrap_at=(0,)),
-        Exp("s1/mech/undefended-deep",   ADV, lambda_act=0.0, task_loss_on_adv=False,
+        Exp("s1/mech/undefended-deep",   CLO, lambda_act=0.0, task_loss_on_adv=False,
                                               hidden_dims=(256, 128, 64, 32)),
         Exp("s1/mech/detlayer-deep",     DET, hidden_dims=(256, 128, 64, 32), wrap_at=(0, 1, 2, 3)),
         Exp("s1/mech/further-exit-deep", FUR, hidden_dims=(256, 128, 64, 32), wrap_at=(0, 1, 2, 3),

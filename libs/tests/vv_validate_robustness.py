@@ -38,7 +38,7 @@ A_SAMPLES = 2000
 ITER_STEPS = 20             # A1: steps of the iterative adaptive attack
 UNBOUNDED_EPS, UNBOUNDED_STEPS = 10.0, 50
 
-NO_DET = ("undefended", "advtrain", "nearest", "nearest-clean")
+NO_DET = ("undefended", "advtrain", "closer", "closer-clean")
 WITH_DET = ("detlayer", "detlayer-advtrain", "further", "further-advtrain")
 
 

@@ -17,7 +17,7 @@ class FlowState:
         self.is_adv = is_adv
         self.detections: list[torch.Tensor] = []
         self.det_loss: Optional[torch.Tensor] = None # detector loss (BCE)
-        self.act_loss: Optional[torch.Tensor] = None # activation loss (Further/Nearest)
+        self.act_loss: Optional[torch.Tensor] = None # activation loss (Further/Closer)
         self.exit_layer: Optional[int] = None        # layer the forward stopped at (early exit)
 
     # --- detection (for DetectorLayer) -------------------------------------
@@ -270,8 +270,8 @@ class LWADSequential(nn.Module):
 
     def _validate(self) -> None:
         has_det = any(isinstance(m, DetectorLayer) for m in self.layers)
-        has_nearest = any(isinstance(m, CloserAL) for m in self.layers)
-        if has_det and has_nearest:
+        has_closer = any(isinstance(m, CloserAL) for m in self.layers)
+        if has_det and has_closer:
             raise ValueError(
                 "Incoherent architecture: CloserAL can't "
                 "cohexist with Detector-based layer within the same network."

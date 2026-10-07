@@ -151,22 +151,22 @@ def _dispersion(model, X) -> list[float]:
 
 
 @vc.vv_test(TESTS, "M3", "Allineamento CloserAL non degenere", vc.VALIDATE,
-            "nearest contro advtrain: nei livelli CloserAL scendono slav e slav_rel (S1), "
+            "closer contro advtrain: nei livelli CloserAL scendono slav e slav_rel (S1), "
             "senza perdita di accuratezza ne' collasso della dispersione.")
 def m3(t:vc.Report, S:vc.Session):
     st = S.stage1
-    near, adv = "s1/base/nearest", "s1/base/advtrain"
-    seeds = st.paired_seeds(near, adv)
-    if not vc.enough_seeds(t, S, "nearest vs advtrain", seeds):
+    closer, adv = "s1/base/closer", "s1/base/advtrain"
+    seeds = st.paired_seeds(closer, adv)
+    if not vc.enough_seeds(t, S, "closer vs advtrain", seeds):
         return
 
     # 1) both the raw and the relative deviation go down
-    for layer in vc.s1_experiment(near).config().resolved_wrap_at():
-        raw = vc.s1_test(st.column(near, "slav", seeds, layer),
+    for layer in vc.s1_experiment(closer).config().resolved_wrap_at():
+        raw = vc.s1_test(st.column(closer, "slav", seeds, layer),
                          st.column(adv, "slav", seeds, layer), "less")
-        rel = vc.s1_test(st.column(near, "slav_rel", seeds, layer),
+        rel = vc.s1_test(st.column(closer, "slav_rel", seeds, layer),
                          st.column(adv, "slav_rel", seeds, layer), "less")
-        what = f"livello {layer}: slav e slav_rel di nearest < advtrain (S1)"
+        what = f"livello {layer}: slav e slav_rel di closer < advtrain (S1)"
         detail = f"slav {raw[1]}; slav_rel {rel[1]}"
         if raw[0] == rel[0] == vc.PASS:
             t.outcome(what, vc.PASS, detail)
@@ -178,22 +178,22 @@ def m3(t:vc.Report, S:vc.Session):
             t.outcome(what, vc.FAIL, f"{detail}: slav non scende")
 
     # 2) no accuracy collapse
-    acc_n = _mean(st.column(near, "task_clean_acc", seeds))
+    acc_n = _mean(st.column(closer, "task_clean_acc", seeds))
     acc_a = _mean(st.column(adv, "task_clean_acc", seeds))
-    t.check(f"task_clean_acc media di nearest >= advtrain - {COLLAPSE_ACC_TOL}",
+    t.check(f"task_clean_acc media di closer >= advtrain - {COLLAPSE_ACC_TOL}",
             acc_n >= acc_a - COLLAPSE_ACC_TOL, f"{acc_n:.4f} vs {acc_a:.4f}")
 
     # 3) no representation collapse
     X, _ = S.rows("test", M_SAMPLES)
-    ck_seeds = [s for s in seeds if st.checkpoint(near, s) and st.checkpoint(adv, s)]
+    ck_seeds = [s for s in seeds if st.checkpoint(closer, s) and st.checkpoint(adv, s)]
     if not ck_seeds:
         t.inconclusive("dispersione per livello", "checkpoint mancanti")
         return
-    disp = {n: [_dispersion(S.ckpt(n, s).model, X) for s in ck_seeds] for n in (near, adv)}
-    for layer in range(len(disp[near][0])):
-        dn = _mean(d[layer] for d in disp[near])
+    disp = {n: [_dispersion(S.ckpt(n, s).model, X) for s in ck_seeds] for n in (closer, adv)}
+    for layer in range(len(disp[closer][0])):
+        dn = _mean(d[layer] for d in disp[closer])
         da = _mean(d[layer] for d in disp[adv])
-        t.check(f"livello {layer}: dispersione nearest / advtrain >= {SPREAD_RATIO_MIN}",
+        t.check(f"livello {layer}: dispersione closer / advtrain >= {SPREAD_RATIO_MIN}",
                 dn / da >= SPREAD_RATIO_MIN, f"{dn:.4f} / {da:.4f} = {dn / da:.3f}")
 
 

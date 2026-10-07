@@ -231,7 +231,7 @@ def v4_6(t:vc.Report, S:vc.Session):
 
     # stage 1: the checkpoints of seed 42, timed as the campaign does
     st = S.stage1
-    for name in ("s1/base/detlayer", "s1/base/nearest"):
+    for name in ("s1/base/detlayer", "s1/base/closer"):
         path = st.checkpoint(name, vc.SEED)
         if not path:
             t.skip(f"reale: {name} seed {vc.SEED}", "checkpoint assente nello stadio 1")
