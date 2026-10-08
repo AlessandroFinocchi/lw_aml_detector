@@ -46,7 +46,7 @@ install_libs:
 #   make exp2 DATASET=UNSW_BW15      log e summary dedicati, per istanze paralelle
 #   DATASET: UNSW_BW15 | CICIDS2017 | CTU13 | CSECICIDS2018
 # Other options:
-#	--seeds 42,43,44
+#	--seeds 42,43,44 \
 
 exp%:
 	nohup env PYTHONUNBUFFERED=1 \

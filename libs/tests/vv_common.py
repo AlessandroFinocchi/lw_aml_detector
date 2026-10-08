@@ -12,7 +12,7 @@ it makes; the run ends with the final report .
 
 Determinism is configured here, at import time and before any CUDA
 operation: CUBLAS_WORKSPACE_CONFIG is read when cuBLAS creates its first
-handle, and without it the exact equalities (V2.4, V4) can fail for reasons
+handle, and without it the exact equalities (V2.4, V3) can fail for reasons
 unrelated to the method.
 """
 import os
@@ -86,7 +86,7 @@ ADV = lc.AdvTrainingModelConfig(hidden_dims=(32, 16, 16), wrap_at=(0, 2),
                                 eps=0.2, pgd_steps=5, batch_size=64)
 SMALL = {"det": DET, "fur": FUR, "adv": ADV}
 
-# --- mini-campaign configs (V4) ---------------------------------------------
+# --- mini-campaign configs (V3) ---------------------------------------------
 COMMON_S = dict(epochs=3, eps=0.2, pgd_steps=5, batch_size=128,
                 hidden_dims=(32, 16), wrap_at=(0, 1),
                 train_attack="pgd", eval_attack="pgd")
@@ -550,7 +550,7 @@ class Session:
 
     def reference_run(self, kind: str) -> lx.RunResult:
         """DET_S ("det") or ADV_S ("adv") trained once at seed 42 and shared by
-        the V4 tests that only need a trained run and its checkpoint."""
+        the V3 tests that only need a trained run and its checkpoint."""
         key = ("reference", kind)
         if key not in self.store:
             cfg = {"det": DET_S, "adv": ADV_S}[kind]
@@ -731,7 +731,7 @@ def main(tests: list[TestSpec], argv=None) -> int:
 
     S = Session(args)
     try:
-        if any(s.tid.startswith(("V4", "A", "M")) for s in selected):
+        if any(s.tid.startswith(("V3", "A", "M")) for s in selected):
             print_stage1_inventory(S)
         reports = [run_test(spec, S) for spec in selected]
     finally:

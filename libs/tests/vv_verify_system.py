@@ -1,4 +1,4 @@
-"""V&V suite - Verifica: coerenza di sistema (V4.1-V4.6).
+"""V&V suite - Verifica: coerenza di sistema (V3.1-V3.6).
 
 Every test runs a mini-campaign on UNSW-NB15 through lx.run_suite (device
 "cuda", margin cache cleared before every suite) and, where the spec says so,
@@ -7,7 +7,7 @@ experiment missing from the CSV turns its part into a SKIP.
 
 One mini-campaign run takes a couple of minutes: the whole section ~40 min.
 
-Run:  python -m libs.tests.vv_verify_system [--only V4.4]
+Run:  python -m libs.tests.vv_verify_system [--only V3.4]
 """
 import libs.tests.vv_common as vc    # first: sets up determinism before any CUDA op
 
@@ -19,8 +19,8 @@ import libs.experiments.lwad_experiments as lx
 
 TESTS: list = []
 
-MARGIN_TINY_ACTIVE_MAX = 0.01   # V4.2: above it the hinge is not saturated at zero
-RELOAD_TOL = 0.005              # V4.4, V4.6: a load_from run evaluates without reseeding,
+MARGIN_TINY_ACTIVE_MAX = 0.01   # V3.2: above it the hinge is not saturated at zero
+RELOAD_TOL = 0.005              # V3.4, V3.6: a load_from run evaluates without reseeding,
                                 # so the random start of its PGD differs
 
 
@@ -85,7 +85,7 @@ def compare_stage1(t, S, name_a: str, name_b: str, exclude=(), act_margin=False)
 # ===========================================================================
 # Tests
 # ===========================================================================
-@vc.vv_test(TESTS, "V4.1", "FurtherAL con lambda_act = 0 coincide con DetectorLayer", vc.VERIFY,
+@vc.vv_test(TESTS, "V3.1", "FurtherAL con lambda_act = 0 coincide con DetectorLayer", vc.VERIFY,
             "Una activation loss di peso nullo non deve cambiare nulla: DET_S e FUR_S "
             "(lambda_act=0, margin_factor=None) identici al bit.")
 def v4_1(t:vc.Report, S:vc.Session):
@@ -96,7 +96,7 @@ def v4_1(t:vc.Report, S:vc.Session):
     compare_stage1(t, S, "s1/vv/actloss-zero", "s1/base/detlayer")
 
 
-@vc.vv_test(TESTS, "V4.2", "FurtherAL con kappa << 1 vicino a DetectorLayer", vc.VERIFY,
+@vc.vv_test(TESTS, "V3.2", "FurtherAL con kappa << 1 vicino a DetectorLayer", vc.VERIFY,
             "Solo reale: s1/vv/margin-tiny contro s1/base/detlayer; identici, oppure "
             "equivalenti entro il rumore (S2) se la hinge resta spenta.")
 def v4_2(t:vc.Report, S:vc.Session):
@@ -138,7 +138,7 @@ def v4_2(t:vc.Report, S:vc.Session):
         t.check(f"S2 su {metric}", ok, detail)
 
 
-@vc.vv_test(TESTS, "V4.3", "Riproducibilita' con cache fredda e calda", vc.VERIFY,
+@vc.vv_test(TESTS, "V3.3", "Riproducibilita' con cache fredda e calda", vc.VERIFY,
             "Due run identiche di FUR_S su un'architettura nuova: la seconda usa i margini "
             "in cache e deve coincidere con la prima.")
 def v4_3(t:vc.Report, S:vc.Session):
@@ -154,7 +154,7 @@ def v4_3(t:vc.Report, S:vc.Session):
     compare_stage1(t, S, "s1/vv/repro-cold", "s1/vv/repro-warm", act_margin=True)
 
 
-@vc.vv_test(TESTS, "V4.4", "Seed e ordine di esecuzione", vc.VERIFY,
+@vc.vv_test(TESTS, "V3.4", "Seed e ordine di esecuzione", vc.VERIFY,
             "Solo mini-campagna: il seed cambia il risultato, l'ordine delle run nella suite no "
             f"(anche per una run con load_from, che non reimposta il seed dell'attacco: "
             f"metriche entro {RELOAD_TOL:g}, relativa per slav e slav_rel).")
@@ -189,7 +189,7 @@ def v4_4(t:vc.Report, S:vc.Session):
                 cl["vv/L"].metrics, lc_["vv/L"].metrics, vc.LATENCY_KEYS)
 
 
-@vc.vv_test(TESTS, "V4.5", "L'early exit cambia solo la latenza", vc.VERIFY,
+@vc.vv_test(TESTS, "V3.5", "L'early exit cambia solo la latenza", vc.VERIFY,
             "FUR_S con score_reduce='max', con e senza early_exit: stesse metriche e checkpoint, "
             "solo i tassi di uscita cambiano.")
 def v4_5(t:vc.Report, S:vc.Session):
@@ -214,7 +214,7 @@ def v4_5(t:vc.Report, S:vc.Session):
                 (r_on["infer_exit_rate_adv"] or 0) > 0, f"{r_on['infer_exit_rate_adv']}")
 
 
-@vc.vv_test(TESTS, "V4.6", "Un checkpoint ricaricato riproduce la run", vc.VERIFY,
+@vc.vv_test(TESTS, "V3.6", "Un checkpoint ricaricato riproduce la run", vc.VERIFY,
             "Rivalutare con load_from e lo stesso seed un modello addestrato deve dare le "
             f"stesse metriche entro {RELOAD_TOL:g} (relativa per slav e slav_rel: la "
             "valutazione non reimposta il seed dell'attacco) e per i detector la stessa soglia.")

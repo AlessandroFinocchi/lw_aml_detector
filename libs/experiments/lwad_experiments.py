@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import csv
 import dataclasses
+import glob
 import itertools
 import os
 import re
@@ -136,8 +137,10 @@ class Exp:
         # Check for correct wrap indexes
         cfg.resolved_wrap_at()
 
-        # Verify the checkpoint to load exists
-        if cfg.load_from and not os.path.exists(cfg.load_from):
+        # Verify the checkpoint to load exists: a checkpoint_file template is
+        # satisfied by any dataset and seed
+        if cfg.load_from and not glob.glob(
+                _fill_load_from(glob.escape(cfg.load_from), "*", "*")):
             print(f"warning: {self.name}: load_from={cfg.load_from!r} does not "
                   f"exist yet, the run will fail unless it is created first")
 
@@ -751,6 +754,23 @@ def _safe_filename(name: str) -> str:
     return re.sub(r"-+", "-", name).strip("-") # collapse any run of dashes
 
 
+def checkpoint_file(experiment: str, dataset: str = "{dataset}",
+                    seed: Any = "{seed}") -> str:
+    """Name of the checkpoint a run writes inside the checkpoint directory.
+
+    Without dataset and seed it is a template for load_from: run_experiment
+    fills {dataset} and {seed} in with those of the run, so one table of
+    reloaded models (stage 5) serves whichever dataset the suite runs on.
+    """
+    return f"{_safe_filename(experiment)}__{_safe_filename(dataset)}__seed{seed}.pt"
+
+
+def _fill_load_from(path: str, dataset: str, seed: Any) -> str:
+    """Resolves a checkpoint_file template, any other path is left as it is."""
+    return (path.replace("{dataset}", _safe_filename(dataset))
+                .replace("{seed}", str(seed)))
+
+
 def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                    seed: int = lc.SEED, verbose: int = 1,
                    checkpoint_dir: Optional[str] = None,
@@ -762,10 +782,12 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
 
     # --- setting up ----------------------------------------------------------
     started = time.time()
-    ckpt = (os.path.join(checkpoint_dir,
-                         f"{_safe_filename(exp.name)}__{_safe_filename(data.name)}__seed{seed}.pt")
+    ckpt = (os.path.join(checkpoint_dir, checkpoint_file(exp.name, data.name, seed))
             if checkpoint_dir else None)
     cfg = exp.config(**({"checkpoint": ckpt} if ckpt else {}))
+    if cfg.load_from:       # a checkpoint_file template gets this run's dataset and seed
+        cfg = dataclasses.replace(
+            cfg, load_from=_fill_load_from(cfg.load_from, data.name, seed))
     res = RunResult(experiment=exp.name, dataset=data.name, model=exp.model,
                     seed=seed, params=exp.describe(), config=cfg, checkpoint=ckpt)
 
