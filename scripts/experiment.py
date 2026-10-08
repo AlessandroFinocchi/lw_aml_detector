@@ -4,9 +4,9 @@ To change WHAT is run, edit the EXPERIMENTS table in that module: this file only
 decides how the suite is executed.
 
     make exp                      # nohup + res.log, as before
-    python notebooks/experiment.py --dry-run
-    python notebooks/experiment.py --only det/ --resume
-    python notebooks/experiment.py --only s2/ --summary-file summary_s2.csv
+    python scripts/experiment.py --dry-run
+    python scripts/experiment.py --only det/ --resume
+    python scripts/experiment.py --only s2/ --summary-file summary_s2.csv
 """
 import argparse
 

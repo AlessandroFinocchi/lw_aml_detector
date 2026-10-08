@@ -1,6 +1,6 @@
 """Stage 5: the worst case of the stage 4 winners.
 
-    python notebooks/experiment.py --only s5/ --dataset UNSW_BW15 --seeds 42
+    python scripts/experiment.py --only s5/ --dataset UNSW_BW15 --seeds 42
 
 No retraining: every run reloads the checkpoint stage 4 saved for its winner,
 on the dataset and seed of the run, and changes only the attack. The detector
@@ -8,12 +8,14 @@ threshold stays the one picked on the training attack, as for a deployed
 defense that does not know what is coming. Per winner:
 
     search  at the training eps: fgsm; pgd over steps x step size; against the
-            detectors too, pgd_adaptive over step size x evade weight
+            detectors too, pgd_adaptive over steps x step size x evade weight
     curve   other budgets, at 100 steps: pgd, and pgd_adaptive per evade weight
 
-A winner's worst case is its lowest robust_acc_e2e at the training eps, the
-curve the lowest per eps. Runs: 6 detector winners x 33 + 3 CloserAL x 9 = 225,
-but each is an evaluation: seconds instead of minutes.
+The search run with steps=20, alpha=None (and evade weight 1) on the winner's
+own attack repeats its stage 4 evaluation. A winner's worst case is its lowest
+robust_acc_e2e at the training eps, the curve the lowest per eps. Runs:
+6 detector winners x 41 + 3 CloserAL x 9 = 273, but each is an evaluation:
+seconds instead of minutes.
 """
 from __future__ import annotations
 
@@ -23,7 +25,7 @@ from typing import Optional
 
 import libs.model.lwad_config as lc
 import libs.experiments.lwad_experiments as lx
-import libs.experiments.lwad_stage3 as s3
+import libs.experiments.lwad_stage2 as s2
 import libs.experiments.lwad_stage4 as s4
 from libs.experiments.lwad_experiments import Exp, Sweep
 
@@ -69,7 +71,7 @@ CLO_HIGH   = trained("s4/clo/high/[lambda_act=1]")
 # ===========================================================================
 # Axes
 # ===========================================================================
-EPS        = s3.COMMON["eps"]          # the training budget: the threat model
+EPS        = s2.COMMON["eps"]          # the training budget: the threat model
 STEPS      = [20, 100]                 # the training attack, then near convergence
 LONG_STEPS = [max(STEPS)]
 ALPHAS     = [None, EPS / 4]           # None: 2*eps/steps; eps/4 reaches the
@@ -84,17 +86,17 @@ def attacks(name: str, model: Optional[lc.ModelConfig]) -> list[Exp]:
     """The attacks one reloaded winner faces."""
     if model is None:
         return []
+    # the eval attack is set explicitly: the winner's own may be either one
+    pgd = replace(model, eval_attack="pgd")
     exps = [
-        # search: steps=20 with alpha=None is the attack of stages 1-4
         Exp(f"{name}/fgsm", model, eval_attack="fgsm"),
-        Sweep(f"{name}/pgd/", model, pgd_steps=STEPS, pgd_alpha=ALPHAS),
-        # curve
-        Sweep(f"{name}/eps/pgd/", model, eps=EPS_CURVE, pgd_steps=LONG_STEPS),
+        Sweep(f"{name}/pgd/", pgd, pgd_steps=STEPS, pgd_alpha=ALPHAS),
+        Sweep(f"{name}/eps/pgd/", pgd, eps=EPS_CURVE, pgd_steps=LONG_STEPS),
     ]
     if model.uses_detectors:            # white box on the detectors as well
         adaptive = replace(model, eval_attack="pgd_adaptive")
         exps += [
-            Sweep(f"{name}/adaptive/", adaptive, pgd_steps=LONG_STEPS,
+            Sweep(f"{name}/adaptive/", adaptive, pgd_steps=STEPS,
                   pgd_alpha=ALPHAS, pgd_evade_weight=BETAS),
             Sweep(f"{name}/eps/adaptive/", adaptive, eps=EPS_CURVE,
                   pgd_steps=LONG_STEPS, pgd_evade_weight=BETAS),

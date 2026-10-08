@@ -1,6 +1,6 @@
 """Stage 1: baselines, verification and validation.
 
-    python notebooks/experiment.py --only s1/ --verbose 1
+    python scripts/experiment.py --only s1/ --verbose 1
 """
 from __future__ import annotations
 

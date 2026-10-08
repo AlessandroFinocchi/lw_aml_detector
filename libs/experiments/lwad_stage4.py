@@ -1,6 +1,6 @@
 """Stage 4: the loss weights of the stage 3 winners.
 
-    python notebooks/experiment.py --only s4/ --dataset UNSW_BW15 --seeds 42
+    python scripts/experiment.py --only s4/ --dataset UNSW_BW15 --seeds 42
 
 Every winner keeps its stage 3 mechanism and explores only the weights its
 losses actually use, on log grids:

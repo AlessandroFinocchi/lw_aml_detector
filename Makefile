@@ -51,7 +51,7 @@ install_libs:
 exp%:
 	nohup env PYTHONUNBUFFERED=1 \
 	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
-	notebooks/experiment.py \
+	scripts/experiment.py \
 		--only s$*/$(ONLY) \
 		$(if $(DATASET),--dataset $(DATASET),) \
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
@@ -66,7 +66,7 @@ exp%:
 tests:
 	nohup env PYTHONUNBUFFERED=1 \
 	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
-	-m libs.tests.vv_suite \
+	scripts/vv_suite.py \
 		$(if $(ONLY),--only $(ONLY),) \
 		$(if $(MIN_SEEDS),--min-seeds $(MIN_SEEDS),) \
 	> res_vv_suite.log 2>&1 &

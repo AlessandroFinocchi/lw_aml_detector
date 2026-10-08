@@ -3,5 +3,4 @@ lwad_libs.egg-info
 *__pycache__
 .vscode
 lwad_model.pt
-notebooks/main*.py
 results/
