@@ -11,9 +11,9 @@ is 1 when some test ends in FAIL or ERROR.
 
 Run (from the repo root):
 
-    python -m libs.tests.vv_suite
-    python -m libs.tests.vv_suite --only V1,V2
-    python -m libs.tests.vv_suite --only A --s1-csv results/summary_s1_UNSW_BW15.csv
+    python scripts/vv_suite
+    python scripts/vv_suite --only V1,V2
+    python scripts/vv_suite --only A --s1-csv results/summary_s1_UNSW_BW15.csv
 """
 import libs.tests.vv_common as vc    # first: sets up determinism before any CUDA op
 

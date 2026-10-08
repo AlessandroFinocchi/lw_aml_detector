@@ -59,7 +59,7 @@ exp%:
 		--resume \
 	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
 
-# SUITE V&V (libs/tests/vv_suite.py) =================================================
+# SUITE V&V (scripts/vv_suite.py) =================================================
 #   make tests                       tutta la suite (~1h), log in res_vv_suite.log
 #   make tests ONLY=V1,V2            solo i test con questi prefissi di id
 #   make tests MIN_SEEDS=1           validazione esplorativa con meno di 3 seed

@@ -3,9 +3,9 @@
 Every section module registers its tests in a TESTS list; 
 vv_suite runs them all:
 
-    python -m libs.tests.vv_suite                    # whole suite
-    python -m libs.tests.vv_suite --only V1,V2.4,A3  # by id prefix
-    python -m libs.tests.vv_verify_model             # one section
+    python scripts/vv_suite                    # whole suite
+    python scripts/vv_suite --only V1,V2.4,A3  # by id prefix
+    python scripts/vv_verify_model             # one section
 
 Every test prints its id, a short description and the outcome of each check
 it makes; the run ends with the final report .
