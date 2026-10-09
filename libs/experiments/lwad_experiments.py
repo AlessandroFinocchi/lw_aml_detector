@@ -1016,9 +1016,9 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
         if data is not None and not preloaded:
             data.free()
 
-    if verbose >= 1:
-        print(f"\n{suite.summary_table()}\n\n{suite.pivot('val_score')}")
-        print(f"\nCSV: {csv_path}")
+
+    print(f"\n{suite.summary_table()}\n\n{suite.pivot('val_score')}")
+    print(f"\nCSV: {csv_path}")
     return suite
 
 

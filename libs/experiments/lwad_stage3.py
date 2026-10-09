@@ -1,9 +1,10 @@
 """Stage 3: the detection mechanism of the stage 2 winners.
 
-    python notebooks/experiment.py --only s3/ --dataset UNSW_BW15 --seeds 42
+    python scripts/experiment.py --only s3/ --dataset UNSW_BW15 --seeds 42
 
-Attack and training budget are those of stages 1-2. Every detector winner
-(mini, medium, high of DetectorLayer and FurtherAL) gets every combination of
+Model types and training budget come from stage 2, and every winner keeps the
+attack it was trained and evaluated on there. Every detector winner (mini,
+medium, high of DetectorLayer and FurtherAL) gets every combination of
 
     loss    detlayer | further     use_act_loss, crossed with the family too:
                                    the loss is compared at equal shape
@@ -25,37 +26,31 @@ from dataclasses import replace
 import libs.model.lwad_config as lc
 import libs.experiments.lwad_experiments as lx
 from libs.experiments.lwad_experiments import Exp, Sweep
+from libs.experiments.lwad_stage2 import (ADAPTIVE, CLO, DET, DETLAYER, FUR,
+                                          FURTHER, PGD)
 
 
 # ===========================================================================
-# Presets
+# Presets: model types, losses and attacks come from stage 2
 # ===========================================================================
-COMMON = dict(epochs=10, eps=0.2, train_attack="pgd", eval_attack="pgd")
-
-# Mechanisms as bundles of overrides: a choice spanning two fields (FurtherAL
-# and its calibrated margin, max and its early exit) stays a single choice
-DETLAYER = dict(use_act_loss=False, margin_factor=None)    # nothing to calibrate
-FURTHER  = dict(use_act_loss=True, margin_factor=lc.DEFAULT_MARGIN_FACTOR)
-MEAN     = dict(score_reduce="mean")
-MAX      = dict(score_reduce="max", early_exit=True)
-
-DET = lc.DetectorModelConfig(**COMMON, **DETLAYER)         # DetectorLayer
-FUR = lc.DetectorModelConfig(**COMMON, **FURTHER)          # FurtherAL
-CLO = lc.AdvTrainingModelConfig(**COMMON)                  # CloserAL
+# Reduce modes as bundles: max and its early exit stay a single choice
+MEAN = dict(score_reduce="mean")
+MAX  = dict(score_reduce="max", early_exit=True)
 
 
 # ===========================================================================
 # Stage 2 winners
-# PLACEHOLDERS (the smallest stage 2 candidates): swap in the real winners.
-# Only the shape is set here, everything else comes from the preset.
+# PLACEHOLDERS (the smallest stage 2 candidates, on pgd): swap in the real
+# winners, with the attack they won on (PGD, or ADAPTIVE for the detectors).
+# Only shape and attack are set here, everything else comes from the preset.
 # ===========================================================================
-DET_MINI   = replace(DET, hidden_dims=(32, 16),  detector_dims=(32, 16), wrap_at=(0, 1))
-DET_MEDIUM = replace(DET, hidden_dims=(64, 32),  detector_dims=(32, 16), wrap_at=(0, 1))
-DET_HIGH   = replace(DET, hidden_dims=(128, 64), detector_dims=(32, 16), wrap_at=(0, 1))
+DET_MINI   = replace(DET, **PGD, hidden_dims=(32, 16),  detector_dims=(32, 16), wrap_at=(0, 1))
+DET_MEDIUM = replace(DET, **PGD, hidden_dims=(64, 32),  detector_dims=(32, 16), wrap_at=(0, 1))
+DET_HIGH   = replace(DET, **PGD, hidden_dims=(128, 64), detector_dims=(32, 16), wrap_at=(0, 1))
 
-FUR_MINI   = replace(FUR, hidden_dims=(32, 16),  detector_dims=(64, 32), wrap_at=(0, 1))
-FUR_MEDIUM = replace(FUR, hidden_dims=(64, 32),  detector_dims=(64, 32), wrap_at=(0, 1))
-FUR_HIGH   = replace(FUR, hidden_dims=(128, 64), detector_dims=(64, 32), wrap_at=(0, 1))
+FUR_MINI   = replace(FUR, **PGD, hidden_dims=(32, 16),  detector_dims=(64, 32), wrap_at=(0, 1))
+FUR_MEDIUM = replace(FUR, **PGD, hidden_dims=(64, 32),  detector_dims=(64, 32), wrap_at=(0, 1))
+FUR_HIGH   = replace(FUR, **PGD, hidden_dims=(128, 64), detector_dims=(64, 32), wrap_at=(0, 1))
 
 CLO_MINI   = replace(CLO, hidden_dims=(48, 16),  wrap_at=(0, 1))
 CLO_MEDIUM = replace(CLO, hidden_dims=(80, 32),  wrap_at=(0, 1))

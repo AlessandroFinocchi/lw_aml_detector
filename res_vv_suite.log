@@ -1,0 +1,907 @@
+== Suite V&V LWAD ==
+   torch 2.5.1, device cuda (NVIDIA RTX 4000 Ada Generation)
+   determinismo: CUBLAS_WORKSPACE_CONFIG=:4096:8, use_deterministic_algorithms=True, cudnn.benchmark=False
+   test selezionati (27): V1.1, V1.2, V1.3, V1.4, V1.5, V1.6, V2.1, V2.2, V2.4, V2.5, V3.1, V3.2, V3.3, V3.4, V3.5, V3.6, A3, A1, A2, A4, M1, M2, M3, M4, M5, M6, M7
+
+== Dati dello stadio 1 ==
+   CSV: results/summary_s1.csv
+   s1/base/undefended           seed [42, 43, 44], checkpoint 3/3
+   s1/base/detlayer             seed [42, 43, 44], checkpoint 3/3
+   s1/base/detlayer-advtrain    seed [42, 43, 44], checkpoint 3/3
+   s1/base/further              seed [42, 43, 44], checkpoint 3/3
+   s1/base/further-advtrain     seed [42, 43, 44], checkpoint 3/3
+   s1/base/advtrain             seed [42, 43, 44], checkpoint 3/3
+   s1/base/closer               seed [42, 43, 44], checkpoint 3/3
+   s1/base/closer-clean         seed [42, 43, 44], checkpoint 3/3
+   s1/vv/actloss-zero           seed [42, 43, 44], checkpoint 3/3
+   s1/vv/margin-tiny            seed [42, 43, 44], checkpoint 3/3
+   s1/vv/repro-cold             seed [42, 43, 44], checkpoint 3/3
+   s1/vv/repro-warm             seed [42, 43, 44], checkpoint 3/3
+   s1/vv/exit-off               seed [42, 43, 44], checkpoint 3/3
+   s1/vv/exit-on                seed [42, 43, 44], checkpoint 3/3
+   s1/mech/detlayer-wide3       seed [42, 43, 44], checkpoint 3/3
+   s1/mech/further-wide3        seed [42, 43, 44], checkpoint 3/3
+   s1/mech/undefended-deep      seed [42, 43, 44], checkpoint 3/3
+   s1/mech/detlayer-deep        seed [42, 43, 44], checkpoint 3/3
+   s1/mech/further-exit-deep    seed [42, 43, 44], checkpoint 3/3
+
+== V1.1) Vincoli di costruzione [verifica] ==
+   Combinazioni incoerenti di layer, flag e opzioni devono sollevare ValueError.
+   ... caricamento di UNSW-NB15 (una volta per sessione)
+   [PASS]         LWADSequential con CloserAL + DetectorLayer -> ValueError: Incoherent architecture: CloserAL can't cohexist with Detector-based l...
+   [PASS]         LWADSequential con CloserAL + FurtherAL -> ValueError: Incoherent architecture: CloserAL can't cohexist with Detector-based l...
+   [PASS]         forward CloserAL con is_adv sbilanciato (10 zeri, 22 uno) -> ValueError: split_pairs: 10 real sample vs 22 adv, batch has to contain every samp...
+   [PASS]         act_margin con 2 valori su 3 FurtherAL -> ValueError: act_margin: expected 3 values (one for every FurtherAL network layer),...
+   [PASS]         act_margin con 4 valori su 3 FurtherAL -> ValueError: act_margin: expected 3 values (one for every FurtherAL network layer),...
+   [PASS]         act_margin=(0.5, 0.05) su 2 FurtherAL applicato nell'ordine della rete -> margini [0.5, 0.05]
+   [PASS]         DetectorModelConfig(early_exit=True, score_reduce='mean') -> ValueError: early_exit requires score_reduce='max', got 'mean': under 'mean' stopp...
+   [PASS]         le.predict con early_exit=True e reduce='mean' -> ValueError: early_exit requires reduce='max', got 'mean'
+   [PASS]         le.predict con early_exit=True su un modello senza detector -> ValueError: early_exit requires a detector-based model
+   [PASS]         pgd_adaptive su un modello senza detector -> ValueError: pgd_adaptive requires a detector-based model: on model with Closer/Pas...
+   [PASS]         lt.select_threshold su un modello senza detector -> ValueError: select_threshold requires a detector-based model
+   [PASS]         FurtherAL sottoclasse di DetectorLayer e di ActivationLoss
+   [PASS]         MRO di FurtherAL nell'ordine atteso (DetectorLayer, ActivationLoss, PassThrough) -> DetectorLayer -> ActivationLoss -> PassThrough
+   [PASS]         AdvTrainingModelConfig().early_exit is False
+   => V1.1: PASS (14 PASS, 2.8s)
+
+== V1.2) Validazioni di configurazione [verifica] ==
+   Indici, larghezze e opzioni fuori dominio devono essere rifiutati dalla config.
+   [PASS]         DetectorModelConfig: wrap_at=(2,) con hidden_dims=(8, 8), build_model -> ValueError: wrap_at: index 2 out of range for 2 hidden layers
+   [PASS]         DetectorModelConfig: wrap_at=(-3,) con hidden_dims=(8, 8), build_model -> ValueError: wrap_at: index -3 out of range for 2 hidden layers
+   [PASS]         DetectorModelConfig: wrap_at=(-1, 1, 0, 0) -> resolved_wrap_at() == (0, 1) -> ottenuto (0, 1)
+   [PASS]         DetectorModelConfig: hidden_dims=(), build_model -> ValueError: hidden_dims: at least one hidden layer is required
+   [PASS]         DetectorModelConfig: hidden_dims=(8, 0), build_model -> ValueError: hidden_dims: widths must be positive, got (8, 0)
+   [PASS]         DetectorModelConfig: hidden_dims=(8, -4), build_model -> ValueError: hidden_dims: widths must be positive, got (8, -4)
+   [PASS]         DetectorModelConfig: score_mode='foo' -> ValueError: score_mode: unknown value 'foo', expected one between ['joint', 'clean...
+   [PASS]         AdvTrainingModelConfig: wrap_at=(2,) con hidden_dims=(8, 8), build_model -> ValueError: wrap_at: index 2 out of range for 2 hidden layers
+   [PASS]         AdvTrainingModelConfig: wrap_at=(-3,) con hidden_dims=(8, 8), build_model -> ValueError: wrap_at: index -3 out of range for 2 hidden layers
+   [PASS]         AdvTrainingModelConfig: wrap_at=(-1, 1, 0, 0) -> resolved_wrap_at() == (0, 1) -> ottenuto (0, 1)
+   [PASS]         AdvTrainingModelConfig: hidden_dims=(), build_model -> ValueError: hidden_dims: at least one hidden layer is required
+   [PASS]         AdvTrainingModelConfig: hidden_dims=(8, 0), build_model -> ValueError: hidden_dims: widths must be positive, got (8, 0)
+   [PASS]         AdvTrainingModelConfig: hidden_dims=(8, -4), build_model -> ValueError: hidden_dims: widths must be positive, got (8, -4)
+   [PASS]         AdvTrainingModelConfig: score_mode='foo' -> ValueError: score_mode: unknown value 'foo', expected one between ['joint', 'clean...
+   [PASS]         DetectorModelConfig: detector_dims=(16, 0), build_model -> ValueError: detector_dims: widths must be positive, got (16, 0)
+   [PASS]         DetectorModelConfig: score_reduce='median' -> ValueError: score_reduce: unknown value 'median', expected one of ('mean', 'max')
+   [PASS]         Exp('t', DetectorModelConfig(), margin_factor=0).validate() -> ValueError: t: margin_factor must be positive, got 0
+   [PASS]         Exp('t', DetectorModelConfig(), margin_factor=-1).validate() -> ValueError: t: margin_factor must be positive, got -1
+   [PASS]         lc.ModelConfig() (classe astratta) -> TypeError: ModelConfig is abstract, use a specialized class
+   => V1.2: PASS (19 PASS, 0.0s)
+
+== V1.3) I wrapper non alterano la backbone [verifica] ==
+   Su det, fur e adv non addestrati i logit coincidono con la sola backbone e ogni detector legge la pre-attivazione del suo base.
+   [PASS]         det e fur non addestrati: stesse chiavi e stessi tensori nello state_dict -> 28 vs 28 tensori
+   [PASS]         det: logit di model(x) identici alla composizione dei layer.base
+   [PASS]         det: idem con is_adv su batch accoppiato
+   [PASS]         det: layer 1 (DetectorLayer) input del detector = uscita del base, con negativi, seguito da ReLU -> identico=True, negativi=505/1024, successivo=ReLU
+   [PASS]         det: layer 3 (DetectorLayer) input del detector = uscita del base, con negativi, seguito da ReLU -> identico=True, negativi=298/512, successivo=ReLU
+   [PASS]         det: layer 5 (DetectorLayer) input del detector = uscita del base, con negativi, seguito da ReLU -> identico=True, negativi=241/512, successivo=ReLU
+   [PASS]         fur: logit di model(x) identici alla composizione dei layer.base
+   [PASS]         fur: idem con is_adv su batch accoppiato
+   [PASS]         fur: layer 1 (FurtherAL) input del detector = uscita del base, con negativi, seguito da ReLU -> identico=True, negativi=505/1024, successivo=ReLU
+   [PASS]         fur: layer 3 (FurtherAL) input del detector = uscita del base, con negativi, seguito da ReLU -> identico=True, negativi=298/512, successivo=ReLU
+   [PASS]         fur: layer 5 (FurtherAL) input del detector = uscita del base, con negativi, seguito da ReLU -> identico=True, negativi=241/512, successivo=ReLU
+   [PASS]         adv: logit di model(x) identici alla composizione dei layer.base
+   [PASS]         adv: idem con is_adv su batch accoppiato
+   => V1.3: PASS (13 PASS, 0.1s)
+
+== V1.4) Contenuto di FlowState [verifica] ==
+   Loss, detection e exit_layer prodotti dal forward, con e senza is_adv, su cat([x, x + 0.05]); il gradiente di act_loss arriva al primo Linear.
+   [PASS]         fur: con is_adv det_loss Tensore -> Tensore
+   [PASS]         fur: con is_adv act_loss Tensore -> Tensore
+   [PASS]         fur: con is_adv len(detections) == 3 -> 3
+   [PASS]         fur: senza is_adv det_loss e act_loss None -> det_loss=None, act_loss=None
+   [PASS]         fur: senza is_adv 3 detection -> 3
+   [PASS]         fur: ogni detection ha forma (B, 1) = (64, 1) -> forme [(64, 1)]
+   [PASS]         fur: detection nell'ordine della rete
+   [PASS]         fur: senza exit_threshold state.exit_layer None
+   [PASS]         fur: con x + 0.05 * (+1, -1, ...) il gradiente di act_loss raggiunge il primo Linear, sopra il rumore numerico (1e-08) -> max |g| = 0.00423
+   [PASS]         det: con is_adv det_loss Tensore -> Tensore
+   [PASS]         det: con is_adv act_loss None -> None
+   [PASS]         det: con is_adv len(detections) == 3 -> 3
+   [PASS]         det: senza is_adv det_loss e act_loss None -> det_loss=None, act_loss=None
+   [PASS]         det: senza is_adv 3 detection -> 3
+   [PASS]         det: ogni detection ha forma (B, 1) = (64, 1) -> forme [(64, 1)]
+   [PASS]         det: detection nell'ordine della rete
+   [PASS]         det: senza exit_threshold state.exit_layer None
+   [PASS]         adv: con is_adv det_loss None -> None
+   [PASS]         adv: con is_adv act_loss Tensore -> Tensore
+   [PASS]         adv: con is_adv len(detections) == 0 -> 0
+   [PASS]         adv: senza is_adv det_loss e act_loss None -> det_loss=None, act_loss=None
+   [PASS]         adv: senza is_adv adv_score() None
+   [PASS]         adv: senza exit_threshold state.exit_layer None
+   [PASS]         adv: con x + 0.05 * (+1, -1, ...) il gradiente di act_loss raggiunge il primo Linear, sopra il rumore numerico (1e-08) -> max |g| = 0.0022
+   => V1.4: PASS (24 PASS, 0.1s)
+
+== V1.5) Early exit equivalente al forward completo [verifica] ==
+   Con reduce='max' vale max_i p_i > t <=> qualche p_i > t: un campione alla volta l'early exit segnala gli stessi campioni del forward completo e lascia label e score di chi non esce (512 campioni di test, puliti e adversarial); un batch esce solo se tutti i suoi campioni sono segnalati.
+   ... addestramento del modello piccolo det (3 epoche su 4096 righe)
+      det: soglia 0.500 con reduce='max'
+   [PASS]         det puliti: flag identici al forward completo -> 0 diversi su 512, 293 uscite anticipate
+   [PASS]         det puliti: chi esce e' segnalato, con score parziale <= completo -> 0 violazioni su 293 uscite
+   [PASS]         det puliti: chi non esce ha label e score del forward completo -> 0 diversi su 219
+   [PASS]         det adversarial: flag identici al forward completo -> 0 diversi su 512, 436 uscite anticipate
+   [PASS]         det adversarial: chi esce e' segnalato, con score parziale <= completo -> 0 violazioni su 436 uscite
+   [PASS]         det adversarial: chi non esce ha label e score del forward completo -> 0 diversi su 76
+   [PASS]         det: almeno un adversarial esce in anticipo (controllo non vuoto) -> 436/512
+   [PASS]         det: batch di 436 adversarial tutti segnalati esce (label None)
+   [PASS]         det: batch misto (4 segnalati + 1 no) non esce, flag come il forward completo
+   ... addestramento del modello piccolo fur (3 epoche su 4096 righe)
+      fur: soglia 0.800 con reduce='max'
+   [PASS]         fur puliti: flag identici al forward completo -> 0 diversi su 512, 19 uscite anticipate
+   [PASS]         fur puliti: chi esce e' segnalato, con score parziale <= completo -> 0 violazioni su 19 uscite
+   [PASS]         fur puliti: chi non esce ha label e score del forward completo -> 0 diversi su 493
+   [PASS]         fur adversarial: flag identici al forward completo -> 0 diversi su 512, 347 uscite anticipate
+   [PASS]         fur adversarial: chi esce e' segnalato, con score parziale <= completo -> 0 violazioni su 347 uscite
+   [PASS]         fur adversarial: chi non esce ha label e score del forward completo -> 0 diversi su 165
+   [PASS]         fur: almeno un adversarial esce in anticipo (controllo non vuoto) -> 347/512
+   [PASS]         fur: batch di 347 adversarial tutti segnalati esce (label None)
+   [PASS]         fur: batch misto (4 segnalati + 1 no) non esce, flag come il forward completo
+   => V1.5: PASS (18 PASS, 30.5s)
+
+== V1.6) Calibrazione e selezione dei margini [verifica] ==
+   suggest_margins e select_margins danno un margine positivo per FurtherAL, pari a factor * distanza naturale, nell'ordine della rete e applicabile alla config; senza FurtherAL rispondono None e ValueError.
+   ... suggest_margins su fur con factor 2 e 4
+   [PASS]         suggest_margins su fur: 3 margini positivi e finiti -> (0.07922818846370036, 0.1577934145609456, 0.22126673911496028)
+   [PASS]         suggest_margins: factor=4 da' il doppio di factor=2 (stessa distanza naturale) -> (0.07922818846370036, 0.1577934145609456, 0.22126673911496028) -> (0.15845637692740072, 0.3155868291218912, 0.44253347822992056)
+   [PASS]         suggest_margins su adv (nessun FurtherAL): None -> None
+   ... select_margins su fur con i fattori (2.0, 20.0)
+   [PASS]         select_margins: un candidato per fattore, nell'ordine (2.0, 20.0) -> [2.0, 20.0]
+   [PASS]         select_margins: vince il candidato con lo score di validazione massimo -> factor 20, score 0.7502, candidati [0.7059, 0.7502]
+   [PASS]         select_margins: 3 margini, factor * distanze naturali -> (0.8800749494303786, 2.1399938653129995, 3.433507699581426)
+   [PASS]         margini selezionati applicati dalla config nell'ordine della rete -> (0.8800749494303786, 2.1399938653129995, 3.433507699581426)
+   [PASS]         select_margins su adv (nessun FurtherAL) -> ValueError: select_margins requires FurtherAL layers: use a DetectorModelConfig wi...
+   => V1.6: PASS (8 PASS, 53.1s)
+
+== V2.1) Ammissibilita' L-inf [verifica] ==
+   Con e senza maschera x_adv resta nella palla L-inf di raggio eps, con forma, dtype e device di x, valori finiti e senza grafo (128 campioni di test).
+   [PASS]         det fgsm               eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det fgsm               eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det pgd                eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det pgd                eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur fgsm               eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur fgsm               eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur pgd                eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur pgd                eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   ... addestramento del modello piccolo adv (3 epoche su 4096 righe)
+   [PASS]         adv fgsm               eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         adv fgsm               eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         adv pgd                eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         adv pgd                eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det pgd_adaptive[mean] eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det pgd_adaptive[mean] eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det pgd_adaptive[max]  eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         det pgd_adaptive[max]  eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur pgd_adaptive[mean] eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur pgd_adaptive[mean] eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur pgd_adaptive[max]  eps=0.05 ||x_adv - x||inf <= eps + 1e-5 -> mask 0.05000, no-mask 0.05000; forma/dtype/device/finiti/no-grad ok
+   [PASS]         fur pgd_adaptive[max]  eps=0.2  ||x_adv - x||inf <= eps + 1e-5 -> mask 0.20000, no-mask 0.20000; forma/dtype/device/finiti/no-grad ok
+   => V2.1: PASS (20 PASS, 10.7s)
+
+== V2.2) Maschera rispettata [verifica] ==
+   Le feature non attaccabili restano intatte, almeno una attaccabile cambia, e con maschera nulla l'attacco non modifica nulla.
+      maschera UNSW-NB15: 5 colonne non attaccabili su 42
+   [PASS]         det fgsm               eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det fgsm               eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det fgsm               maschera tutta a zero -> x_adv identico a x
+   [PASS]         det pgd                eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det pgd                eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det pgd                maschera tutta a zero -> x_adv identico a x
+   [PASS]         fur fgsm               eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur fgsm               eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur fgsm               maschera tutta a zero -> x_adv identico a x
+   [PASS]         fur pgd                eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur pgd                eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur pgd                maschera tutta a zero -> x_adv identico a x
+   [PASS]         adv fgsm               eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         adv fgsm               eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         adv fgsm               maschera tutta a zero -> x_adv identico a x
+   [PASS]         adv pgd                eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         adv pgd                eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         adv pgd                maschera tutta a zero -> x_adv identico a x
+   [PASS]         det pgd_adaptive[mean] eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det pgd_adaptive[mean] eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det pgd_adaptive[mean] maschera tutta a zero -> x_adv identico a x
+   [PASS]         det pgd_adaptive[max]  eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det pgd_adaptive[max]  eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         det pgd_adaptive[max]  maschera tutta a zero -> x_adv identico a x
+   [PASS]         fur pgd_adaptive[mean] eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur pgd_adaptive[mean] eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur pgd_adaptive[mean] maschera tutta a zero -> x_adv identico a x
+   [PASS]         fur pgd_adaptive[max]  eps=0.05 mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur pgd_adaptive[max]  eps=0.2  mascherate identiche, almeno una attaccabile cambia -> mascherate identiche=True, attaccabili cambiate 37/37
+   [PASS]         fur pgd_adaptive[max]  maschera tutta a zero -> x_adv identico a x
+   => V2.2: PASS (30 PASS, 2.1s)
+
+== V2.4) Con beta = 0 l'attacco adattivo coincide con PGD [verifica] ==
+   A parita' di seed pgd_adaptive con evade_weight=0 riproduce PGD bit per bit; con evade_weight=1 se ne discosta.
+   [PASS]         det eps=0.05 [mean] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         det eps=0.05 [mean] beta=1: diverso da PGD -> 2315 elementi diversi
+   [PASS]         det eps=0.05 [max] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         det eps=0.05 [max] beta=1: diverso da PGD -> 2410 elementi diversi
+   [PASS]         det eps=0.2  [mean] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         det eps=0.2  [mean] beta=1: diverso da PGD -> 2512 elementi diversi
+   [PASS]         det eps=0.2  [max] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         det eps=0.2  [max] beta=1: diverso da PGD -> 2667 elementi diversi
+   [PASS]         fur eps=0.05 [mean] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         fur eps=0.05 [mean] beta=1: diverso da PGD -> 1082 elementi diversi
+   [PASS]         fur eps=0.05 [max] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         fur eps=0.05 [max] beta=1: diverso da PGD -> 1543 elementi diversi
+   [PASS]         fur eps=0.2  [mean] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         fur eps=0.2  [mean] beta=1: diverso da PGD -> 1893 elementi diversi
+   [PASS]         fur eps=0.2  [max] beta=0: identico a PGD -> 0 elementi diversi
+   [PASS]         fur eps=0.2  [max] beta=1: diverso da PGD -> 2698 elementi diversi
+   => V2.4: PASS (16 PASS, 2.2s)
+
+== V2.5) Arresti del gradiente durante l'attacco [verifica] ==
+   Su det (detach=True) il detector e' staccato fuori dall'attacco, collegato dentro, i flag tornano come prima e l'attacco non tocca i pesi.
+   [PASS]         det: ogni DetectorLayer ha detach=True -> [True, True, True]
+   [PASS]         fuori dall'attacco: grad di adv_score().sum() rispetto a x None o nullo -> None
+   [PASS]         dentro _detector_grad_enabled: gradiente diverso da zero -> max |g| = 0.335
+   [PASS]         flag misti: dentro il blocco detach=False ovunque -> [False, False, False]
+   [PASS]         flag misti: all'uscita tornano ai valori iniziali -> [True, False, True], attesi [True, False, True]
+   [PASS]         dopo un'eccezione nel blocco i flag tornano ai valori iniziali -> [True, False, True], attesi [True, False, True]
+   [PASS]         dopo pgd_adaptive lo state_dict e' identico a prima
+   [PASS]         dopo pgd_adaptive i flag detach sono quelli di prima -> [True, True, True], attesi [True, True, True]
+   [PASS]         dopo pgd_adaptive ogni p.grad e' None
+   => V2.5: PASS (9 PASS, 0.1s)
+
+== V3.1) FurtherAL con lambda_act = 0 coincide con DetectorLayer [verifica] ==
+   Una activation loss di peso nullo non deve cambiare nulla: DET_S e FUR_S (lambda_act=0, margin_factor=None) identici al bit.
+   ... suite [vv/ref-det] seed [42]
+   ... suite [vv/fur-lambda0] seed [42]
+   [PASS]         DET_S vs FUR_S(lambda_act=0): metriche identiche
+   [PASS]         DET_S vs FUR_S(lambda_act=0): epochs_ran identico -> 3 vs 3
+   [PASS]         DET_S vs FUR_S(lambda_act=0): best_val_score identico -> 0.9662566483020782 vs 0.9662566483020782
+   [PASS]         DET_S vs FUR_S(lambda_act=0): soglia identica -> 0.4899999797344208 vs 0.4899999797344208
+   [PASS]         DET_S vs FUR_S(lambda_act=0): checkpoint identici
+   [PASS]         reale seed 42: metriche CSV identiche
+   [PASS]         reale seed 42: checkpoint identici
+   [PASS]         reale seed 43: metriche CSV identiche
+   [PASS]         reale seed 43: checkpoint identici
+   [PASS]         reale seed 44: metriche CSV identiche
+   [PASS]         reale seed 44: checkpoint identici
+   => V3.1: PASS (11 PASS, 4m45s)
+
+== V3.2) FurtherAL con kappa << 1 vicino a DetectorLayer [verifica] ==
+   Solo reale: s1/vv/margin-tiny contro s1/base/detlayer; identici, oppure equivalenti entro il rumore (S2) se la hinge resta spenta.
+   [PASS]         checkpoint identici in tutti i 3 seed
+   => V3.2: PASS (1 PASS, 0.0s)
+
+== V3.3) Riproducibilita' con cache fredda e calda [verifica] ==
+   Due run identiche di FUR_S su un'architettura nuova: la seconda usa i margini in cache e deve coincidere con la prima.
+   ... suite [vv/repro-cold, vv/repro-warm] seed [42]
+   [PASS]         a fine suite la cache dei margini ha una sola chiave -> 1 chiavi
+   [PASS]         cold vs warm: metriche identiche
+   [PASS]         cold vs warm: epochs_ran identico -> 3 vs 3
+   [PASS]         cold vs warm: best_val_score identico -> 0.952208012342453 vs 0.952208012342453
+   [PASS]         cold vs warm: soglia identica -> 0.6000000238418579 vs 0.6000000238418579
+   [PASS]         cold vs warm: checkpoint identici
+   [PASS]         cold vs warm: act_margin identico -> (0.40372915584061453,) vs (0.40372915584061453,)
+   [PASS]         reale seed 42: metriche CSV identiche
+   [PASS]         reale seed 42: checkpoint identici
+   [PASS]         reale seed 42: act_margin identico -> (0.2765314670579391,) vs (0.2765314670579391,)
+   [PASS]         reale seed 43: metriche CSV identiche
+   [PASS]         reale seed 43: checkpoint identici
+   [PASS]         reale seed 43: act_margin identico -> (0.2765314670579391,) vs (0.2765314670579391,)
+   [PASS]         reale seed 44: metriche CSV identiche
+   [PASS]         reale seed 44: checkpoint identici
+   [PASS]         reale seed 44: act_margin identico -> (0.2765314670579391,) vs (0.2765314670579391,)
+   => V3.3: PASS (16 PASS, 4m19s)
+
+== V3.4) Seed e ordine di esecuzione [verifica] ==
+   Solo mini-campagna: il seed cambia il risultato, l'ordine delle run nella suite no (anche per una run con load_from, che non reimposta il seed dell'attacco: metriche entro 0.005, relativa per slav e slav_rel).
+   ... suite [vv/seed] seed [42, 43]
+   [PASS]         FUR_S seed 42 vs 43: almeno una KEY_METRIC differisce -> 7/7 differiscono: task_clean_acc, task_adv_acc, det_clean_acc, det_adv_acc, clean_acc_e2e, robust_acc_e2e, val_score
+   [PASS]         FUR_S seed 42 vs 43: checkpoint diversi -> 25 differenze
+   ... suite [vv/A, vv/B, vv/C] seed [42]
+   ... suite [vv/C, vv/B, vv/A] seed [42]
+   [PASS]         [A, B, C] vs [C, B, A]: metriche di A identiche
+   [PASS]         [A, B, C] vs [C, B, A]: checkpoint di A identici
+   [PASS]         [A, B, C] vs [C, B, A]: metriche di B identiche
+   [PASS]         [A, B, C] vs [C, B, A]: checkpoint di B identici
+   [PASS]         [A, B, C] vs [C, B, A]: metriche di C identiche
+   [PASS]         [A, B, C] vs [C, B, A]: checkpoint di C identici
+   ... suite [vv/C, vv/L] seed [42]
+   ... suite [vv/L, vv/C] seed [42]
+   [PASS]         [C, L] vs [L, C]: metriche di L (load_from) uguali entro 0.005 -> 11 valori non identici, tutti entro la tolleranza
+   => V3.4: PASS (9 PASS, 25m04s)
+
+== V3.5) L'early exit cambia solo la latenza [verifica] ==
+   FUR_S con score_reduce='max', con e senza early_exit: stesse metriche e checkpoint, solo i tassi di uscita cambiano.
+   ... suite [vv/exit-off, vv/exit-on] seed [42]
+   [PASS]         exit-off vs exit-on: metriche identiche
+   [PASS]         exit-off vs exit-on: epochs_ran identico -> 3 vs 3
+   [PASS]         exit-off vs exit-on: best_val_score identico -> 0.9628442823886871 vs 0.9628442823886871
+   [PASS]         exit-off vs exit-on: soglia identica -> 0.8199999928474426 vs 0.8199999928474426
+   [PASS]         exit-off vs exit-on: checkpoint identici
+   [PASS]         senza early exit i tassi di uscita sono 0 -> [0.0, 0.0]
+   [PASS]         con early exit infer_exit_rate_adv > 0 -> 100.00% (clean 0.00%)
+   [PASS]         reale seed 42: metriche CSV identiche
+   [PASS]         reale seed 42: checkpoint identici
+   [PASS]         reale seed 43: metriche CSV identiche
+   [PASS]         reale seed 43: checkpoint identici
+   [PASS]         reale seed 44: metriche CSV identiche
+   [PASS]         reale seed 44: checkpoint identici
+   [PASS]         reale seed 42: senza early exit i tassi di uscita sono 0 -> [0.0, 0.0]
+   [PASS]         reale seed 42: con early exit infer_exit_rate_adv > 0 -> 0.9961
+   [PASS]         reale seed 43: senza early exit i tassi di uscita sono 0 -> [0.0, 0.0]
+   [PASS]         reale seed 43: con early exit infer_exit_rate_adv > 0 -> 1.0
+   [PASS]         reale seed 44: senza early exit i tassi di uscita sono 0 -> [0.0, 0.0]
+   [PASS]         reale seed 44: con early exit infer_exit_rate_adv > 0 -> 0.9961
+   => V3.5: PASS (19 PASS, 5m22s)
+
+== V3.6) Un checkpoint ricaricato riproduce la run [verifica] ==
+   Rivalutare con load_from e lo stesso seed un modello addestrato deve dare le stesse metriche entro 0.005 (relativa per slav e slav_rel: la valutazione non reimposta il seed dell'attacco) e per i detector la stessa soglia.
+   ... suite [vv/ref-adv] seed [42]
+   ... suite [vv/reload-det, vv/reload-adv] seed [42]
+   [PASS]         DET_S addestrato vs ricaricato: metriche uguali entro 0.005 -> 13 valori non identici, tutti entro la tolleranza
+   [PASS]         ADV_S addestrato vs ricaricato: metriche uguali entro 0.005 -> 8 valori non identici, tutti entro la tolleranza
+   [PASS]         DET_S addestrato vs ricaricato: soglia identica -> 0.4899999797344208 vs 0.4899999797344208
+   ... suite [vv/reload-detlayer] seed [42]
+   [PASS]         reale s1/base/detlayer seed 42: metriche uguali dopo load_from entro 0.005 -> 8 valori non identici, tutti entro la tolleranza
+   [PASS]         reale s1/base/detlayer seed 42: soglia identica -> 0.48 vs 0.48
+   ... suite [vv/reload-closer] seed [42]
+   [PASS]         reale s1/base/closer seed 42: metriche uguali dopo load_from entro 0.005 -> 7 valori non identici, tutti entro la tolleranza
+   => V3.6: PASS (6 PASS, 2m02s)
+
+== A3) Attacco adattivo almeno efficace di PGD [validazione] ==
+   Sui modelli con detector, all'eps di addestramento, l'attacco adattivo con beta > 0 deve battere PGD di almeno TOL_A su m_e2e; sceglie beta*.
+      detlayer seed 42 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.4670       0.9950   0.9985
+         beta=0         0.4670       0.9950   0.9985
+         beta=0.1       0.5455       0.5040   0.9975
+         beta=0.5       0.6055       0.2370   0.8425
+         beta=1         0.6255       0.0735   0.6990
+         beta=2         0.6340       0.0060   0.6400  <- beta*
+         beta=5         0.6455       0.0010   0.6455
+         beta=10        0.6550       0.0005   0.6550
+         beta=50        0.6780       0.0005   0.6780
+   [PASS]         detlayer seed 42: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.4670/0.9985
+   [PASS]         detlayer seed 42: con beta=0 m_e2e coincide con PGD -> 0.9985
+   [PASS]         detlayer seed 42: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=2: 0.6400 vs 0.9935
+      detlayer seed 43 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.3365       0.9965   1.0000
+         beta=0         0.3365       0.9965   1.0000
+         beta=0.1       0.4485       0.5730   0.9995
+         beta=0.5       0.5460       0.4055   0.9495
+         beta=1         0.5815       0.1630   0.7435
+         beta=2         0.6015       0.0300   0.6305
+         beta=5         0.6140       0.0070   0.6200  <- beta*
+         beta=10        0.6230       0.0045   0.6265
+         beta=50        0.6405       0.0025   0.6420
+   [PASS]         detlayer seed 43: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.3365/1.0000
+   [PASS]         detlayer seed 43: con beta=0 m_e2e coincide con PGD -> 1.0000
+   [PASS]         detlayer seed 43: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=5: 0.6200 vs 0.9950
+      detlayer seed 44 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.3995       0.9985   0.9995
+         beta=0         0.3995       0.9985   0.9995
+         beta=0.1       0.4670       0.5425   0.9990
+         beta=0.5       0.5250       0.4350   0.9600
+         beta=1         0.5550       0.2365   0.7910
+         beta=2         0.5705       0.0380   0.6080
+         beta=5         0.5825       0.0040   0.5855  <- beta*
+         beta=10        0.5915       0.0025   0.5930
+         beta=50        0.6010       0.0015   0.6015
+   [PASS]         detlayer seed 44: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.3995/0.9995
+   [PASS]         detlayer seed 44: con beta=0 m_e2e coincide con PGD -> 0.9995
+   [PASS]         detlayer seed 44: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=5: 0.5855 vs 0.9945
+      detlayer-advtrain seed 42 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.8045       0.9490   0.9670
+         beta=0         0.8045       0.9490   0.9670
+         beta=0.1       0.8090       0.0185   0.8175
+         beta=0.5       0.8110       0.0040   0.8125  <- beta*
+         beta=1         0.8120       0.0030   0.8135
+         beta=2         0.8125       0.0025   0.8135
+         beta=5         0.8155       0.0020   0.8165
+         beta=10        0.8160       0.0015   0.8165
+         beta=50        0.8165       0.0015   0.8170
+   [PASS]         detlayer-advtrain seed 42: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.8045/0.9670
+   [PASS]         detlayer-advtrain seed 42: con beta=0 m_e2e coincide con PGD -> 0.9670
+   [PASS]         detlayer-advtrain seed 42: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=0.5: 0.8125 vs 0.9620
+      detlayer-advtrain seed 43 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.8215       0.9875   0.9915
+         beta=0         0.8215       0.9875   0.9915
+         beta=0.1       0.8240       0.0240   0.8360
+         beta=0.5       0.8265       0.0100   0.8315  <- beta*
+         beta=1         0.8265       0.0105   0.8315
+         beta=2         0.8270       0.0100   0.8320
+         beta=5         0.8275       0.0100   0.8330
+         beta=10        0.8275       0.0095   0.8325
+         beta=50        0.8275       0.0100   0.8325
+   [PASS]         detlayer-advtrain seed 43: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.8215/0.9915
+   [PASS]         detlayer-advtrain seed 43: con beta=0 m_e2e coincide con PGD -> 0.9915
+   [PASS]         detlayer-advtrain seed 43: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=0.5: 0.8315 vs 0.9865
+      detlayer-advtrain seed 44 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.8020       0.9645   0.9760
+         beta=0         0.8020       0.9645   0.9760
+         beta=0.1       0.8020       0.0240   0.8180
+         beta=0.5       0.8025       0.0085   0.8080
+         beta=1         0.8030       0.0070   0.8075  <- beta*
+         beta=2         0.8035       0.0065   0.8075
+         beta=5         0.8050       0.0050   0.8080
+         beta=10        0.8050       0.0045   0.8075
+         beta=50        0.8070       0.0045   0.8100
+   [PASS]         detlayer-advtrain seed 44: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.8020/0.9760
+   [PASS]         detlayer-advtrain seed 44: con beta=0 m_e2e coincide con PGD -> 0.9760
+   [PASS]         detlayer-advtrain seed 44: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=1: 0.8075 vs 0.9710
+      further seed 42 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.1310       0.9935   0.9980
+         beta=0         0.1310       0.9935   0.9980
+         beta=0.1       0.2055       0.8150   0.9965
+         beta=0.5       0.3435       0.4250   0.7660
+         beta=1         0.4495       0.1420   0.5895
+         beta=2         0.5055       0.0430   0.5485  <- beta*
+         beta=5         0.5460       0.0150   0.5610
+         beta=10        0.5625       0.0095   0.5720
+         beta=50        0.6025       0.0025   0.6050
+   [PASS]         further seed 42: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.1310/0.9980
+   [PASS]         further seed 42: con beta=0 m_e2e coincide con PGD -> 0.9980
+   [PASS]         further seed 42: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=2: 0.5485 vs 0.9930
+      further seed 43 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.1300       0.9965   0.9990
+         beta=0         0.1300       0.9965   0.9990
+         beta=0.1       0.1980       0.8095   0.9940
+         beta=0.5       0.3360       0.5290   0.8650
+         beta=1         0.4080       0.1945   0.6025
+         beta=2         0.4720       0.0235   0.4955  <- beta*
+         beta=5         0.4995       0.0120   0.5110
+         beta=10        0.5180       0.0090   0.5270
+         beta=50        0.5555       0.0050   0.5600
+   [PASS]         further seed 43: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.1300/0.9990
+   [PASS]         further seed 43: con beta=0 m_e2e coincide con PGD -> 0.9990
+   [PASS]         further seed 43: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=2: 0.4955 vs 0.9940
+      further seed 44 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.1955       0.9995   0.9995
+         beta=0         0.1955       0.9995   0.9995
+         beta=0.1       0.2875       0.7285   0.9975
+         beta=0.5       0.3875       0.4695   0.8540
+         beta=1         0.4420       0.2170   0.6560
+         beta=2         0.4885       0.0475   0.5335
+         beta=5         0.5180       0.0085   0.5255  <- beta*
+         beta=10        0.5355       0.0035   0.5385
+         beta=50        0.5665       0.0015   0.5670
+   [PASS]         further seed 44: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.1955/0.9995
+   [PASS]         further seed 44: con beta=0 m_e2e coincide con PGD -> 0.9995
+   [PASS]         further seed 44: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=5: 0.5255 vs 0.9945
+      further-advtrain seed 42 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.8010       0.9960   0.9985
+         beta=0         0.8010       0.9960   0.9985
+         beta=0.1       0.8030       0.2625   0.8595
+         beta=0.5       0.8050       0.1855   0.8380
+         beta=1         0.8055       0.1610   0.8320
+         beta=2         0.8060       0.1420   0.8290
+         beta=5         0.8075       0.1210   0.8240
+         beta=10        0.8075       0.1105   0.8230
+         beta=50        0.8090       0.0880   0.8195  <- beta*
+   [PASS]         further-advtrain seed 42: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.8010/0.9985
+   [PASS]         further-advtrain seed 42: con beta=0 m_e2e coincide con PGD -> 0.9985
+   [PASS]         further-advtrain seed 42: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=50: 0.8195 vs 0.9935
+      further-advtrain seed 43 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.8005       0.9940   0.9985
+         beta=0         0.8005       0.9940   0.9985
+         beta=0.1       0.8015       0.1555   0.8390
+         beta=0.5       0.8045       0.0960   0.8235
+         beta=1         0.8065       0.0710   0.8190
+         beta=2         0.8065       0.0585   0.8185
+         beta=5         0.8065       0.0445   0.8125
+         beta=10        0.8065       0.0375   0.8115
+         beta=50        0.8070       0.0245   0.8105  <- beta*
+   [PASS]         further-advtrain seed 43: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.8005/0.9985
+   [PASS]         further-advtrain seed 43: con beta=0 m_e2e coincide con PGD -> 0.9985
+   [PASS]         further-advtrain seed 43: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=50: 0.8105 vs 0.9935
+      further-advtrain seed 44 (eps=0.2):
+         attacco        m_task  det_adv_acc    m_e2e
+         pgd            0.8040       0.9970   0.9980
+         beta=0         0.8040       0.9970   0.9980
+         beta=0.1       0.8050       0.2095   0.8415
+         beta=0.5       0.8055       0.1475   0.8230
+         beta=1         0.8075       0.1285   0.8210
+         beta=2         0.8075       0.1200   0.8195
+         beta=5         0.8080       0.1090   0.8185
+         beta=10        0.8080       0.1005   0.8170
+         beta=50        0.8095       0.0870   0.8165  <- beta*
+   [PASS]         further-advtrain seed 44: m_task e m_e2e coincidono con le.evaluate -> le.evaluate 0.8040/0.9980
+   [PASS]         further-advtrain seed 44: con beta=0 m_e2e coincide con PGD -> 0.9980
+   [PASS]         further-advtrain seed 44: min su beta>0 di m_e2e < m_e2e(PGD) - TOL_A -> beta*=50: 0.8165 vs 0.9930
+   => A3: PASS (36 PASS, 22.3s)
+
+== A1) Attacco iterativo almeno efficace del singolo passo [validazione] ==
+   PGD non deve fare peggio di FGSM su m_task; sui detector l'adattivo a 20 passi non deve fare peggio di quello a un passo su m_e2e.
+   [PASS]         undefended seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.5715 vs 0.5935
+   [PASS]         undefended seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.4795 vs 0.5125
+   [PASS]         undefended seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.4970 vs 0.5230
+   [PASS]         advtrain seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8055 vs 0.8120
+   [PASS]         advtrain seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8050 vs 0.8050
+   [PASS]         advtrain seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8015 vs 0.8055
+   [PASS]         closer seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.7970 vs 0.7995
+   [PASS]         closer seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8010 vs 0.8070
+   [PASS]         closer seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8010 vs 0.8045
+   [PASS]         closer-clean seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.6450 vs 0.6520
+   [PASS]         closer-clean seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.6335 vs 0.6430
+   [PASS]         closer-clean seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.6105 vs 0.6240
+   [PASS]         detlayer seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.4670 vs 0.4925
+   [PASS]         detlayer seed 42: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=2: 0.6400 vs 0.9655
+   [PASS]         detlayer seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.3365 vs 0.3535
+   [PASS]         detlayer seed 43: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=5: 0.6200 vs 0.9655
+   [PASS]         detlayer seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.3995 vs 0.4215
+   [PASS]         detlayer seed 44: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=5: 0.5855 vs 0.9875
+   [PASS]         detlayer-advtrain seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8045 vs 0.8060
+   [PASS]         detlayer-advtrain seed 42: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=0.5: 0.8125 vs 0.9720
+   [PASS]         detlayer-advtrain seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8215 vs 0.8225
+   [PASS]         detlayer-advtrain seed 43: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=0.5: 0.8315 vs 0.9940
+   [PASS]         detlayer-advtrain seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8020 vs 0.8030
+   [PASS]         detlayer-advtrain seed 44: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=1: 0.8075 vs 0.9855
+   [PASS]         further seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.1310 vs 0.1585
+   [PASS]         further seed 42: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=2: 0.5485 vs 0.9530
+   [PASS]         further seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.1300 vs 0.1475
+   [PASS]         further seed 43: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=2: 0.4955 vs 0.9660
+   [PASS]         further seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.1955 vs 0.2405
+   [PASS]         further seed 44: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=5: 0.5255 vs 0.9660
+   [PASS]         further-advtrain seed 42: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8010 vs 0.8060
+   [PASS]         further-advtrain seed 42: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=50: 0.8195 vs 0.9995
+   [PASS]         further-advtrain seed 43: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8005 vs 0.8055
+   [PASS]         further-advtrain seed 43: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=50: 0.8105 vs 0.9985
+   [PASS]         further-advtrain seed 44: m_task(PGD) <= m_task(FGSM) + TOL_A -> 0.8040 vs 0.8155
+   [PASS]         further-advtrain seed 44: m_e2e(adattivo 20 passi) <= m_e2e(adattivo 1 passo) + TOL_A -> beta*=50: 0.8165 vs 1.0000
+   => A1: PASS (36 PASS, 5.4s)
+
+== A2) Successo crescente con eps [validazione] ==
+   Su EPS_GRID la robustezza non deve crescere con il budget: m_task con PGD su tutti i modelli, m_e2e con l'adattivo e beta* sui detector. Ogni attacco usa alpha=0.01 e 200 passi, quanti ne servono per attraversare la palla di eps=1; sui detector la partenza casuale resta entro l'eps di addestramento e conta il miglior iterato.
+   [PASS]         detlayer seed 42: attacco locale con partenza entro eps e ultimo iterato identico a la.pgd_adaptive -> 0 elementi diversi
+      undefended seed 42 m_task(PGD): 0.05:0.7625  0.1:0.6935  0.2:0.5665  0.3:0.3415  0.5:0.0355  1:0.0075
+   [PASS]         undefended seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      undefended seed 43 m_task(PGD): 0.05:0.7580  0.1:0.6870  0.2:0.4675  0.3:0.2890  0.5:0.0300  1:0.0075
+   [PASS]         undefended seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      undefended seed 44 m_task(PGD): 0.05:0.7655  0.1:0.7010  0.2:0.4925  0.3:0.2400  0.5:0.0260  1:0.0075
+   [PASS]         undefended seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      advtrain seed 42 m_task(PGD): 0.05:0.8165  0.1:0.8150  0.2:0.8045  0.3:0.7925  0.5:0.6075  1:0.1615
+   [PASS]         advtrain seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      advtrain seed 43 m_task(PGD): 0.05:0.8080  0.1:0.8060  0.2:0.8030  0.3:0.7840  0.5:0.6115  1:0.1190
+   [PASS]         advtrain seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      advtrain seed 44 m_task(PGD): 0.05:0.8150  0.1:0.8095  0.2:0.8005  0.3:0.7840  0.5:0.6250  1:0.1245
+   [PASS]         advtrain seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      closer seed 42 m_task(PGD): 0.05:0.8095  0.1:0.8050  0.2:0.7965  0.3:0.7815  0.5:0.6435  1:0.1000
+   [PASS]         closer seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      closer seed 43 m_task(PGD): 0.05:0.8145  0.1:0.8115  0.2:0.8005  0.3:0.7770  0.5:0.5880  1:0.1030
+   [PASS]         closer seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      closer seed 44 m_task(PGD): 0.05:0.8155  0.1:0.8130  0.2:0.7995  0.3:0.7865  0.5:0.6510  1:0.0990
+   [PASS]         closer seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      closer-clean seed 42 m_task(PGD): 0.05:0.7885  0.1:0.7305  0.2:0.6385  0.3:0.4360  0.5:0.1720  1:0.0080
+   [PASS]         closer-clean seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      closer-clean seed 43 m_task(PGD): 0.05:0.7770  0.1:0.7220  0.2:0.6285  0.3:0.4770  0.5:0.1795  1:0.0080
+   [PASS]         closer-clean seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      closer-clean seed 44 m_task(PGD): 0.05:0.7940  0.1:0.7490  0.2:0.6040  0.3:0.4625  0.5:0.0975  1:0.0075
+   [PASS]         closer-clean seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer seed 42 m_task(PGD): 0.05:0.7420  0.1:0.6550  0.2:0.4530  0.3:0.2200  0.5:0.0115  1:0.0075
+   [PASS]         detlayer seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer seed 42 m_e2e(adattivo, beta*=2, partenza entro 0.2, miglior iterato): 0.05:0.7480  0.1:0.6750  0.2:0.6070  0.3:0.5445  0.5:0.4095  1:0.2730
+   [PASS]         detlayer seed 42: m_e2e(adattivo) non crescente in eps (15 coppie)
+      detlayer seed 43 m_task(PGD): 0.05:0.7025  0.1:0.5895  0.2:0.3310  0.3:0.0980  0.5:0.0080  1:0.0035
+   [PASS]         detlayer seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer seed 43 m_e2e(adattivo, beta*=5, partenza entro 0.2, miglior iterato): 0.05:0.7125  0.1:0.6535  0.2:0.5800  0.3:0.5260  0.5:0.4145  1:0.2645
+   [PASS]         detlayer seed 43: m_e2e(adattivo) non crescente in eps (15 coppie)
+      detlayer seed 44 m_task(PGD): 0.05:0.7010  0.1:0.6055  0.2:0.3910  0.3:0.1800  0.5:0.0085  1:0.0005
+   [PASS]         detlayer seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer seed 44 m_e2e(adattivo, beta*=5, partenza entro 0.2, miglior iterato): 0.05:0.7060  0.1:0.6325  0.2:0.5445  0.3:0.4955  0.5:0.3835  1:0.2880
+   [PASS]         detlayer seed 44: m_e2e(adattivo) non crescente in eps (15 coppie)
+      detlayer-advtrain seed 42 m_task(PGD): 0.05:0.8150  0.1:0.8125  0.2:0.8025  0.3:0.7760  0.5:0.5860  1:0.0765
+   [PASS]         detlayer-advtrain seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer-advtrain seed 42 m_e2e(adattivo, beta*=0.5, partenza entro 0.2, miglior iterato): 0.05:0.8205  0.1:0.8170  0.2:0.8110  0.3:0.8040  0.5:0.7850  1:0.5460
+   [PASS]         detlayer-advtrain seed 42: m_e2e(adattivo) non crescente in eps (15 coppie)
+      detlayer-advtrain seed 43 m_task(PGD): 0.05:0.8275  0.1:0.8275  0.2:0.8200  0.3:0.7935  0.5:0.5040  1:0.0930
+   [PASS]         detlayer-advtrain seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer-advtrain seed 43 m_e2e(adattivo, beta*=0.5, partenza entro 0.2, miglior iterato): 0.05:0.8295  0.1:0.8295  0.2:0.8295  0.3:0.8240  0.5:0.7930  1:0.5505
+   [PASS]         detlayer-advtrain seed 43: m_e2e(adattivo) non crescente in eps (15 coppie)
+      detlayer-advtrain seed 44 m_task(PGD): 0.05:0.8055  0.1:0.8040  0.2:0.8015  0.3:0.7880  0.5:0.6300  1:0.1310
+   [PASS]         detlayer-advtrain seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      detlayer-advtrain seed 44 m_e2e(adattivo, beta*=1, partenza entro 0.2, miglior iterato): 0.05:0.8085  0.1:0.8075  0.2:0.8080  0.3:0.8070  0.5:0.7965  1:0.6495
+   [PASS]         detlayer-advtrain seed 44: m_e2e(adattivo) non crescente in eps (15 coppie)
+      further seed 42 m_task(PGD): 0.05:0.6700  0.1:0.4560  0.2:0.1285  0.3:0.0125  0.5:0.0075  1:0.0000
+   [PASS]         further seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      further seed 42 m_e2e(adattivo, beta*=2, partenza entro 0.2, miglior iterato): 0.05:0.7020  0.1:0.6415  0.2:0.4175  0.3:0.2295  0.5:0.0645  1:0.0135
+   [PASS]         further seed 42: m_e2e(adattivo) non crescente in eps (15 coppie)
+      further seed 43 m_task(PGD): 0.05:0.6620  0.1:0.4575  0.2:0.1255  0.3:0.0135  0.5:0.0075  1:0.0000
+   [PASS]         further seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      further seed 43 m_e2e(adattivo, beta*=2, partenza entro 0.2, miglior iterato): 0.05:0.6850  0.1:0.5745  0.2:0.3415  0.3:0.2355  0.5:0.1770  1:0.1230
+   [PASS]         further seed 43: m_e2e(adattivo) non crescente in eps (15 coppie)
+      further seed 44 m_task(PGD): 0.05:0.6810  0.1:0.4945  0.2:0.1785  0.3:0.0230  0.5:0.0000  1:0.0000
+   [PASS]         further seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      further seed 44 m_e2e(adattivo, beta*=5, partenza entro 0.2, miglior iterato): 0.05:0.6845  0.1:0.5850  0.2:0.4265  0.3:0.2915  0.5:0.1460  1:0.0780
+   [PASS]         further seed 44: m_e2e(adattivo) non crescente in eps (15 coppie)
+      further-advtrain seed 42 m_task(PGD): 0.05:0.8070  0.1:0.8060  0.2:0.7980  0.3:0.7215  0.5:0.2175  1:0.0530
+   [PASS]         further-advtrain seed 42: m_task(PGD) non crescente in eps (15 coppie)
+      further-advtrain seed 42 m_e2e(adattivo, beta*=50, partenza entro 0.2, miglior iterato): 0.05:0.8110  0.1:0.8090  0.2:0.8130  0.3:0.8120  0.5:0.8055  1:0.7190
+   [PASS]         further-advtrain seed 42: m_e2e(adattivo) non crescente in eps (15 coppie)
+      further-advtrain seed 43 m_task(PGD): 0.05:0.8065  0.1:0.8050  0.2:0.7980  0.3:0.7565  0.5:0.2930  1:0.0845
+   [PASS]         further-advtrain seed 43: m_task(PGD) non crescente in eps (15 coppie)
+      further-advtrain seed 43 m_e2e(adattivo, beta*=50, partenza entro 0.2, miglior iterato): 0.05:0.8090  0.1:0.8075  0.2:0.8075  0.3:0.8025  0.5:0.7765  1:0.4955
+   [PASS]         further-advtrain seed 43: m_e2e(adattivo) non crescente in eps (15 coppie)
+      further-advtrain seed 44 m_task(PGD): 0.05:0.8080  0.1:0.8080  0.2:0.8015  0.3:0.7495  0.5:0.2770  1:0.0745
+   [PASS]         further-advtrain seed 44: m_task(PGD) non crescente in eps (15 coppie)
+      further-advtrain seed 44 m_e2e(adattivo, beta*=50, partenza entro 0.2, miglior iterato): 0.05:0.8090  0.1:0.8080  0.2:0.8135  0.3:0.8135  0.5:0.8050  1:0.6980
+   [FAIL]         further-advtrain seed 44: m_e2e(adattivo) non crescente in eps (15 coppie) -> eps 0.1->0.2: 0.8080->0.8135; eps 0.1->0.3: 0.8080->0.8135
+   => A2: FAIL (36 PASS, 1 FAIL, 4m59s)
+
+== A4) Budget illimitato e convergenza [validazione] ==
+   Con eps enorme (alpha=0.01, 1000 passi; sui detector ogni beta di BETA_GRID, in OR) l'attacco deve azzerare la robustezza; all'eps di addestramento, con alpha=0.01 e beta*, piu' passi e ripartenze non devono abbassarla oltre TOL_CONV. Sui detector la partenza casuale resta entro l'eps di addestramento e conta il miglior iterato.
+   [PASS]         detlayer seed 42: attacco locale con partenza entro eps e ultimo iterato identico a la.pgd_adaptive -> 0 elementi diversi
+      undefended seed 42 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         undefended seed 42: eps=5 -> m_task <= 0.05 -> 0.0000
+      undefended seed 42 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.5715  100x1:0.5665  200x1:0.5665  200x5:0.5650
+   [PASS]         undefended seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0065
+      undefended seed 43 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         undefended seed 43: eps=5 -> m_task <= 0.05 -> 0.0000
+      undefended seed 43 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.4785  100x1:0.4675  200x1:0.4675  200x5:0.4650
+   [FAIL]         undefended seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0135
+      undefended seed 44 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         undefended seed 44: eps=5 -> m_task <= 0.05 -> 0.0000
+      undefended seed 44 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.4965  100x1:0.4925  200x1:0.4925  200x5:0.4905
+   [PASS]         undefended seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0060
+      advtrain seed 42 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0220  eps 3:0.0095  eps 5:0.0040
+   [PASS]         advtrain seed 42: eps=5 -> m_task <= 0.05 -> 0.0040
+      advtrain seed 42 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.8055  100x1:0.8050  200x1:0.8045  200x5:0.8015
+   [PASS]         advtrain seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0040
+      advtrain seed 43 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0135  eps 3:0.0045  eps 5:0.0035
+   [PASS]         advtrain seed 43: eps=5 -> m_task <= 0.05 -> 0.0035
+      advtrain seed 43 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.8050  100x1:0.8035  200x1:0.8030  200x5:0.8030
+   [PASS]         advtrain seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0020
+      advtrain seed 44 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0425  eps 3:0.0280  eps 5:0.0230
+   [PASS]         advtrain seed 44: eps=5 -> m_task <= 0.05 -> 0.0230
+      advtrain seed 44 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.8015  100x1:0.8005  200x1:0.8005  200x5:0.7975
+   [PASS]         advtrain seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0040
+      closer seed 42 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0270  eps 3:0.0145  eps 5:0.0105
+   [PASS]         closer seed 42: eps=5 -> m_task <= 0.05 -> 0.0105
+      closer seed 42 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.7970  100x1:0.7965  200x1:0.7965  200x5:0.7940
+   [PASS]         closer seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0030
+      closer seed 43 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0170  eps 3:0.0080  eps 5:0.0035
+   [PASS]         closer seed 43: eps=5 -> m_task <= 0.05 -> 0.0035
+      closer seed 43 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.8015  100x1:0.8005  200x1:0.8005  200x5:0.7985
+   [PASS]         closer seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0030
+      closer seed 44 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0270  eps 3:0.0070  eps 5:0.0040
+   [PASS]         closer seed 44: eps=5 -> m_task <= 0.05 -> 0.0040
+      closer seed 44 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.8010  100x1:0.7995  200x1:0.7995  200x5:0.7975
+   [PASS]         closer seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0035
+      closer-clean seed 42 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         closer-clean seed 42: eps=5 -> m_task <= 0.05 -> 0.0000
+      closer-clean seed 42 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.6450  100x1:0.6385  200x1:0.6385  200x5:0.6360
+   [PASS]         closer-clean seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0090
+      closer-clean seed 43 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         closer-clean seed 43: eps=5 -> m_task <= 0.05 -> 0.0000
+      closer-clean seed 43 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.6335  100x1:0.6285  200x1:0.6285  200x5:0.6270
+   [PASS]         closer-clean seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0065
+      closer-clean seed 44 m_task (pgd), 1000 passi, alpha=0.01: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         closer-clean seed 44: eps=5 -> m_task <= 0.05 -> 0.0000
+      closer-clean seed 44 m_task (pgd), eps=0.2, alpha=0.01: 40x1:0.6100  100x1:0.6040  200x1:0.6040  200x5:0.6005
+   [PASS]         closer-clean seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0095
+      detlayer seed 42 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0035  eps 3:0.0000  eps 5:0.0000
+   [PASS]         detlayer seed 42: eps=5 -> m_e2e <= 0.05 -> 0.0000
+      detlayer seed 42 m_e2e (pgd_adaptive, beta*=2), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.6200  100x1:0.6070  200x1:0.6070  200x5:0.5980
+   [FAIL]         detlayer seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0220
+      detlayer seed 43 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         detlayer seed 43: eps=5 -> m_e2e <= 0.05 -> 0.0000
+      detlayer seed 43 m_e2e (pgd_adaptive, beta*=5), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.5950  100x1:0.5800  200x1:0.5800  200x5:0.5420
+   [FAIL]         detlayer seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0530
+      detlayer seed 44 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.1030  eps 3:0.0305  eps 5:0.0190
+   [PASS]         detlayer seed 44: eps=5 -> m_e2e <= 0.05 -> 0.0190
+      detlayer seed 44 m_e2e (pgd_adaptive, beta*=5), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.5505  100x1:0.5445  200x1:0.5445  200x5:0.5330
+   [FAIL]         detlayer seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0175
+      detlayer-advtrain seed 42 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0100  eps 3:0.0085  eps 5:0.0080
+   [PASS]         detlayer-advtrain seed 42: eps=5 -> m_e2e <= 0.05 -> 0.0080
+      detlayer-advtrain seed 42 m_e2e (pgd_adaptive, beta*=0.5), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.8125  100x1:0.8110  200x1:0.8110  200x5:0.8080
+   [PASS]         detlayer-advtrain seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0045
+      detlayer-advtrain seed 43 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0315  eps 3:0.0110  eps 5:0.0085
+   [PASS]         detlayer-advtrain seed 43: eps=5 -> m_e2e <= 0.05 -> 0.0085
+      detlayer-advtrain seed 43 m_e2e (pgd_adaptive, beta*=0.5), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.8305  100x1:0.8295  200x1:0.8295  200x5:0.8275
+   [PASS]         detlayer-advtrain seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0030
+      detlayer-advtrain seed 44 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0130  eps 3:0.0090  eps 5:0.0085
+   [PASS]         detlayer-advtrain seed 44: eps=5 -> m_e2e <= 0.05 -> 0.0085
+      detlayer-advtrain seed 44 m_e2e (pgd_adaptive, beta*=1), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.8080  100x1:0.8080  200x1:0.8080  200x5:0.8035
+   [PASS]         detlayer-advtrain seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0045
+      further seed 42 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0000  eps 3:0.0000  eps 5:0.0000
+   [PASS]         further seed 42: eps=5 -> m_e2e <= 0.05 -> 0.0000
+      further seed 42 m_e2e (pgd_adaptive, beta*=2), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.4525  100x1:0.4175  200x1:0.4175  200x5:0.3325
+   [FAIL]         further seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.1200
+      further seed 43 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0035  eps 3:0.0020  eps 5:0.0020
+   [PASS]         further seed 43: eps=5 -> m_e2e <= 0.05 -> 0.0020
+      further seed 43 m_e2e (pgd_adaptive, beta*=2), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.3730  100x1:0.3415  200x1:0.3415  200x5:0.2750
+   [FAIL]         further seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0980
+      further seed 44 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0040  eps 3:0.0020  eps 5:0.0010
+   [PASS]         further seed 44: eps=5 -> m_e2e <= 0.05 -> 0.0010
+      further seed 44 m_e2e (pgd_adaptive, beta*=5), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.4435  100x1:0.4265  200x1:0.4265  200x5:0.3475
+   [FAIL]         further seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0960
+      further-advtrain seed 42 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0510  eps 3:0.0200  eps 5:0.0150
+   [PASS]         further-advtrain seed 42: eps=5 -> m_e2e <= 0.05 -> 0.0150
+      further-advtrain seed 42 m_e2e (pgd_adaptive, beta*=50), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.8160  100x1:0.8135  200x1:0.8130  200x5:0.8065
+   [PASS]         further-advtrain seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0095
+      further-advtrain seed 43 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0740  eps 3:0.0585  eps 5:0.0585
+   [FAIL]         further-advtrain seed 43: eps=5 -> m_e2e <= 0.05 -> 0.0585 con maschera; 0.0540 con maschera tutta a uno
+      further-advtrain seed 43 m_e2e (pgd_adaptive, beta*=50), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.8100  100x1:0.8075  200x1:0.8075  200x5:0.8055
+   [PASS]         further-advtrain seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0045
+      further-advtrain seed 44 m_e2e (pgd_adaptive, OR su beta in [0.0, 0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 50.0]), 1000 passi, alpha=0.01, partenza entro 0.2, miglior iterato: eps 2:0.0750  eps 3:0.0590  eps 5:0.0340
+   [PASS]         further-advtrain seed 44: eps=5 -> m_e2e <= 0.05 -> 0.0340
+      further-advtrain seed 44 m_e2e (pgd_adaptive, beta*=50), eps=0.2, alpha=0.01, partenza entro 0.2, miglior iterato: 40x1:0.8155  100x1:0.8140  200x1:0.8135  200x5:0.8070
+   [PASS]         further-advtrain seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0085
+   => A4: FAIL (41 PASS, 8 FAIL, 11m51s)
+
+== M1) FurtherAL attivo [validazione] ==
+   La hinge di FurtherAL deve lavorare: quota di coppie con s < m, mediata sulle epoche, >= 0.01 e > 0 nella prima epoca (misurata su un replay).
+   ... replay di s1/base/further seed 42: riaddestramento strumentato
+      further seed 42: quota per epoca [0.1565, 0.0231, 0.018, 0.017, 0.0163, 0.0156]; media per FurtherAL [0.061, 0.0212]
+         replay identico al checkpoint dello stadio 1
+   [PASS]         further seed 42: media >= 0.01 e prima epoca > 0 -> media 0.0411, prima epoca 0.1565
+   ... replay di s1/base/further seed 43: riaddestramento strumentato
+      further seed 43: quota per epoca [0.1475, 0.0294, 0.0224, 0.02, 0.0175, 0.014]; media per FurtherAL [0.0597, 0.024]
+         replay identico al checkpoint dello stadio 1
+   [PASS]         further seed 43: media >= 0.01 e prima epoca > 0 -> media 0.0418, prima epoca 0.1475
+   ... replay di s1/base/further seed 44: riaddestramento strumentato
+      further seed 44: quota per epoca [0.1493, 0.0232, 0.0178, 0.017, 0.0174, 0.0176, 0.0149, 0.0132, 0.0107, 0.0089]; media per FurtherAL [0.044, 0.014]
+         replay identico al checkpoint dello stadio 1
+   [PASS]         further seed 44: media >= 0.01 e prima epoca > 0 -> media 0.0290, prima epoca 0.1493
+   ... replay di s1/base/further-advtrain seed 42: riaddestramento strumentato
+      further-advtrain seed 42: quota per epoca [0.4198, 0.2064, 0.1242, 0.097, 0.0793, 0.0665, 0.0566, 0.0517, 0.0462, 0.0405]; media per FurtherAL [0.1408, 0.0968]
+         replay identico al checkpoint dello stadio 1
+   [PASS]         further-advtrain seed 42: media >= 0.01 e prima epoca > 0 -> media 0.1188, prima epoca 0.4198
+   ... replay di s1/base/further-advtrain seed 43: riaddestramento strumentato
+      further-advtrain seed 43: quota per epoca [0.4099, 0.2017, 0.1141, 0.0933, 0.0793, 0.0632, 0.0523, 0.0441, 0.0391, 0.0336]; media per FurtherAL [0.1403, 0.0858]
+         replay identico al checkpoint dello stadio 1
+   [PASS]         further-advtrain seed 43: media >= 0.01 e prima epoca > 0 -> media 0.1131, prima epoca 0.4099
+   ... replay di s1/base/further-advtrain seed 44: riaddestramento strumentato
+      further-advtrain seed 44: quota per epoca [0.4112, 0.2316, 0.1302, 0.0978, 0.0734, 0.0614, 0.0565, 0.0504, 0.0475, 0.0465]; media per FurtherAL [0.1442, 0.0971]
+         replay identico al checkpoint dello stadio 1
+   [PASS]         further-advtrain seed 44: media >= 0.01 e prima epoca > 0 -> media 0.1207, prima epoca 0.4112
+   => M1: PASS (6 PASS, 24m39s)
+
+== M2) Separazione reale e persistente [validazione] ==
+   Nei livelli FurtherAL slav_rel deve superare quella di DetectorLayer (S1); se cresce solo slav e' inflazione di scala.
+      further vs detlayer livello 0: slav_rel 0.5757 vs 0.07095, slav 0.1862 vs 0.08794
+   [PASS]         further vs detlayer livello 0: slav_rel FurtherAL > DetectorLayer (S1) -> t=31.220, p=0.0005, n=3
+      further vs detlayer livello 1: slav_rel 2.027 vs 0.4434, slav 0.9313 vs 0.6649
+   [PASS]         further vs detlayer livello 1: slav_rel FurtherAL > DetectorLayer (S1) -> t=12.915, p=0.0030, n=3
+      further-wide3 vs detlayer-wide3 livello 0: slav_rel 0.8508 vs 0.06379, slav 0.1422 vs 0.04484
+   [PASS]         further-wide3 vs detlayer-wide3 livello 0: slav_rel FurtherAL > DetectorLayer (S1) -> t=13.667, p=0.0027, n=3
+      further-wide3 vs detlayer-wide3 livello 1 (non avvolto): slav_rel FUR/DET = 3.290 (solo report)
+      further-wide3 vs detlayer-wide3 livello 2 (non avvolto): slav_rel FUR/DET = 2.394 (solo report)
+   => M2: PASS (3 PASS, 0.0s)
+
+== M3) Allineamento CloserAL non degenere [validazione] ==
+   closer contro advtrain: nei livelli CloserAL scende slav_rel (S1), senza perdita di accuratezza ne' collasso della dispersione; se scende solo slav e' riduzione di scala.
+      livello 0: slav_rel 0.006907 vs 0.02668, slav 0.04581 vs 0.04103
+   [PASS]         livello 0: slav_rel di closer < advtrain (S1) -> t=-57.557, p=0.0002, n=3; slav t=1.398, p=0.8515, n=3 (solo report)
+      livello 1: slav_rel 0.001889 vs 0.05587, slav 0.1467 vs 0.1748
+   [PASS]         livello 1: slav_rel di closer < advtrain (S1) -> t=-16.788, p=0.0018, n=3; slav t=-0.818, p=0.2497, n=3 (solo report)
+   [PASS]         task_clean_acc media di closer >= advtrain - 0.02 -> 0.8211 vs 0.8247
+   [PASS]         livello 0: dispersione closer / advtrain >= 0.25 -> 0.9427 / 0.9704 = 0.971
+   [PASS]         livello 1: dispersione closer / advtrain >= 0.25 -> 0.2774 / 0.7835 = 0.354
+   => M3: PASS (5 PASS, 0.0s)
+
+== M4) Amplificazione con la profondita' [validazione] ==
+   Modello non difeso a 4 livelli: slav_rel dell'ultimo livello supera quella del primo e almeno 2 dei 3 guadagni sqrt(slav_rel(l) / slav_rel(l-1)) sono > 1.
+   [PASS]         seed 42: slav_rel ultimo > primo e >= 2 guadagni > 1 -> slav_rel [0.05648, 0.1309, 0.2011, 0.289], guadagni [1.522, 1.239, 1.199]
+   [PASS]         seed 43: slav_rel ultimo > primo e >= 2 guadagni > 1 -> slav_rel [0.05574, 0.1003, 0.171, 0.3806], guadagni [1.341, 1.306, 1.492]
+   [PASS]         seed 44: slav_rel ultimo > primo e >= 2 guadagni > 1 -> slav_rel [0.05676, 0.1128, 0.1918, 0.3158], guadagni [1.41, 1.304, 1.283]
+   => M4: PASS (3 PASS, 0.0s)
+
+== M5) Profilo dei detector nel regime isolato [validazione] ==
+   DET a 4 livelli con un detector per livello: il miglior AUROC medio deve essere >= 0.75 e il profilo stabile tra i seed.
+      seed 42: AUROC per detector [0.9999, 0.9985, 0.9939, 0.9667]
+      seed 43: AUROC per detector [0.9992, 0.9982, 0.985, 0.9264]
+      seed 44: AUROC per detector [0.9994, 0.9973, 0.9902, 0.9194]
+      profilo medio [0.9995, 0.998, 0.9897, 0.9375]
+   [PASS]         max sui livelli dell'AUROC medio >= 0.75 -> livello 0: 0.9995
+   [PASS]         livello 0: std tra seed dell'AUROC <= 0.03 -> 0.0004
+   [PASS]         livello 1: std tra seed dell'AUROC <= 0.03 -> 0.0006
+   [PASS]         livello 2: std tra seed dell'AUROC <= 0.03 -> 0.0045
+   [PASS]         livello 3: std tra seed dell'AUROC <= 0.03 -> 0.0255
+      Spearman AUROC medio vs profondita': rho=-1.000, p=0.0000
+   => M5: PASS (5 PASS, 0.5s)
+
+== M6) Risparmio reale dell'early exit [validazione] ==
+   FUR a 4 detector con early exit: sui campioni che escono al primo detector l'early exit e' piu' veloce del forward completo (Wilcoxon), 500 puliti + 500 adversarial.
+      checkpoint seed 42, soglia 0.990
+   [PASS]         quota di adversarial che escono = infer_exit_rate di le.inference_time -> 1.0000 vs 1.0000
+   ... misura di 1000 campioni x 30 ripetizioni x 3 varianti
+      uscita               n   full ms  early ms  backbone ms  risparmio
+      detector 0 (l1)    500    2.0171    1.1930       0.8330      43.2%
+      detector 3 (l7)      3    1.9989    3.1693       0.8119     -61.1%
+      nessuna uscita     497    2.0292    3.2767       0.8443     -60.3%
+   [PASS]         early exit piu' veloce del forward completo al primo detector (Wilcoxon unilaterale, p < 0.05) -> n=500, p=6.4e-84
+   => M6: PASS (2 PASS, 2m40s)
+
+== M7) Separazione relativa in un esperimento controllato [validazione] ==
+   Senza dati dello stadio 1: DetectorLayer e FurtherAL con stessi seed, init e ordine dei batch, margini 5x la d/scale raggiunta da DetectorLayer, lambda_act=10. FurtherAL deve alzare d/scale in ogni livello con detector, per seed e su 3 seed (S1); d grezza solo report.
+   [PASS]         DetectorLayer e FurtherAL: stessa struttura e stessi pesi iniziali -> 26 vs 26 tensori
+   ... seed 42: DetectorLayer e FurtherAL, 15 epoche su 16384 righe
+      seed 42: margini (0.07316, 0.64005)
+      livello                         d    |act|   d/scale
+            0  DetectorLayer    0.00930    0.797   0.01463
+               FurtherAL        0.02925    0.375   0.20761
+            2  DetectorLayer    0.13671    1.033   0.12801
+               FurtherAL        0.16846    0.285   2.06936
+      DetectorLayer  task_clean acc 0.8480, detector bal acc 0.9550
+      FurtherAL      task_clean acc 0.8730, detector bal acc 0.9938
+   [PASS]         seed 42 livello 0: d/scale FurtherAL > DetectorLayer -> 0.01463 -> 0.20761 (14.19x), d grezza 0.00930 -> 0.02925
+   [PASS]         seed 42 livello 2: d/scale FurtherAL > DetectorLayer -> 0.12801 -> 2.06936 (16.17x), d grezza 0.13671 -> 0.16846
+   ... seed 43: DetectorLayer e FurtherAL, 15 epoche su 16384 righe
+      seed 43: margini (0.07527, 0.43564)
+      livello                         d    |act|   d/scale
+            0  DetectorLayer    0.00940    0.790   0.01505
+               FurtherAL        0.03017    0.346   0.25156
+            2  DetectorLayer    0.10283    1.086   0.08713
+               FurtherAL        0.15438    0.305   1.66427
+      DetectorLayer  task_clean acc 0.8730, detector bal acc 0.9598
+      FurtherAL      task_clean acc 0.8565, detector bal acc 0.9960
+   [PASS]         seed 43 livello 0: d/scale FurtherAL > DetectorLayer -> 0.01505 -> 0.25156 (16.71x), d grezza 0.00940 -> 0.03017
+   [PASS]         seed 43 livello 2: d/scale FurtherAL > DetectorLayer -> 0.08713 -> 1.66427 (19.10x), d grezza 0.10283 -> 0.15438
+   ... seed 44: DetectorLayer e FurtherAL, 15 epoche su 16384 righe
+      seed 44: margini (0.06883, 0.47019)
+      livello                         d    |act|   d/scale
+            0  DetectorLayer    0.00971    0.840   0.01377
+               FurtherAL        0.03292    0.402   0.20404
+            2  DetectorLayer    0.12364    1.147   0.09404
+               FurtherAL        0.16404    0.302   1.79451
+      DetectorLayer  task_clean acc 0.8365, detector bal acc 0.9140
+      FurtherAL      task_clean acc 0.8540, detector bal acc 0.9920
+   [PASS]         seed 44 livello 0: d/scale FurtherAL > DetectorLayer -> 0.01377 -> 0.20404 (14.82x), d grezza 0.00971 -> 0.03292
+   [PASS]         seed 44 livello 2: d/scale FurtherAL > DetectorLayer -> 0.09404 -> 1.79451 (19.08x), d grezza 0.12364 -> 0.16404
+   [PASS]         livello 0: d/scale FurtherAL > DetectorLayer (S1) -> t=13.789, p=0.0026, n=3
+   [PASS]         livello 2: d/scale FurtherAL > DetectorLayer (S1) -> t=16.267, p=0.0019, n=3
+   => M7: PASS (9 PASS, 6m05s)
+
+== RESOCONTO FINALE ==
+id    tipo         esito  controlli        durata  test
+----  -----------  -----  ---------------  ------  -------------------------------------------------------
+V1.1  verifica     PASS   14 PASS          2.8s    Vincoli di costruzione
+V1.2  verifica     PASS   19 PASS          0.0s    Validazioni di configurazione
+V1.3  verifica     PASS   13 PASS          0.1s    I wrapper non alterano la backbone
+V1.4  verifica     PASS   24 PASS          0.1s    Contenuto di FlowState
+V1.5  verifica     PASS   18 PASS          30.5s   Early exit equivalente al forward completo
+V1.6  verifica     PASS   8 PASS           53.1s   Calibrazione e selezione dei margini
+V2.1  verifica     PASS   20 PASS          10.7s   Ammissibilita' L-inf
+V2.2  verifica     PASS   30 PASS          2.1s    Maschera rispettata
+V2.4  verifica     PASS   16 PASS          2.2s    Con beta = 0 l'attacco adattivo coincide con PGD
+V2.5  verifica     PASS   9 PASS           0.1s    Arresti del gradiente durante l'attacco
+V3.1  verifica     PASS   11 PASS          4m45s   FurtherAL con lambda_act = 0 coincide con DetectorLayer
+V3.2  verifica     PASS   1 PASS           0.0s    FurtherAL con kappa << 1 vicino a DetectorLayer
+V3.3  verifica     PASS   16 PASS          4m19s   Riproducibilita' con cache fredda e calda
+V3.4  verifica     PASS   9 PASS           25m04s  Seed e ordine di esecuzione
+V3.5  verifica     PASS   19 PASS          5m22s   L'early exit cambia solo la latenza
+V3.6  verifica     PASS   6 PASS           2m02s   Un checkpoint ricaricato riproduce la run
+A3    validazione  PASS   36 PASS          22.3s   Attacco adattivo almeno efficace di PGD
+A1    validazione  PASS   36 PASS          5.4s    Attacco iterativo almeno efficace del singolo passo
+A2    validazione  FAIL   36 PASS, 1 FAIL  4m59s   Successo crescente con eps
+A4    validazione  FAIL   41 PASS, 8 FAIL  11m51s  Budget illimitato e convergenza
+M1    validazione  PASS   6 PASS           24m39s  FurtherAL attivo
+M2    validazione  PASS   3 PASS           0.0s    Separazione reale e persistente
+M3    validazione  PASS   5 PASS           0.0s    Allineamento CloserAL non degenere
+M4    validazione  PASS   3 PASS           0.0s    Amplificazione con la profondita'
+M5    validazione  PASS   5 PASS           0.5s    Profilo dei detector nel regime isolato
+M6    validazione  PASS   2 PASS           2m40s   Risparmio reale dell'early exit
+M7    validazione  PASS   9 PASS           6m05s   Separazione relativa in un esperimento controllato
+
+   verifica    : 16 PASS
+   validazione : 9 PASS, 2 FAIL
+   durata totale: 94m02s
+
+controlli non superati:
+   A2    [FAIL] further-advtrain seed 44: m_e2e(adattivo) non crescente in eps (15 coppie) -> eps 0.1->0.2: 0.8080->0.8135; eps 0.1->0.3: 0.8080->0.8135
+   A4    [FAIL] undefended seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0135
+   A4    [FAIL] detlayer seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0220
+   A4    [FAIL] detlayer seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0530
+   A4    [FAIL] detlayer seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0175
+   A4    [FAIL] further seed 42: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.1200
+   A4    [FAIL] further seed 43: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0980
+   A4    [FAIL] further seed 44: m(40 passi, 1 partenza) - m(200 passi, 5 partenze) <= TOL_CONV -> +0.0960
+   A4    [FAIL] further-advtrain seed 43: eps=5 -> m_e2e <= 0.05 -> 0.0585 con maschera; 0.0540 con maschera tutta a uno
+
+ESITO: 2 TEST NON SUPERATI

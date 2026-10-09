@@ -55,7 +55,7 @@ exp%:
 		--only s$*/$(ONLY) \
 		$(if $(DATASET),--dataset $(DATASET),) \
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
-		--verbose 1 \
+		--verbose 0 \
 		--resume \
 	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
 
