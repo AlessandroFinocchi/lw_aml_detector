@@ -19,8 +19,8 @@ from libs.experiments.lwad_experiments import Exp, Sweep
 COMMON = dict(epochs=10, eps=0.2)
 
 # Attacks: a model is trained and evaluated on the same one
-PGD      = dict(train_attack="pgd", eval_attack="pgd")
-ADAPTIVE = dict(train_attack="pgd_adaptive", eval_attack="pgd_adaptive")  # detectors only
+PGD  = dict(train_attack="pgd", eval_attack="pgd")
+APGD = dict(train_attack="pgd_adaptive", eval_attack="pgd_adaptive")  # detectors only
 
 # Activation losses of the detector models
 DETLAYER = dict(use_act_loss=False, margin_factor=None)    # nothing to calibrate
@@ -56,14 +56,14 @@ def table() -> list[Exp]:
         # --- DetectorLayer -------------------------------------------------
         Sweep("s2/det/pgd/2_layers/",      DET,                      **DET_2_LAYERS),
         Sweep("s2/det/pgd/3_layers/",      DET,                      **DET_3_LAYERS),
-        Sweep("s2/det/adaptive/2_layers/", replace(DET, **ADAPTIVE), **DET_2_LAYERS),
-        Sweep("s2/det/adaptive/3_layers/", replace(DET, **ADAPTIVE), **DET_3_LAYERS),
+        Sweep("s2/det/adaptive/2_layers/", replace(DET, **APGD), **DET_2_LAYERS),
+        Sweep("s2/det/adaptive/3_layers/", replace(DET, **APGD), **DET_3_LAYERS),
 
         # --- FurtherAL -----------------------------------------------------
         Sweep("s2/fur/pgd/2_layers/",      FUR,                      **DET_2_LAYERS),
         Sweep("s2/fur/pgd/3_layers/",      FUR,                      **DET_3_LAYERS),
-        Sweep("s2/fur/adaptive/2_layers/", replace(FUR, **ADAPTIVE), **DET_2_LAYERS),
-        Sweep("s2/fur/adaptive/3_layers/", replace(FUR, **ADAPTIVE), **DET_3_LAYERS),
+        Sweep("s2/fur/adaptive/2_layers/", replace(FUR, **APGD), **DET_2_LAYERS),
+        Sweep("s2/fur/adaptive/3_layers/", replace(FUR, **APGD), **DET_3_LAYERS),
 
         # --- CloserAL ------------------------------------------------------
         Sweep("s2/clo/pgd/2_layers/",      CLO,                      **CLO_2_LAYERS),
