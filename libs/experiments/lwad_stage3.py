@@ -6,11 +6,11 @@ Model types and training budget come from stage 2. Every DetectorLayer and
 FurtherAL winner, on each attack and size, gets every combination of
 
     reduce  mean | max       max also exits early: same flags, less latency
-    detach  True | False
+    detach  true | false
 
 A model with one detector has nothing to reduce (mean == max) and keeps mean.
 
-Runs: pgd (2+2) + (2+2) + (4+4), apgd (4+4) + (4+4) + (4+2), CloserAL 3x2 = 44.
+Runs: pgd (2+2) + (2+2) + (4+4), apgd (4+4) + (4+4) + (4+2), CloserAL (3) = 41.
 """
 from __future__ import annotations
 
@@ -29,9 +29,11 @@ from libs.experiments.lwad_stage2 import APGD, CLO, DET, FUR, PGD
 MEAN = dict(score_reduce="mean")
 MAX  = dict(score_reduce="max", early_exit=True)
 
+# ===========================================================================
+# Axes
+# ===========================================================================
 REDUCES = {"mean": MEAN, "max": MAX}
 DETACH  = [True, False]
-DETACH_REFERENCE = [False, True]    # False = the stage 2 winner, as reference
 
 
 # ===========================================================================
@@ -98,9 +100,9 @@ def table() -> list[Exp]:
         *mechanisms("s3/fur/apgd/high",   FUR_HIGH_APGD),
 
         # --- CloserAL winners ----------------------------------------------
-        Sweep("s3/clo/mini/",   CLO_MINI,   detach_reference=DETACH_REFERENCE),
-        Sweep("s3/clo/medium/", CLO_MEDIUM, detach_reference=DETACH_REFERENCE),
-        Sweep("s3/clo/high/",   CLO_HIGH,   detach_reference=DETACH_REFERENCE),
+        Exp("s3/clo/mini",   CLO_MINI),
+        Exp("s3/clo/medium", CLO_MEDIUM),
+        Exp("s3/clo/high",   CLO_HIGH),
     ]
 
 
