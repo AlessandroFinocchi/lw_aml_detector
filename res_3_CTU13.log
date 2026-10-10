@@ -1,0 +1,12 @@
+All configurations are valid
+Dropped the bookkeeping columns ('id', 'source', 'scenario', 'capture', 'attack_cat')
+
+CTU-13: 8 columns
+  dir
+  dtos
+  dur
+  proto
+  src_bytes
+  state
+  tot_bytes
+  tot_pkts

@@ -1,4 +1,4 @@
-"""V&V suite - Verifica: modello e attacchi (V1.1-V1.6, V2.1-V2.5).
+"""V&V suite - Verifica: modello e attacchi (V1.1-V1.6, V2.1-V2.4).
 
 V1 checks the construction rules and that the wrappers leave the backbone
 untouched; V2 checks the attacks on the small models trained for 3 epochs on
@@ -444,10 +444,10 @@ def v2_2(t:vc.Report, S:vc.Session):
                 torch.equal(xz, x))
 
 
-@vc.vv_test(TESTS, "V2.4", "Con beta = 0 l'attacco adattivo coincide con PGD", vc.VERIFY,
+@vc.vv_test(TESTS, "V2.3", "Con beta = 0 l'attacco adattivo coincide con PGD", vc.VERIFY,
             "A parita' di seed pgd_adaptive con evade_weight=0 riproduce PGD bit per bit; "
             "con evade_weight=1 se ne discosta.")
-def v2_4(t:vc.Report, S:vc.Session):
+def v2_3(t:vc.Report, S:vc.Session):
     mask = S.bundle.attack_mask
     for kind in ("det", "fur"):
         for eps in V2_EPS:
@@ -462,10 +462,10 @@ def v2_4(t:vc.Report, S:vc.Session):
                         n1 > 0, f"{n1} elementi diversi")
 
 
-@vc.vv_test(TESTS, "V2.5", "Arresti del gradiente durante l'attacco", vc.VERIFY,
+@vc.vv_test(TESTS, "V2.4", "Arresti del gradiente durante l'attacco", vc.VERIFY,
             "Su det (detach=True) il detector e' staccato fuori dall'attacco, collegato dentro, "
             "i flag tornano come prima e l'attacco non tocca i pesi.")
-def v2_5(t:vc.Report, S:vc.Session):
+def v2_4(t:vc.Report, S:vc.Session):
     model = S.small_model("det", trained=True)
     x, y = S.rows("test", V2_SAMPLES)
     layers = [m for m in model.modules() if isinstance(m, lw.DetectorLayer)]

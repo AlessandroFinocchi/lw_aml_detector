@@ -1,7 +1,7 @@
 == Suite V&V LWAD ==
    torch 2.5.1, device cuda (NVIDIA RTX 4000 Ada Generation)
    determinismo: CUBLAS_WORKSPACE_CONFIG=:4096:8, use_deterministic_algorithms=True, cudnn.benchmark=False
-   test selezionati (27): V1.1, V1.2, V1.3, V1.4, V1.5, V1.6, V2.1, V2.2, V2.4, V2.5, V3.1, V3.2, V3.3, V3.4, V3.5, V3.6, A3, A1, A2, A4, M1, M2, M3, M4, M5, M6, M7
+   test selezionati (27): V1.1, V1.2, V1.3, V1.4, V1.5, V1.6, V2.1, V2.2, V2.3, V2.4, V3.1, V3.2, V3.3, V3.4, V3.5, V3.6, A3, A1, A2, A4, M1, M2, M3, M4, M5, M6, M7
 
 == Dati dello stadio 1 ==
    CSV: results/summary_s1.csv
@@ -212,7 +212,7 @@
    [PASS]         fur pgd_adaptive[max]  maschera tutta a zero -> x_adv identico a x
    => V2.2: PASS (30 PASS, 2.1s)
 
-== V2.4) Con beta = 0 l'attacco adattivo coincide con PGD [verifica] ==
+== V2.3) Con beta = 0 l'attacco adattivo coincide con PGD [verifica] ==
    A parita' di seed pgd_adaptive con evade_weight=0 riproduce PGD bit per bit; con evade_weight=1 se ne discosta.
    [PASS]         det eps=0.05 [mean] beta=0: identico a PGD -> 0 elementi diversi
    [PASS]         det eps=0.05 [mean] beta=1: diverso da PGD -> 2315 elementi diversi
@@ -230,9 +230,9 @@
    [PASS]         fur eps=0.2  [mean] beta=1: diverso da PGD -> 1893 elementi diversi
    [PASS]         fur eps=0.2  [max] beta=0: identico a PGD -> 0 elementi diversi
    [PASS]         fur eps=0.2  [max] beta=1: diverso da PGD -> 2698 elementi diversi
-   => V2.4: PASS (16 PASS, 2.2s)
+   => V2.3: PASS (16 PASS, 2.2s)
 
-== V2.5) Arresti del gradiente durante l'attacco [verifica] ==
+== V2.4) Arresti del gradiente durante l'attacco [verifica] ==
    Su det (detach=True) il detector e' staccato fuori dall'attacco, collegato dentro, i flag tornano come prima e l'attacco non tocca i pesi.
    [PASS]         det: ogni DetectorLayer ha detach=True -> [True, True, True]
    [PASS]         fuori dall'attacco: grad di adv_score().sum() rispetto a x None o nullo -> None
@@ -243,7 +243,7 @@
    [PASS]         dopo pgd_adaptive lo state_dict e' identico a prima
    [PASS]         dopo pgd_adaptive i flag detach sono quelli di prima -> [True, True, True], attesi [True, True, True]
    [PASS]         dopo pgd_adaptive ogni p.grad e' None
-   => V2.5: PASS (9 PASS, 0.1s)
+   => V2.4: PASS (9 PASS, 0.1s)
 
 == V3.1) FurtherAL con lambda_act = 0 coincide con DetectorLayer [verifica] ==
    Una activation loss di peso nullo non deve cambiare nulla: DET_S e FUR_S (lambda_act=0, margin_factor=None) identici al bit.
@@ -869,8 +869,8 @@ V1.5  verifica     PASS   18 PASS          30.5s   Early exit equivalente al for
 V1.6  verifica     PASS   8 PASS           53.1s   Calibrazione e selezione dei margini
 V2.1  verifica     PASS   20 PASS          10.7s   Ammissibilita' L-inf
 V2.2  verifica     PASS   30 PASS          2.1s    Maschera rispettata
-V2.4  verifica     PASS   16 PASS          2.2s    Con beta = 0 l'attacco adattivo coincide con PGD
-V2.5  verifica     PASS   9 PASS           0.1s    Arresti del gradiente durante l'attacco
+V2.3  verifica     PASS   16 PASS          2.2s    Con beta = 0 l'attacco adattivo coincide con PGD
+V2.4  verifica     PASS   9 PASS           0.1s    Arresti del gradiente durante l'attacco
 V3.1  verifica     PASS   11 PASS          4m45s   FurtherAL con lambda_act = 0 coincide con DetectorLayer
 V3.2  verifica     PASS   1 PASS           0.0s    FurtherAL con kappa << 1 vicino a DetectorLayer
 V3.3  verifica     PASS   16 PASS          4m19s   Riproducibilita' con cache fredda e calda

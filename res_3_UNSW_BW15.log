@@ -1,0 +1,2301 @@
+All configurations are valid
+== suite: 41 experiments x 1 datasets x 3 seeds = 123 runs ==
+   device=cuda  out_dir=results  test_max_rows=100000  infer_samples=1024  total max epochs=1230
+Dropped 'id' and 'attack_cat' columns
+
+### [  1/123] s3/det/pgd/mini/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8659  prec=0.8347  rec=0.9433
+  adversarial : acc=0.3448  prec=0.3752  rec=0.2855
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9937
+  adversarial accuracy: 0.9927
+  precision / recall  : 0.9937 / 0.9927
+  end to end (comparable across model types)
+  clean  : 0.8620   (right AND not flagged)
+  robust : 0.9974   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1992, 1.026]
+  SLAV rel : [0.07176, 0.4449]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3661 ± 0.0601 ms   (early exit 0.00%)
+  latency adv   : 0.3778 ± 0.0707 ms   (early exit 0.00%)
+
+### [  2/123] s3/det/pgd/mini/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8609  prec=0.8233  rec=0.9517
+  adversarial : acc=0.3769  prec=0.4310  rec=0.4117
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9951
+  adversarial accuracy: 0.9943
+  precision / recall  : 0.9951 / 0.9943
+  end to end (comparable across model types)
+  clean  : 0.8569   (right AND not flagged)
+  robust : 0.9979   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1985, 1.191]
+  SLAV rel : [0.06343, 0.3014]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4182 ± 0.1142 ms   (early exit 0.00%)
+  latency adv   : 0.4272 ± 0.1099 ms   (early exit 0.00%)
+
+### [  3/123] s3/det/pgd/mini/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8601  prec=0.8260  rec=0.9449
+  adversarial : acc=0.3387  prec=0.3696  rec=0.2850
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9920
+  adversarial accuracy: 0.9952
+  precision / recall  : 0.9920 / 0.9952
+  end to end (comparable across model types)
+  clean  : 0.8531   (right AND not flagged)
+  robust : 0.9977   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1716, 1.138]
+  SLAV rel : [0.07131, 0.514]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5950 ± 0.1058 ms   (early exit 0.00%)
+  latency adv   : 0.6137 ± 0.1262 ms   (early exit 0.00%)
+
+### [  4/123] s3/det/pgd/mini/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8702  prec=0.8433  rec=0.9387
+  adversarial : acc=0.2040  prec=0.1306  rec=0.0788
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9973
+  adversarial accuracy: 0.9989
+  precision / recall  : 0.9973 / 0.9989
+  end to end (comparable across model types)
+  clean  : 0.8677   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.213, 1.381]
+  SLAV rel : [0.1893, 0.9587]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5652 ± 0.0802 ms   (early exit 0.00%)
+  latency adv   : 0.5848 ± 0.0557 ms   (early exit 0.00%)
+
+### [  5/123] s3/det/pgd/mini/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8525  prec=0.8077  rec=0.9608
+  adversarial : acc=0.2758  prec=0.2668  rec=0.1803
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9969
+  adversarial accuracy: 0.9983
+  precision / recall  : 0.9969 / 0.9983
+  end to end (comparable across model types)
+  clean  : 0.8497   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1154, 0.7794]
+  SLAV rel : [0.1577, 0.4212]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6086 ± 0.1132 ms   (early exit 0.00%)
+  latency adv   : 0.6041 ± 0.1106 ms   (early exit 0.00%)
+
+### [  6/123] s3/det/pgd/mini/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8632  prec=0.8262  rec=0.9516
+  adversarial : acc=0.3049  prec=0.3067  rec=0.2082
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9978
+  adversarial accuracy: 0.9993
+  precision / recall  : 0.9978 / 0.9993
+  end to end (comparable across model types)
+  clean  : 0.8612   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.133, 1.024]
+  SLAV rel : [0.1662, 0.6685]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5927 ± 0.0825 ms   (early exit 0.00%)
+  latency adv   : 0.5925 ± 0.0840 ms   (early exit 0.00%)
+
+### [  7/123] s3/det/pgd/medium/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8708  prec=0.8370  rec=0.9504
+  adversarial : acc=0.3585  prec=0.3955  rec=0.3123
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9978
+  adversarial accuracy: 0.9966
+  precision / recall  : 0.9978 / 0.9966
+  end to end (comparable across model types)
+  clean  : 0.8689   (right AND not flagged)
+  robust : 0.9990   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05365, 0.4771]
+  SLAV rel : [0.07632, 0.4971]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3581 ± 0.0541 ms   (early exit 0.00%)
+  latency adv   : 0.3503 ± 0.0440 ms   (early exit 0.00%)
+
+### [  8/123] s3/det/pgd/medium/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8774  prec=0.8529  rec=0.9394
+  adversarial : acc=0.3778  prec=0.4092  rec=0.2930
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9950
+  adversarial accuracy: 0.9961
+  precision / recall  : 0.9950 / 0.9961
+  end to end (comparable across model types)
+  clean  : 0.8731   (right AND not flagged)
+  robust : 0.9985   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04829, 0.3451]
+  SLAV rel : [0.07936, 0.3821]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3855 ± 0.0711 ms   (early exit 0.00%)
+  latency adv   : 0.3915 ± 0.0713 ms   (early exit 0.00%)
+
+### [  9/123] s3/det/pgd/medium/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8508  prec=0.8054  rec=0.9614
+  adversarial : acc=0.3931  prec=0.4375  rec=0.3580
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9942
+  adversarial accuracy: 0.9955
+  precision / recall  : 0.9942 / 0.9955
+  end to end (comparable across model types)
+  clean  : 0.8456   (right AND not flagged)
+  robust : 0.9980   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04781, 0.3307]
+  SLAV rel : [0.07337, 0.3776]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5696 ± 0.0957 ms   (early exit 0.00%)
+  latency adv   : 0.5787 ± 0.0861 ms   (early exit 0.00%)
+
+### [ 10/123] s3/det/pgd/medium/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8715  prec=0.8372  rec=0.9517
+  adversarial : acc=0.3133  prec=0.3384  rec=0.2588
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9983
+  adversarial accuracy: 0.9973
+  precision / recall  : 0.9983 / 0.9973
+  end to end (comparable across model types)
+  clean  : 0.8700   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06166, 0.4601]
+  SLAV rel : [0.1691, 0.6951]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5717 ± 0.0885 ms   (early exit 0.00%)
+  latency adv   : 0.5700 ± 0.0904 ms   (early exit 0.00%)
+
+### [ 11/123] s3/det/pgd/medium/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8802  prec=0.8563  rec=0.9402
+  adversarial : acc=0.3105  prec=0.3173  rec=0.2191
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9970
+  adversarial accuracy: 0.9978
+  precision / recall  : 0.9970 / 0.9978
+  end to end (comparable across model types)
+  clean  : 0.8774   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05996, 0.3903]
+  SLAV rel : [0.1856, 0.5939]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3915 ± 0.0659 ms   (early exit 0.00%)
+  latency adv   : 0.3733 ± 0.0638 ms   (early exit 0.00%)
+
+### [ 12/123] s3/det/pgd/medium/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8786  prec=0.8501  rec=0.9465
+  adversarial : acc=0.3165  prec=0.3366  rec=0.2486
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9973
+  adversarial accuracy: 0.9979
+  precision / recall  : 0.9973 / 0.9979
+  end to end (comparable across model types)
+  clean  : 0.8763   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05482, 0.4073]
+  SLAV rel : [0.1721, 0.6166]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5835 ± 0.0653 ms   (early exit 0.00%)
+  latency adv   : 0.5822 ± 0.0667 ms   (early exit 0.00%)
+
+### [ 13/123] s3/det/pgd/high/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8842  prec=0.8586  rec=0.9454
+  adversarial : acc=0.3536  prec=0.3904  rec=0.3101
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9986
+  adversarial accuracy: 0.9946
+  precision / recall  : 0.9986 / 0.9946
+  end to end (comparable across model types)
+  clean  : 0.8830   (right AND not flagged)
+  robust : 0.9968   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0381, 0.3126, 2.686]
+  SLAV rel : [0.08205, 0.3135, 0.593]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6439 ± 0.1219 ms   (early exit 0.00%)
+  latency adv   : 0.6049 ± 0.1019 ms   (early exit 0.00%)
+
+### [ 14/123] s3/det/pgd/high/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8688  prec=0.8381  rec=0.9442
+  adversarial : acc=0.3377  prec=0.3789  rec=0.3176
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9972
+  adversarial accuracy: 0.9977
+  precision / recall  : 0.9972 / 0.9977
+  end to end (comparable across model types)
+  clean  : 0.8667   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03545, 0.229, 1.892]
+  SLAV rel : [0.07966, 0.2561, 0.5976]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7357 ± 0.1200 ms   (early exit 0.00%)
+  latency adv   : 0.7333 ± 0.0838 ms   (early exit 0.00%)
+
+### [ 15/123] s3/det/pgd/high/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8610  prec=0.8213  rec=0.9555
+  adversarial : acc=0.3685  prec=0.4027  rec=0.3039
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9940
+  adversarial accuracy: 0.9941
+  precision / recall  : 0.9940 / 0.9941
+  end to end (comparable across model types)
+  clean  : 0.8565   (right AND not flagged)
+  robust : 0.9959   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0327, 0.1834, 1.341]
+  SLAV rel : [0.07257, 0.22, 0.4718]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6828 ± 0.1767 ms   (early exit 0.00%)
+  latency adv   : 0.6993 ± 0.1557 ms   (early exit 0.00%)
+
+### [ 16/123] s3/det/pgd/high/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8814  prec=0.8545  rec=0.9456
+  adversarial : acc=0.2605  prec=0.2558  rec=0.1797
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9987
+  adversarial accuracy: 0.9989
+  precision / recall  : 0.9987 / 0.9989
+  end to end (comparable across model types)
+  clean  : 0.8803   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05039, 0.3174, 1.642]
+  SLAV rel : [0.1597, 0.5053, 0.9401]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6224 ± 0.1145 ms   (early exit 0.00%)
+  latency adv   : 0.6099 ± 0.1030 ms   (early exit 0.00%)
+
+### [ 17/123] s3/det/pgd/high/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8627  prec=0.8228  rec=0.9566
+  adversarial : acc=0.1080  prec=0.0588  rec=0.0413
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9978
+  adversarial accuracy: 0.9995
+  precision / recall  : 0.9978 / 0.9995
+  end to end (comparable across model types)
+  clean  : 0.8608   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05139, 0.3334, 1.719]
+  SLAV rel : [0.1586, 0.4793, 0.9546]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8880 ± 0.1842 ms   (early exit 0.00%)
+  latency adv   : 0.9274 ± 0.2156 ms   (early exit 0.00%)
+
+### [ 18/123] s3/det/pgd/high/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8412  prec=0.7871  rec=0.9755
+  adversarial : acc=0.2978  prec=0.3108  rec=0.2260
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9976
+  adversarial accuracy: 0.9994
+  precision / recall  : 0.9976 / 0.9994
+  end to end (comparable across model types)
+  clean  : 0.8389   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04836, 0.2285, 1.165]
+  SLAV rel : [0.1526, 0.359, 0.6768]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6300 ± 0.1249 ms   (early exit 0.00%)
+  latency adv   : 0.6169 ± 0.1068 ms   (early exit 0.00%)
+
+### [ 19/123] s3/det/pgd/high/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8869  prec=0.8730  rec=0.9298
+  adversarial : acc=0.3047  prec=0.3367  rec=0.2708
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9910
+  adversarial accuracy: 0.9954
+  precision / recall  : 0.9910 / 0.9954
+  end to end (comparable across model types)
+  clean  : 0.8819   (right AND not flagged)
+  robust : 0.9980   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04177, 0.3655, 3.222]
+  SLAV rel : [0.08584, 0.3126, 0.6467]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.2435 ± 0.2478 ms   (early exit 0.00%)
+  latency adv   : 0.6651 ± 0.0918 ms   (early exit 99.41%)
+
+### [ 20/123] s3/det/pgd/high/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8716  prec=0.8414  rec=0.9448
+  adversarial : acc=0.3214  prec=0.3504  rec=0.2722
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9928
+  adversarial accuracy: 0.9971
+  precision / recall  : 0.9929 / 0.9971
+  end to end (comparable across model types)
+  clean  : 0.8688   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04021, 0.2865, 2.495]
+  SLAV rel : [0.08633, 0.2716, 0.7038]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9429 ± 0.1417 ms   (early exit 0.29%)
+  latency adv   : 0.5992 ± 0.1043 ms   (early exit 99.71%)
+
+### [ 21/123] s3/det/pgd/high/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8852  prec=0.8625  rec=0.9415
+  adversarial : acc=0.3398  prec=0.3660  rec=0.2717
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9938
+  adversarial accuracy: 0.9941
+  precision / recall  : 0.9938 / 0.9941
+  end to end (comparable across model types)
+  clean  : 0.8802   (right AND not flagged)
+  robust : 0.9963   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03739, 0.2893, 2.019]
+  SLAV rel : [0.07858, 0.2701, 0.5782]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9683 ± 0.1626 ms   (early exit 0.88%)
+  latency adv   : 0.8498 ± 0.3947 ms   (early exit 99.32%)
+
+### [ 22/123] s3/det/pgd/high/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8814  prec=0.8545  rec=0.9456
+  adversarial : acc=0.2605  prec=0.2558  rec=0.1797
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9988
+  adversarial accuracy: 0.9989
+  precision / recall  : 0.9988 / 0.9989
+  end to end (comparable across model types)
+  clean  : 0.8803   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05039, 0.3174, 1.642]
+  SLAV rel : [0.1597, 0.5053, 0.9401]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0627 ± 0.0927 ms   (early exit 0.10%)
+  latency adv   : 0.6622 ± 0.0752 ms   (early exit 100.00%)
+
+### [ 23/123] s3/det/pgd/high/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8627  prec=0.8228  rec=0.9566
+  adversarial : acc=0.1080  prec=0.0588  rec=0.0413
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9979
+  adversarial accuracy: 0.9995
+  precision / recall  : 0.9979 / 0.9995
+  end to end (comparable across model types)
+  clean  : 0.8608   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05139, 0.3334, 1.719]
+  SLAV rel : [0.1586, 0.4793, 0.9546]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0714 ± 0.0977 ms   (early exit 0.20%)
+  latency adv   : 0.6727 ± 0.0883 ms   (early exit 100.00%)
+
+### [ 24/123] s3/det/pgd/high/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8412  prec=0.7871  rec=0.9755
+  adversarial : acc=0.2978  prec=0.3108  rec=0.2260
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9976
+  adversarial accuracy: 0.9992
+  precision / recall  : 0.9976 / 0.9992
+  end to end (comparable across model types)
+  clean  : 0.8389   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04836, 0.2285, 1.165]
+  SLAV rel : [0.1526, 0.359, 0.6768]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9579 ± 0.1489 ms   (early exit 0.10%)
+  latency adv   : 0.6117 ± 0.1097 ms   (early exit 100.00%)
+
+### [ 25/123] s3/det/apgd/mini/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8588  prec=0.8280  rec=0.9385
+  adversarial : acc=0.6290  prec=0.6576  rec=0.6808
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9763
+  adversarial accuracy: 0.2947
+  precision / recall  : 0.9254 / 0.2947
+  end to end (comparable across model types)
+  clean  : 0.8380   (right AND not flagged)
+  robust : 0.9167   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05454, 0.2617]
+  SLAV rel : [0.03172, 0.1354]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8926 ± 0.2345 ms   (early exit 0.00%)
+  latency adv   : 0.7580 ± 0.1085 ms   (early exit 0.00%)
+
+### [ 26/123] s3/det/apgd/mini/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8814  prec=0.8623  rec=0.9337
+  adversarial : acc=0.6338  prec=0.6634  rec=0.6800
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.5900
+  adversarial accuracy: 0.7028
+  precision / recall  : 0.6315 / 0.7028
+  end to end (comparable across model types)
+  clean  : 0.4790   (right AND not flagged)
+  robust : 0.9784   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05654, 0.3909]
+  SLAV rel : [0.02451, 0.1074]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7764 ± 0.1261 ms   (early exit 0.00%)
+  latency adv   : 0.6962 ± 0.0556 ms   (early exit 0.00%)
+
+### [ 27/123] s3/det/apgd/mini/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8864  prec=0.8748  rec=0.9262
+  adversarial : acc=0.6383  prec=0.6652  rec=0.6907
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.5861
+  adversarial accuracy: 0.6517
+  precision / recall  : 0.6116 / 0.6517
+  end to end (comparable across model types)
+  clean  : 0.4851   (right AND not flagged)
+  robust : 0.9811   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06169, 0.3392]
+  SLAV rel : [0.02712, 0.09905]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6951 ± 0.0493 ms   (early exit 0.00%)
+  latency adv   : 0.6882 ± 0.0510 ms   (early exit 0.00%)
+
+### [ 28/123] s3/det/apgd/mini/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8218  prec=0.7653  rec=0.9757
+  adversarial : acc=0.6103  prec=0.6436  rec=0.6552
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9720
+  adversarial accuracy: 0.3392
+  precision / recall  : 0.9238 / 0.3392
+  end to end (comparable across model types)
+  clean  : 0.7969   (right AND not flagged)
+  robust : 0.9208   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03928, 0.1223]
+  SLAV rel : [0.04424, 0.1122]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5375 ± 0.1053 ms   (early exit 0.00%)
+  latency adv   : 0.5371 ± 0.1012 ms   (early exit 0.00%)
+
+### [ 29/123] s3/det/apgd/mini/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8542  prec=0.8258  rec=0.9316
+  adversarial : acc=0.4371  prec=0.4830  rec=0.3164
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8568
+  adversarial accuracy: 0.8669
+  precision / recall  : 0.8582 / 0.8669
+  end to end (comparable across model types)
+  clean  : 0.7174   (right AND not flagged)
+  robust : 0.9956   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1329, 0.7181]
+  SLAV rel : [0.2554, 0.5815]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5761 ± 0.0921 ms   (early exit 0.00%)
+  latency adv   : 0.5634 ± 0.0860 ms   (early exit 0.00%)
+
+### [ 30/123] s3/det/apgd/mini/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8589  prec=0.8242  rec=0.9455
+  adversarial : acc=0.4058  prec=0.4365  rec=0.2725
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8251
+  adversarial accuracy: 0.8332
+  precision / recall  : 0.8265 / 0.8332
+  end to end (comparable across model types)
+  clean  : 0.6892   (right AND not flagged)
+  robust : 0.9861   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.08797, 0.6112]
+  SLAV rel : [0.1837, 0.5362]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5452 ± 0.0759 ms   (early exit 0.00%)
+  latency adv   : 0.5506 ± 0.0741 ms   (early exit 0.00%)
+
+### [ 31/123] s3/det/apgd/mini/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8588  prec=0.8280  rec=0.9385
+  adversarial : acc=0.6556  prec=0.6749  rec=0.7224
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9475
+  adversarial accuracy: 0.2408
+  precision / recall  : 0.8210 / 0.2408
+  end to end (comparable across model types)
+  clean  : 0.8107   (right AND not flagged)
+  robust : 0.8864   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04941, 0.2266]
+  SLAV rel : [0.02874, 0.1173]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.2322 ± 0.2172 ms   (early exit 10.35%)
+  latency adv   : 0.7739 ± 0.1617 ms   (early exit 27.54%)
+
+### [ 32/123] s3/det/apgd/mini/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8680  prec=0.8473  rec=0.9273
+  adversarial : acc=0.6607  prec=0.6779  rec=0.7312
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9752
+  adversarial accuracy: 0.2437
+  precision / recall  : 0.9077 / 0.2437
+  end to end (comparable across model types)
+  clean  : 0.8456   (right AND not flagged)
+  robust : 0.9028   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05108, 0.2803]
+  SLAV rel : [0.02174, 0.08312]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0808 ± 0.1405 ms   (early exit 3.32%)
+  latency adv   : 0.9648 ± 0.2086 ms   (early exit 31.54%)
+
+### [ 33/123] s3/det/apgd/mini/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8723  prec=0.8483  rec=0.9355
+  adversarial : acc=0.6331  prec=0.6617  rec=0.6825
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9259
+  adversarial accuracy: 0.3062
+  precision / recall  : 0.8052 / 0.3062
+  end to end (comparable across model types)
+  clean  : 0.8027   (right AND not flagged)
+  robust : 0.9128   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06162, 0.2751]
+  SLAV rel : [0.02769, 0.0862]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0818 ± 0.1279 ms   (early exit 6.35%)
+  latency adv   : 0.9732 ± 0.2119 ms   (early exit 34.47%)
+
+### [ 34/123] s3/det/apgd/mini/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8649  prec=0.8349  rec=0.9407
+  adversarial : acc=0.3524  prec=0.3334  rec=0.1763
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9142
+  adversarial accuracy: 0.7255
+  precision / recall  : 0.8942 / 0.7255
+  end to end (comparable across model types)
+  clean  : 0.7848   (right AND not flagged)
+  robust : 0.9925   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1135, 0.6612]
+  SLAV rel : [0.2505, 0.594]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0488 ± 0.1283 ms   (early exit 3.81%)
+  latency adv   : 0.7511 ± 0.1949 ms   (early exit 81.45%)
+
+### [ 35/123] s3/det/apgd/mini/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8562  prec=0.8211  rec=0.9446
+  adversarial : acc=0.3713  prec=0.3830  rec=0.2324
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8992
+  adversarial accuracy: 0.8620
+  precision / recall  : 0.8953 / 0.8620
+  end to end (comparable across model types)
+  clean  : 0.7617   (right AND not flagged)
+  robust : 0.9920   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1212, 0.7849]
+  SLAV rel : [0.2359, 0.6544]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0238 ± 0.1624 ms   (early exit 16.21%)
+  latency adv   : 0.7704 ± 0.1846 ms   (early exit 90.72%)
+
+### [ 36/123] s3/det/apgd/mini/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8646  prec=0.8300  rec=0.9483
+  adversarial : acc=0.3190  prec=0.2715  rec=0.1407
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8742
+  adversarial accuracy: 0.8769
+  precision / recall  : 0.8745 / 0.8769
+  end to end (comparable across model types)
+  clean  : 0.7439   (right AND not flagged)
+  robust : 0.9967   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1085, 0.6472]
+  SLAV rel : [0.2702, 0.7081]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0652 ± 0.1693 ms   (early exit 19.24%)
+  latency adv   : 0.7390 ± 0.1711 ms   (early exit 91.80%)
+
+### [ 37/123] s3/det/apgd/medium/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8702  prec=0.8389  rec=0.9458
+  adversarial : acc=0.6504  prec=0.6728  rec=0.7108
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.4448
+  adversarial accuracy: 0.8838
+  precision / recall  : 0.6142 / 0.8838
+  end to end (comparable across model types)
+  clean  : 0.3302   (right AND not flagged)
+  robust : 0.9398   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01779, 0.09844]
+  SLAV rel : [0.03096, 0.1021]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5434 ± 0.0783 ms   (early exit 0.00%)
+  latency adv   : 0.5533 ± 0.0757 ms   (early exit 0.00%)
+
+### [ 38/123] s3/det/apgd/medium/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8671  prec=0.8365  rec=0.9429
+  adversarial : acc=0.6356  prec=0.6637  rec=0.6858
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.5146
+  adversarial accuracy: 0.8828
+  precision / recall  : 0.6452 / 0.8828
+  end to end (comparable across model types)
+  clean  : 0.3937   (right AND not flagged)
+  robust : 0.9748   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02082, 0.1276]
+  SLAV rel : [0.03452, 0.1277]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5511 ± 0.0773 ms   (early exit 0.00%)
+  latency adv   : 0.5525 ± 0.0758 ms   (early exit 0.00%)
+
+### [ 39/123] s3/det/apgd/medium/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8598  prec=0.8202  rec=0.9546
+  adversarial : acc=0.6460  prec=0.6706  rec=0.7015
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8426
+  adversarial accuracy: 0.6038
+  precision / recall  : 0.7932 / 0.6038
+  end to end (comparable across model types)
+  clean  : 0.7058   (right AND not flagged)
+  robust : 0.9744   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0196, 0.101]
+  SLAV rel : [0.03022, 0.107]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5433 ± 0.0791 ms   (early exit 0.00%)
+  latency adv   : 0.6133 ± 0.1149 ms   (early exit 0.00%)
+
+### [ 40/123] s3/det/apgd/medium/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8815  prec=0.8562  rec=0.9433
+  adversarial : acc=0.3237  prec=0.2913  rec=0.1593
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9281
+  adversarial accuracy: 0.9296
+  precision / recall  : 0.9282 / 0.9296
+  end to end (comparable across model types)
+  clean  : 0.8121   (right AND not flagged)
+  robust : 0.9979   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04473, 0.3675]
+  SLAV rel : [0.2469, 1.402]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6194 ± 0.0639 ms   (early exit 0.00%)
+  latency adv   : 0.6130 ± 0.0588 ms   (early exit 0.00%)
+
+### [ 41/123] s3/det/apgd/medium/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8577  prec=0.8165  rec=0.9565
+  adversarial : acc=0.4626  prec=0.5167  rec=0.3712
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8666
+  adversarial accuracy: 0.7709
+  precision / recall  : 0.8525 / 0.7709
+  end to end (comparable across model types)
+  clean  : 0.7310   (right AND not flagged)
+  robust : 0.9962   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03316, 0.1964]
+  SLAV rel : [0.1555, 0.3304]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6567 ± 0.2780 ms   (early exit 0.00%)
+  latency adv   : 0.5903 ± 0.1052 ms   (early exit 0.00%)
+
+### [ 42/123] s3/det/apgd/medium/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8698  prec=0.8399  rec=0.9434
+  adversarial : acc=0.3650  prec=0.3581  rec=0.1935
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8798
+  adversarial accuracy: 0.9035
+  precision / recall  : 0.8825 / 0.9035
+  end to end (comparable across model types)
+  clean  : 0.7543   (right AND not flagged)
+  robust : 0.9979   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04311, 0.2956]
+  SLAV rel : [0.1992, 0.5686]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7041 ± 0.1130 ms   (early exit 0.00%)
+  latency adv   : 0.6785 ± 0.1053 ms   (early exit 0.00%)
+
+### [ 43/123] s3/det/apgd/medium/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8878  prec=0.8730  rec=0.9319
+  adversarial : acc=0.6687  prec=0.6868  rec=0.7322
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.5206
+  adversarial accuracy: 0.6667
+  precision / recall  : 0.5817 / 0.6667
+  end to end (comparable across model types)
+  clean  : 0.4256   (right AND not flagged)
+  robust : 0.9838   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02066, 0.135]
+  SLAV rel : [0.03329, 0.1053]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7434 ± 0.1693 ms   (early exit 38.48%)
+  latency adv   : 0.6944 ± 0.1792 ms   (early exit 49.80%)
+
+### [ 44/123] s3/det/apgd/medium/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8671  prec=0.8365  rec=0.9429
+  adversarial : acc=0.6579  prec=0.6774  rec=0.7229
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9276
+  adversarial accuracy: 0.3052
+  precision / recall  : 0.8084 / 0.3052
+  end to end (comparable across model types)
+  clean  : 0.7989   (right AND not flagged)
+  robust : 0.9499   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02154, 0.1216]
+  SLAV rel : [0.03571, 0.1217]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0686 ± 0.1235 ms   (early exit 13.18%)
+  latency adv   : 0.9388 ± 0.2111 ms   (early exit 40.14%)
+
+### [ 45/123] s3/det/apgd/medium/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8598  prec=0.8202  rec=0.9546
+  adversarial : acc=0.6580  prec=0.6767  rec=0.7255
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9868
+  adversarial accuracy: 0.3035
+  precision / recall  : 0.9584 / 0.3035
+  end to end (comparable across model types)
+  clean  : 0.8494   (right AND not flagged)
+  robust : 0.9611   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02073, 0.1032]
+  SLAV rel : [0.03196, 0.1093]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0747 ± 0.1238 ms   (early exit 0.78%)
+  latency adv   : 0.9384 ± 0.2159 ms   (early exit 37.60%)
+
+### [ 46/123] s3/det/apgd/medium/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8581  prec=0.8187  rec=0.9534
+  adversarial : acc=0.3797  prec=0.3884  rec=0.2201
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.7017
+  adversarial accuracy: 0.9077
+  precision / recall  : 0.7527 / 0.9077
+  end to end (comparable across model types)
+  clean  : 0.5677   (right AND not flagged)
+  robust : 0.9982   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04121, 0.2971]
+  SLAV rel : [0.1843, 0.693]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0708 ± 0.1831 ms   (early exit 15.92%)
+  latency adv   : 0.7270 ± 0.1851 ms   (early exit 81.05%)
+
+### [ 47/123] s3/det/apgd/medium/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8763  prec=0.8495  rec=0.9424
+  adversarial : acc=0.3344  prec=0.2962  rec=0.1518
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8951
+  adversarial accuracy: 0.8478
+  precision / recall  : 0.8899 / 0.8478
+  end to end (comparable across model types)
+  clean  : 0.7795   (right AND not flagged)
+  robust : 0.9974   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05083, 0.4562]
+  SLAV rel : [0.2664, 0.6571]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8351 ± 0.1190 ms   (early exit 11.33%)
+  latency adv   : 0.5786 ± 0.1320 ms   (early exit 92.19%)
+
+### [ 48/123] s3/det/apgd/medium/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8795  prec=0.8676  rec=0.9219
+  adversarial : acc=0.4108  prec=0.4435  rec=0.2749
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8968
+  adversarial accuracy: 0.7354
+  precision / recall  : 0.8770 / 0.7354
+  end to end (comparable across model types)
+  clean  : 0.7837   (right AND not flagged)
+  robust : 0.9940   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04365, 0.3555]
+  SLAV rel : [0.2023, 0.4832]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0898 ± 0.1462 ms   (early exit 10.94%)
+  latency adv   : 0.7376 ± 0.1808 ms   (early exit 85.84%)
+
+### [ 49/123] s3/det/apgd/high/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8882  prec=0.8768  rec=0.9273
+  adversarial : acc=0.6117  prec=0.6572  rec=0.6159
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.5282
+  adversarial accuracy: 0.8634
+  precision / recall  : 0.6467 / 0.8634
+  end to end (comparable across model types)
+  clean  : 0.4357   (right AND not flagged)
+  robust : 0.9831   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02084, 0.1189, 0.8161]
+  SLAV rel : [0.04553, 0.1225, 0.1506]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8980 ± 0.0490 ms   (early exit 0.00%)
+  latency adv   : 0.9136 ± 0.1175 ms   (early exit 0.00%)
+
+### [ 50/123] s3/det/apgd/high/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8460  prec=0.7974  rec=0.9655
+  adversarial : acc=0.6304  prec=0.6569  rec=0.6879
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9421
+  adversarial accuracy: 0.3555
+  precision / recall  : 0.8599 / 0.3555
+  end to end (comparable across model types)
+  clean  : 0.7934   (right AND not flagged)
+  robust : 0.9360   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01884, 0.05462, 0.3586]
+  SLAV rel : [0.03577, 0.05305, 0.1057]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6347 ± 0.0408 ms   (early exit 0.00%)
+  latency adv   : 0.6359 ± 0.0407 ms   (early exit 0.00%)
+
+### [ 51/123] s3/det/apgd/high/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8952  prec=0.8979  rec=0.9136
+  adversarial : acc=0.5858  prec=0.6373  rec=0.5748
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.6803
+  adversarial accuracy: 0.7926
+  precision / recall  : 0.7126 / 0.7926
+  end to end (comparable across model types)
+  clean  : 0.5980   (right AND not flagged)
+  robust : 0.9837   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02038, 0.1254, 0.9021]
+  SLAV rel : [0.04503, 0.1218, 0.1564]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6334 ± 0.0383 ms   (early exit 0.00%)
+  latency adv   : 0.6345 ± 0.0385 ms   (early exit 0.00%)
+
+### [ 52/123] s3/det/apgd/high/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8757  prec=0.8390  rec=0.9581
+  adversarial : acc=0.4295  prec=0.4723  rec=0.3078
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8586
+  adversarial accuracy: 0.7811
+  precision / recall  : 0.8468 / 0.7811
+  end to end (comparable across model types)
+  clean  : 0.7396   (right AND not flagged)
+  robust : 0.9913   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02284, 0.1794, 1.041]
+  SLAV rel : [0.09983, 0.2942, 0.3876]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9354 ± 0.0975 ms   (early exit 0.00%)
+  latency adv   : 0.9266 ± 0.0914 ms   (early exit 0.00%)
+
+### [ 53/123] s3/det/apgd/high/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8752  prec=0.8488  rec=0.9408
+  adversarial : acc=0.4100  prec=0.4423  rec=0.2738
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.7942
+  adversarial accuracy: 0.8863
+  precision / recall  : 0.8115 / 0.8863
+  end to end (comparable across model types)
+  clean  : 0.6790   (right AND not flagged)
+  robust : 0.9944   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03021, 0.2984, 2.156]
+  SLAV rel : [0.1292, 0.3112, 0.298]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8839 ± 0.0619 ms   (early exit 0.00%)
+  latency adv   : 0.8641 ± 0.0592 ms   (early exit 0.00%)
+
+### [ 54/123] s3/det/apgd/high/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8139  prec=0.7503  rec=0.9925
+  adversarial : acc=0.6562  prec=0.6664  rec=0.7522
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9788
+  adversarial accuracy: 0.3329
+  precision / recall  : 0.9400 / 0.3329
+  end to end (comparable across model types)
+  clean  : 0.7986   (right AND not flagged)
+  robust : 0.9658   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01662, 0.04541, 0.2072]
+  SLAV rel : [0.05205, 0.09353, 0.13]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6576 ± 0.0577 ms   (early exit 0.00%)
+  latency adv   : 0.7086 ± 0.1204 ms   (early exit 0.00%)
+
+### [ 55/123] s3/det/apgd/high/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8622  prec=0.8311  rec=0.9408
+  adversarial : acc=0.6196  prec=0.6564  rec=0.6488
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9494
+  adversarial accuracy: 0.2327
+  precision / recall  : 0.8214 / 0.2327
+  end to end (comparable across model types)
+  clean  : 0.8151   (right AND not flagged)
+  robust : 0.8479   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01918, 0.06756, 0.3901]
+  SLAV rel : [0.03846, 0.07266, 0.1113]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.6240 ± 0.2073 ms   (early exit 13.38%)
+  latency adv   : 1.3370 ± 0.4542 ms   (early exit 35.55%)
+
+### [ 56/123] s3/det/apgd/high/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8460  prec=0.7974  rec=0.9655
+  adversarial : acc=0.6651  prec=0.6795  rec=0.7415
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9248
+  adversarial accuracy: 0.2562
+  precision / recall  : 0.7732 / 0.2562
+  end to end (comparable across model types)
+  clean  : 0.7774   (right AND not flagged)
+  robust : 0.8797   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01694, 0.04534, 0.2879]
+  SLAV rel : [0.03216, 0.04404, 0.08488]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.4593 ± 0.1288 ms   (early exit 12.79%)
+  latency adv   : 1.2669 ± 0.3613 ms   (early exit 33.40%)
+
+### [ 57/123] s3/det/apgd/high/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=True ###
+TASK (positive = attack)
+  clean       : acc=0.8734  prec=0.8486  rec=0.9373
+  adversarial : acc=0.6231  prec=0.6571  rec=0.6596
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9147
+  adversarial accuracy: 0.3541
+  precision / recall  : 0.8059 / 0.3541
+  end to end (comparable across model types)
+  clean  : 0.7955   (right AND not flagged)
+  robust : 0.9380   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01586, 0.05546, 0.3621]
+  SLAV rel : [0.03421, 0.06045, 0.1063]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.6085 ± 0.2135 ms   (early exit 14.75%)
+  latency adv   : 1.1142 ± 0.3809 ms   (early exit 47.17%)
+
+### [ 58/123] s3/det/apgd/high/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8799  prec=0.8473  rec=0.9537
+  adversarial : acc=0.3088  prec=0.2499  rec=0.1275
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8602
+  adversarial accuracy: 0.8569
+  precision / recall  : 0.8597 / 0.8569
+  end to end (comparable across model types)
+  clean  : 0.7458   (right AND not flagged)
+  robust : 0.9987   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02277, 0.1339, 0.8129]
+  SLAV rel : [0.113, 0.2128, 0.2766]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.4484 ± 0.2199 ms   (early exit 11.62%)
+  latency adv   : 0.8633 ± 0.2702 ms   (early exit 89.55%)
+
+### [ 59/123] s3/det/apgd/high/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8799  prec=0.8536  rec=0.9437
+  adversarial : acc=0.3632  prec=0.3621  rec=0.2056
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8703
+  adversarial accuracy: 0.7956
+  precision / recall  : 0.8599 / 0.7956
+  end to end (comparable across model types)
+  clean  : 0.7566   (right AND not flagged)
+  robust : 0.9959   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03624, 0.3751, 2.927]
+  SLAV rel : [0.1877, 0.4906, 0.515]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.3499 ± 0.2309 ms   (early exit 17.97%)
+  latency adv   : 0.8051 ± 0.2884 ms   (early exit 83.40%)
+
+### [ 60/123] s3/det/apgd/high/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,1,2), score_reduce=max, early_exit=True, use_act_loss=False, margin_factor=None, detach=False ###
+TASK (positive = attack)
+  clean       : acc=0.8720  prec=0.8488  rec=0.9339
+  adversarial : acc=0.4352  prec=0.4807  rec=0.3212
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8271
+  adversarial accuracy: 0.8683
+  precision / recall  : 0.8340 / 0.8683
+  end to end (comparable across model types)
+  clean  : 0.7058   (right AND not flagged)
+  robust : 0.9925   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01834, 0.0803, 0.5502]
+  SLAV rel : [0.08338, 0.1249, 0.1435]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.3129 ± 0.2839 ms   (early exit 23.63%)
+  latency adv   : 0.7669 ± 0.2627 ms   (early exit 90.62%)
+
+### [ 61/123] s3/fur/pgd/mini/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), detach=True ###
+act_margin = (0.217605,)  (5x natural rel=(0.043521,), measured)
+TASK (positive = attack)
+  clean       : acc=0.8585  prec=0.8228  rec=0.9469
+  adversarial : acc=0.1243  prec=0.0158  rec=0.0097
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9901
+  adversarial accuracy: 0.9967
+  precision / recall  : 0.9901 / 0.9967
+  end to end (comparable across model types)
+  clean  : 0.8493   (right AND not flagged)
+  robust : 0.9977   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.546, 1.787]
+  SLAV rel : [1.287, 1.943]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3595 ± 0.0739 ms   (early exit 0.00%)
+  latency adv   : 0.3541 ± 0.0697 ms   (early exit 0.00%)
+
+### [ 62/123] s3/fur/pgd/mini/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), detach=True ###
+act_margin = (0.217605,)  (5x natural rel=(0.043521,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8587  prec=0.8189  rec=0.9546
+  adversarial : acc=0.1619  prec=0.0221  rec=0.0121
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9963
+  adversarial accuracy: 0.9977
+  precision / recall  : 0.9963 / 0.9977
+  end to end (comparable across model types)
+  clean  : 0.8559   (right AND not flagged)
+  robust : 0.9983   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.4461, 1.554]
+  SLAV rel : [0.9431, 1.293]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3771 ± 0.0631 ms   (early exit 0.00%)
+  latency adv   : 0.3870 ± 0.0902 ms   (early exit 0.00%)
+
+### [ 63/123] s3/fur/pgd/mini/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), detach=True ###
+act_margin = (0.217605,)  (5x natural rel=(0.043521,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8723  prec=0.8450  rec=0.9405
+  adversarial : acc=0.1437  prec=0.0096  rec=0.0054
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9959
+  adversarial accuracy: 0.9977
+  precision / recall  : 0.9959 / 0.9977
+  end to end (comparable across model types)
+  clean  : 0.8686   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.5089, 2.028]
+  SLAV rel : [1.164, 1.644]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5117 ± 0.2134 ms   (early exit 0.00%)
+  latency adv   : 0.3600 ± 0.0698 ms   (early exit 0.00%)
+
+### [ 64/123] s3/fur/pgd/mini/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), detach=False ###
+act_margin = (0.542706,)  (5x natural rel=(0.108541,), measured)
+TASK (positive = attack)
+  clean       : acc=0.8682  prec=0.8305  rec=0.9556
+  adversarial : acc=0.1279  prec=0.0073  rec=0.0043
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9984
+  adversarial accuracy: 0.9981
+  precision / recall  : 0.9984 / 0.9981
+  end to end (comparable across model types)
+  clean  : 0.8669   (right AND not flagged)
+  robust : 0.9985   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.4592, 1.39]
+  SLAV rel : [3.277, 2.538]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3579 ± 0.0707 ms   (early exit 0.00%)
+  latency adv   : 0.3553 ± 0.0670 ms   (early exit 0.00%)
+
+### [ 65/123] s3/fur/pgd/mini/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), detach=False ###
+act_margin = (0.542706,)  (5x natural rel=(0.108541,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8664  prec=0.8328  rec=0.9474
+  adversarial : acc=0.1075  prec=0.0083  rec=0.0053
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9973
+  adversarial accuracy: 0.9985
+  precision / recall  : 0.9973 / 0.9985
+  end to end (comparable across model types)
+  clean  : 0.8643   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2122, 0.9045]
+  SLAV rel : [2.154, 1.945]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3556 ± 0.0636 ms   (early exit 0.00%)
+  latency adv   : 0.3482 ± 0.0571 ms   (early exit 0.00%)
+
+### [ 66/123] s3/fur/pgd/mini/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), detach=False ###
+act_margin = (0.542706,)  (5x natural rel=(0.108541,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8744  prec=0.8429  rec=0.9488
+  adversarial : acc=0.0470  prec=0.0054  rec=0.0040
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9957
+  adversarial accuracy: 0.9987
+  precision / recall  : 0.9957 / 0.9987
+  end to end (comparable across model types)
+  clean  : 0.8712   (right AND not flagged)
+  robust : 0.9990   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2653, 1.262]
+  SLAV rel : [2.324, 2.122]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3565 ± 0.0732 ms   (early exit 0.00%)
+  latency adv   : 0.3449 ± 0.0580 ms   (early exit 0.00%)
+
+### [ 67/123] s3/fur/pgd/medium/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), detach=True ###
+act_margin = (0.270162,)  (5x natural rel=(0.054032,), measured)
+TASK (positive = attack)
+  clean       : acc=0.8886  prec=0.8688  rec=0.9394
+  adversarial : acc=0.1378  prec=0.0178  rec=0.0104
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9977
+  adversarial accuracy: 0.9989
+  precision / recall  : 0.9977 / 0.9989
+  end to end (comparable across model types)
+  clean  : 0.8868   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1821, 0.6405]
+  SLAV rel : [1.127, 1.561]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3720 ± 0.0851 ms   (early exit 0.00%)
+  latency adv   : 0.3737 ± 0.0806 ms   (early exit 0.00%)
+
+### [ 68/123] s3/fur/pgd/medium/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), detach=True ###
+act_margin = (0.270162,)  (5x natural rel=(0.054032,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8763  prec=0.8537  rec=0.9359
+  adversarial : acc=0.1897  prec=0.0537  rec=0.0284
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9972
+  adversarial accuracy: 0.9966
+  precision / recall  : 0.9972 / 0.9966
+  end to end (comparable across model types)
+  clean  : 0.8739   (right AND not flagged)
+  robust : 0.9979   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1761, 0.4494]
+  SLAV rel : [1.173, 1.242]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5988 ± 0.0579 ms   (early exit 0.00%)
+  latency adv   : 0.6020 ± 0.0555 ms   (early exit 0.00%)
+
+### [ 69/123] s3/fur/pgd/medium/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), detach=True ###
+act_margin = (0.270162,)  (5x natural rel=(0.054032,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8619  prec=0.8213  rec=0.9575
+  adversarial : acc=0.2543  prec=0.2308  rec=0.1519
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9931
+  adversarial accuracy: 0.9990
+  precision / recall  : 0.9931 / 0.9990
+  end to end (comparable across model types)
+  clean  : 0.8558   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1589, 0.4441]
+  SLAV rel : [0.9261, 0.9739]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5668 ± 0.0655 ms   (early exit 0.00%)
+  latency adv   : 0.5736 ± 0.0591 ms   (early exit 0.00%)
+
+### [ 70/123] s3/fur/pgd/medium/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), detach=False ###
+act_margin = (0.7054,)  (5x natural rel=(0.14108,), measured)
+TASK (positive = attack)
+  clean       : acc=0.8564  prec=0.8112  rec=0.9635
+  adversarial : acc=0.1298  prec=0.0239  rec=0.0146
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9957
+  adversarial accuracy: 0.9976
+  precision / recall  : 0.9957 / 0.9976
+  end to end (comparable across model types)
+  clean  : 0.8527   (right AND not flagged)
+  robust : 0.9988   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1514, 0.4663]
+  SLAV rel : [2.334, 1.782]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5909 ± 0.0589 ms   (early exit 0.00%)
+  latency adv   : 0.5924 ± 0.0591 ms   (early exit 0.00%)
+
+### [ 71/123] s3/fur/pgd/medium/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), detach=False ###
+act_margin = (0.7054,)  (5x natural rel=(0.14108,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8688  prec=0.8373  rec=0.9455
+  adversarial : acc=0.1604  prec=0.0150  rec=0.0081
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9945
+  adversarial accuracy: 0.9977
+  precision / recall  : 0.9945 / 0.9977
+  end to end (comparable across model types)
+  clean  : 0.8651   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.09277, 0.2973]
+  SLAV rel : [2.187, 1.958]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5653 ± 0.0695 ms   (early exit 0.00%)
+  latency adv   : 0.5714 ± 0.0585 ms   (early exit 0.00%)
+
+### [ 72/123] s3/fur/pgd/medium/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), detach=False ###
+act_margin = (0.7054,)  (5x natural rel=(0.14108,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8822  prec=0.8482  rec=0.9574
+  adversarial : acc=0.1082  prec=0.0157  rec=0.0101
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9953
+  adversarial accuracy: 0.9990
+  precision / recall  : 0.9953 / 0.9990
+  end to end (comparable across model types)
+  clean  : 0.8783   (right AND not flagged)
+  robust : 0.9993   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1263, 0.4212]
+  SLAV rel : [2.426, 1.853]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6986 ± 0.1704 ms   (early exit 0.00%)
+  latency adv   : 0.5997 ± 0.1087 ms   (early exit 0.00%)
+
+### [ 73/123] s3/fur/pgd/high/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), detach=True ###
+act_margin = (0.227466, 1.197146)  (5x natural rel=(0.045493, 0.239429), measured)
+TASK (positive = attack)
+  clean       : acc=0.8767  prec=0.8499  rec=0.9426
+  adversarial : acc=0.0354  prec=0.0041  rec=0.0031
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9995
+  adversarial accuracy: 0.9994
+  precision / recall  : 0.9995 / 0.9994
+  end to end (comparable across model types)
+  clean  : 0.8764   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1392, 0.4866, 4.03]
+  SLAV rel : [1.017, 2.748, 5.52]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5742 ± 0.0765 ms   (early exit 0.00%)
+  latency adv   : 0.5826 ± 0.0723 ms   (early exit 0.00%)
+
+### [ 74/123] s3/fur/pgd/high/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), detach=True ###
+act_margin = (0.227466, 1.197146)  (5x natural rel=(0.045493, 0.239429), cached)
+TASK (positive = attack)
+  clean       : acc=0.8699  prec=0.8418  rec=0.9405
+  adversarial : acc=0.0179  prec=0.0108  rec=0.0087
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9965
+  adversarial accuracy: 0.9984
+  precision / recall  : 0.9965 / 0.9984
+  end to end (comparable across model types)
+  clean  : 0.8674   (right AND not flagged)
+  robust : 0.9987   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.122, 0.3323, 2.769]
+  SLAV rel : [0.9159, 1.784, 5.329]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6383 ± 0.1389 ms   (early exit 0.00%)
+  latency adv   : 0.7175 ± 0.2204 ms   (early exit 0.00%)
+
+### [ 75/123] s3/fur/pgd/high/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), detach=True ###
+act_margin = (0.227466, 1.197146)  (5x natural rel=(0.045493, 0.239429), cached)
+TASK (positive = attack)
+  clean       : acc=0.8453  prec=0.8076  rec=0.9438
+  adversarial : acc=0.0630  prec=0.0036  rec=0.0025
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9972
+  adversarial accuracy: 0.9971
+  precision / recall  : 0.9972 / 0.9971
+  end to end (comparable across model types)
+  clean  : 0.8437   (right AND not flagged)
+  robust : 0.9981   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1036, 0.2821, 2.477]
+  SLAV rel : [0.5549, 1.309, 3.787]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5892 ± 0.0705 ms   (early exit 0.00%)
+  latency adv   : 0.5577 ± 0.0862 ms   (early exit 0.00%)
+
+### [ 76/123] s3/fur/pgd/high/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), detach=False ###
+act_margin = (0.58759, 3.358129)  (5x natural rel=(0.117518, 0.671626), measured)
+TASK (positive = attack)
+  clean       : acc=0.8856  prec=0.8662  rec=0.9368
+  adversarial : acc=0.0001  prec=0.0000  rec=0.0000
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9989
+  adversarial accuracy: 0.9994
+  precision / recall  : 0.9989 / 0.9994
+  end to end (comparable across model types)
+  clean  : 0.8849   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1611, 0.5283, 3.396]
+  SLAV rel : [2.948, 7.272, 15.7]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5838 ± 0.0751 ms   (early exit 0.00%)
+  latency adv   : 0.5816 ± 0.0764 ms   (early exit 0.00%)
+
+### [ 77/123] s3/fur/pgd/high/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), detach=False ###
+act_margin = (0.58759, 3.358129)  (5x natural rel=(0.117518, 0.671626), cached)
+TASK (positive = attack)
+  clean       : acc=0.8651  prec=0.8309  rec=0.9479
+  adversarial : acc=0.0042  prec=0.0033  rec=0.0027
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9933
+  adversarial accuracy: 0.9995
+  precision / recall  : 0.9934 / 0.9995
+  end to end (comparable across model types)
+  clean  : 0.8603   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1202, 0.33, 3.087]
+  SLAV rel : [2.081, 4.869, 13.61]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8383 ± 0.0665 ms   (early exit 0.00%)
+  latency adv   : 0.8198 ± 0.0748 ms   (early exit 0.00%)
+
+### [ 78/123] s3/fur/pgd/high/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), detach=False ###
+act_margin = (0.58759, 3.358129)  (5x natural rel=(0.117518, 0.671626), cached)
+TASK (positive = attack)
+  clean       : acc=0.8638  prec=0.8239  rec=0.9571
+  adversarial : acc=0.0011  prec=0.0007  rec=0.0006
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9979
+  adversarial accuracy: 0.9994
+  precision / recall  : 0.9979 / 0.9994
+  end to end (comparable across model types)
+  clean  : 0.8625   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1609, 0.4442, 2.936]
+  SLAV rel : [2.838, 6.265, 15.55]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6542 ± 0.0610 ms   (early exit 0.00%)
+  latency adv   : 0.6540 ± 0.0614 ms   (early exit 0.00%)
+
+### [ 79/123] s3/fur/pgd/high/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.227466, 1.197146)  (5x natural rel=(0.045493, 0.239429), cached)
+TASK (positive = attack)
+  clean       : acc=0.8893  prec=0.8772  rec=0.9291
+  adversarial : acc=0.0397  prec=0.0043  rec=0.0033
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9982
+  adversarial accuracy: 0.9988
+  precision / recall  : 0.9982 / 0.9988
+  end to end (comparable across model types)
+  clean  : 0.8881   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1333, 0.4665, 4.145]
+  SLAV rel : [0.9668, 2.552, 5.125]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8660 ± 0.1073 ms   (early exit 0.10%)
+  latency adv   : 0.5622 ± 0.0767 ms   (early exit 99.71%)
+
+### [ 80/123] s3/fur/pgd/high/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.227466, 1.197146)  (5x natural rel=(0.045493, 0.239429), cached)
+TASK (positive = attack)
+  clean       : acc=0.8699  prec=0.8418  rec=0.9405
+  adversarial : acc=0.0179  prec=0.0108  rec=0.0087
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9966
+  adversarial accuracy: 0.9974
+  precision / recall  : 0.9966 / 0.9974
+  end to end (comparable across model types)
+  clean  : 0.8672   (right AND not flagged)
+  robust : 0.9980   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.122, 0.3323, 2.769]
+  SLAV rel : [0.9159, 1.784, 5.329]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8563 ± 0.1210 ms   (early exit 0.29%)
+  latency adv   : 0.5855 ± 0.1085 ms   (early exit 98.44%)
+
+### [ 81/123] s3/fur/pgd/high/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.227466, 1.197146)  (5x natural rel=(0.045493, 0.239429), cached)
+TASK (positive = attack)
+  clean       : acc=0.8586  prec=0.8282  rec=0.9377
+  adversarial : acc=0.0575  prec=0.0053  rec=0.0038
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9887
+  adversarial accuracy: 0.9910
+  precision / recall  : 0.9888 / 0.9910
+  end to end (comparable across model types)
+  clean  : 0.8522   (right AND not flagged)
+  robust : 0.9916   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.132, 0.3563, 3.299]
+  SLAV rel : [0.8042, 1.7, 4.357]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.2757 ± 0.1667 ms   (early exit 0.49%)
+  latency adv   : 0.7657 ± 0.1096 ms   (early exit 99.61%)
+
+### [ 82/123] s3/fur/pgd/high/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.58759, 3.358129)  (5x natural rel=(0.117518, 0.671626), cached)
+TASK (positive = attack)
+  clean       : acc=0.8856  prec=0.8662  rec=0.9368
+  adversarial : acc=0.0001  prec=0.0000  rec=0.0000
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9985
+  adversarial accuracy: 0.9996
+  precision / recall  : 0.9985 / 0.9996
+  end to end (comparable across model types)
+  clean  : 0.8846   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1611, 0.5283, 3.396]
+  SLAV rel : [2.948, 7.272, 15.7]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0288 ± 0.1140 ms   (early exit 0.10%)
+  latency adv   : 0.7554 ± 0.1257 ms   (early exit 100.00%)
+
+### [ 83/123] s3/fur/pgd/high/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.58759, 3.358129)  (5x natural rel=(0.117518, 0.671626), cached)
+TASK (positive = attack)
+  clean       : acc=0.8506  prec=0.8141  rec=0.9442
+  adversarial : acc=0.0020  prec=0.0036  rec=0.0030
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9963
+  adversarial accuracy: 0.9983
+  precision / recall  : 0.9964 / 0.9983
+  end to end (comparable across model types)
+  clean  : 0.8477   (right AND not flagged)
+  robust : 0.9984   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1796, 0.3768, 2.808]
+  SLAV rel : [2.288, 4.722, 13.06]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9956 ± 0.2327 ms   (early exit 0.20%)
+  latency adv   : 0.5792 ± 0.0999 ms   (early exit 99.90%)
+
+### [ 84/123] s3/fur/pgd/high/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.58759, 3.358129)  (5x natural rel=(0.117518, 0.671626), cached)
+TASK (positive = attack)
+  clean       : acc=0.8638  prec=0.8239  rec=0.9571
+  adversarial : acc=0.0011  prec=0.0007  rec=0.0006
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9986
+  adversarial accuracy: 0.9992
+  precision / recall  : 0.9986 / 0.9992
+  end to end (comparable across model types)
+  clean  : 0.8629   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1609, 0.4442, 2.936]
+  SLAV rel : [2.838, 6.265, 15.55]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8647 ± 0.1244 ms   (early exit 0.00%)
+  latency adv   : 0.5513 ± 0.0887 ms   (early exit 100.00%)
+
+### [ 85/123] s3/fur/apgd/mini/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), detach=True ###
+act_margin = (0.125382, 0.241685)  (5x natural rel=(0.025076, 0.048337), measured)
+TASK (positive = attack)
+  clean       : acc=0.8882  prec=0.8578  rec=0.9552
+  adversarial : acc=0.2752  prec=0.2870  rec=0.2132
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8411
+  adversarial accuracy: 0.8894
+  precision / recall  : 0.8484 / 0.8894
+  end to end (comparable across model types)
+  clean  : 0.7356   (right AND not flagged)
+  robust : 0.9885   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1354, 1.758]
+  SLAV rel : [0.7879, 6.196]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5987 ± 0.0872 ms   (early exit 0.00%)
+  latency adv   : 0.6139 ± 0.1058 ms   (early exit 0.00%)
+
+### [ 86/123] s3/fur/apgd/mini/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), detach=True ###
+act_margin = (0.125382, 0.241685)  (5x natural rel=(0.025076, 0.048337), cached)
+TASK (positive = attack)
+  clean       : acc=0.8887  prec=0.8635  rec=0.9478
+  adversarial : acc=0.2693  prec=0.2800  rec=0.2081
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8986
+  adversarial accuracy: 0.7374
+  precision / recall  : 0.8791 / 0.7374
+  end to end (comparable across model types)
+  clean  : 0.7917   (right AND not flagged)
+  robust : 0.9838   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1533, 2.536]
+  SLAV rel : [0.7917, 7.84]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6544 ± 0.0456 ms   (early exit 0.00%)
+  latency adv   : 0.7551 ± 0.1290 ms   (early exit 0.00%)
+
+### [ 87/123] s3/fur/apgd/mini/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), detach=True ###
+act_margin = (0.125382, 0.241685)  (5x natural rel=(0.025076, 0.048337), cached)
+TASK (positive = attack)
+  clean       : acc=0.8501  prec=0.8523  rec=0.8804
+  adversarial : acc=0.2486  prec=0.2191  rec=0.1423
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8602
+  adversarial accuracy: 0.8534
+  precision / recall  : 0.8592 / 0.8534
+  end to end (comparable across model types)
+  clean  : 0.7199   (right AND not flagged)
+  robust : 0.9891   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1235, 1.514]
+  SLAV rel : [0.7377, 6.037]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5950 ± 0.0917 ms   (early exit 0.00%)
+  latency adv   : 0.5995 ± 0.1088 ms   (early exit 0.00%)
+
+### [ 88/123] s3/fur/apgd/mini/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), detach=False ###
+act_margin = (0.133994, 0.234652)  (5x natural rel=(0.026799, 0.04693), measured)
+TASK (positive = attack)
+  clean       : acc=0.8632  prec=0.8218  rec=0.9596
+  adversarial : acc=0.2259  prec=0.1948  rec=0.1295
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9509
+  adversarial accuracy: 0.9426
+  precision / recall  : 0.9505 / 0.9426
+  end to end (comparable across model types)
+  clean  : 0.8177   (right AND not flagged)
+  robust : 0.9972   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05316, 0.3989]
+  SLAV rel : [0.5476, 4.833]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7492 ± 0.1037 ms   (early exit 0.00%)
+  latency adv   : 0.7595 ± 0.1054 ms   (early exit 0.00%)
+
+### [ 89/123] s3/fur/apgd/mini/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), detach=False ###
+act_margin = (0.133994, 0.234652)  (5x natural rel=(0.026799, 0.04693), cached)
+TASK (positive = attack)
+  clean       : acc=0.8595  prec=0.8229  rec=0.9491
+  adversarial : acc=0.2616  prec=0.1911  rec=0.1055
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9236
+  adversarial accuracy: 0.9289
+  precision / recall  : 0.9240 / 0.9289
+  end to end (comparable across model types)
+  clean  : 0.7876   (right AND not flagged)
+  robust : 0.9959   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04756, 0.2932]
+  SLAV rel : [0.4821, 3.42]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6524 ± 0.0462 ms   (early exit 0.00%)
+  latency adv   : 0.6871 ± 0.1206 ms   (early exit 0.00%)
+
+### [ 90/123] s3/fur/apgd/mini/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), detach=False ###
+act_margin = (0.133994, 0.234652)  (5x natural rel=(0.026799, 0.04693), cached)
+TASK (positive = attack)
+  clean       : acc=0.8404  prec=0.8146  rec=0.9194
+  adversarial : acc=0.2736  prec=0.2222  rec=0.1277
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8683
+  adversarial accuracy: 0.9610
+  precision / recall  : 0.8795 / 0.9610
+  end to end (comparable across model types)
+  clean  : 0.7254   (right AND not flagged)
+  robust : 0.9967   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05571, 0.5218]
+  SLAV rel : [0.5554, 5.36]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6705 ± 0.0503 ms   (early exit 0.00%)
+  latency adv   : 0.6668 ± 0.0495 ms   (early exit 0.00%)
+
+### [ 91/123] s3/fur/apgd/mini/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.125382, 0.241685)  (5x natural rel=(0.025076, 0.048337), cached)
+TASK (positive = attack)
+  clean       : acc=0.8883  prec=0.8627  rec=0.9480
+  adversarial : acc=0.2365  prec=0.2244  rec=0.1575
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9379
+  adversarial accuracy: 0.7786
+  precision / recall  : 0.9261 / 0.7786
+  end to end (comparable across model types)
+  clean  : 0.8337   (right AND not flagged)
+  robust : 0.9819   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1411, 2.184]
+  SLAV rel : [0.8496, 7.353]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.2762 ± 0.2488 ms   (early exit 13.87%)
+  latency adv   : 0.7520 ± 0.1746 ms   (early exit 74.51%)
+
+### [ 92/123] s3/fur/apgd/mini/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.125382, 0.241685)  (5x natural rel=(0.025076, 0.048337), cached)
+TASK (positive = attack)
+  clean       : acc=0.8788  prec=0.8524  rec=0.9432
+  adversarial : acc=0.2350  prec=0.2366  rec=0.1749
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9653
+  adversarial accuracy: 0.7823
+  precision / recall  : 0.9576 / 0.7823
+  end to end (comparable across model types)
+  clean  : 0.8481   (right AND not flagged)
+  robust : 0.9861   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1853, 3.496]
+  SLAV rel : [0.9922, 10.06]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0088 ± 0.1906 ms   (early exit 1.95%)
+  latency adv   : 0.6682 ± 0.1754 ms   (early exit 72.17%)
+
+### [ 93/123] s3/fur/apgd/mini/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.125382, 0.241685)  (5x natural rel=(0.025076, 0.048337), cached)
+TASK (positive = attack)
+  clean       : acc=0.8767  prec=0.8612  rec=0.9251
+  adversarial : acc=0.2444  prec=0.2064  rec=0.1309
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9111
+  adversarial accuracy: 0.7748
+  precision / recall  : 0.8971 / 0.7748
+  end to end (comparable across model types)
+  clean  : 0.7943   (right AND not flagged)
+  robust : 0.9830   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1423, 1.892]
+  SLAV rel : [0.8862, 5.987]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.1379 ± 0.1812 ms   (early exit 14.06%)
+  latency adv   : 0.8584 ± 0.2037 ms   (early exit 79.79%)
+
+### [ 94/123] s3/fur/apgd/mini/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.133994, 0.234652)  (5x natural rel=(0.026799, 0.04693), cached)
+TASK (positive = attack)
+  clean       : acc=0.8778  prec=0.8469  rec=0.9497
+  adversarial : acc=0.1288  prec=0.0713  rec=0.0484
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9465
+  adversarial accuracy: 0.9591
+  precision / recall  : 0.9472 / 0.9591
+  end to end (comparable across model types)
+  clean  : 0.8263   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07325, 0.5861]
+  SLAV rel : [0.7119, 4.874]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.2724 ± 0.5541 ms   (early exit 12.70%)
+  latency adv   : 0.6875 ± 0.1499 ms   (early exit 94.53%)
+
+### [ 95/123] s3/fur/apgd/mini/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.133994, 0.234652)  (5x natural rel=(0.026799, 0.04693), cached)
+TASK (positive = attack)
+  clean       : acc=0.8617  prec=0.8228  rec=0.9543
+  adversarial : acc=0.0919  prec=0.0635  rec=0.0473
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9564
+  adversarial accuracy: 0.9621
+  precision / recall  : 0.9566 / 0.9621
+  end to end (comparable across model types)
+  clean  : 0.8225   (right AND not flagged)
+  robust : 0.9984   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05755, 0.4196]
+  SLAV rel : [0.6023, 3.717]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8640 ± 0.1270 ms   (early exit 2.54%)
+  latency adv   : 0.5800 ± 0.1193 ms   (early exit 94.63%)
+
+### [ 96/123] s3/fur/apgd/mini/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detector_dims=(32,16), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.133994, 0.234652)  (5x natural rel=(0.026799, 0.04693), cached)
+TASK (positive = attack)
+  clean       : acc=0.8714  prec=0.8464  rec=0.9364
+  adversarial : acc=0.1298  prec=0.0736  rec=0.0501
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9041
+  adversarial accuracy: 0.9577
+  precision / recall  : 0.9090 / 0.9577
+  end to end (comparable across model types)
+  clean  : 0.7809   (right AND not flagged)
+  robust : 0.9984   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05262, 0.4833]
+  SLAV rel : [0.6492, 3.319]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9631 ± 0.1518 ms   (early exit 13.28%)
+  latency adv   : 0.6581 ± 0.1208 ms   (early exit 95.31%)
+
+### [ 97/123] s3/fur/apgd/medium/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=True ###
+act_margin = (0.155881, 0.347179)  (5x natural rel=(0.031176, 0.069436), measured)
+TASK (positive = attack)
+  clean       : acc=0.8984  prec=0.8885  rec=0.9325
+  adversarial : acc=0.3083  prec=0.3101  rec=0.2093
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8970
+  adversarial accuracy: 0.9275
+  precision / recall  : 0.9001 / 0.9275
+  end to end (comparable across model types)
+  clean  : 0.8007   (right AND not flagged)
+  robust : 0.9931   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05127, 0.4448]
+  SLAV rel : [0.6345, 4.499]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6640 ± 0.0514 ms   (early exit 0.00%)
+  latency adv   : 0.6301 ± 0.0464 ms   (early exit 0.00%)
+
+### [ 98/123] s3/fur/apgd/medium/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=True ###
+act_margin = (0.155881, 0.347179)  (5x natural rel=(0.031176, 0.069436), cached)
+TASK (positive = attack)
+  clean       : acc=0.8784  prec=0.8396  rec=0.9632
+  adversarial : acc=0.2360  prec=0.2280  rec=0.1624
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9683
+  adversarial accuracy: 0.9150
+  precision / recall  : 0.9665 / 0.9150
+  end to end (comparable across model types)
+  clean  : 0.8501   (right AND not flagged)
+  robust : 0.9957   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06218, 0.6716]
+  SLAV rel : [0.7394, 4.751]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5908 ± 0.1155 ms   (early exit 0.00%)
+  latency adv   : 0.6290 ± 0.1674 ms   (early exit 0.00%)
+
+### [ 99/123] s3/fur/apgd/medium/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=True ###
+act_margin = (0.155881, 0.347179)  (5x natural rel=(0.031176, 0.069436), cached)
+TASK (positive = attack)
+  clean       : acc=0.8864  prec=0.8680  rec=0.9361
+  adversarial : acc=0.2683  prec=0.2528  rec=0.1681
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9157
+  adversarial accuracy: 0.9419
+  precision / recall  : 0.9179 / 0.9419
+  end to end (comparable across model types)
+  clean  : 0.8050   (right AND not flagged)
+  robust : 0.9925   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05197, 0.4339]
+  SLAV rel : [0.6922, 4.096]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5688 ± 0.0820 ms   (early exit 0.00%)
+  latency adv   : 0.5681 ± 0.0826 ms   (early exit 0.00%)
+
+### [100/123] s3/fur/apgd/medium/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False ###
+act_margin = (0.181097, 0.346169)  (5x natural rel=(0.036219, 0.069234), measured)
+TASK (positive = attack)
+  clean       : acc=0.8684  prec=0.8501  rec=0.9240
+  adversarial : acc=0.1565  prec=0.1333  rec=0.0967
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9197
+  adversarial accuracy: 0.9786
+  precision / recall  : 0.9242 / 0.9786
+  end to end (comparable across model types)
+  clean  : 0.8048   (right AND not flagged)
+  robust : 0.9992   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.048, 0.3935]
+  SLAV rel : [0.5349, 11.82]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5693 ± 0.0833 ms   (early exit 0.00%)
+  latency adv   : 0.5671 ± 0.0813 ms   (early exit 0.00%)
+
+### [101/123] s3/fur/apgd/medium/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False ###
+act_margin = (0.181097, 0.346169)  (5x natural rel=(0.036219, 0.069234), cached)
+TASK (positive = attack)
+  clean       : acc=0.8884  prec=0.8680  rec=0.9404
+  adversarial : acc=0.1669  prec=0.1388  rec=0.0985
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9236
+  adversarial accuracy: 0.9673
+  precision / recall  : 0.9268 / 0.9673
+  end to end (comparable across model types)
+  clean  : 0.8161   (right AND not flagged)
+  robust : 0.9992   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04196, 0.2795]
+  SLAV rel : [0.4459, 8.342]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6562 ± 0.0738 ms   (early exit 0.00%)
+  latency adv   : 0.6313 ± 0.0499 ms   (early exit 0.00%)
+
+### [102/123] s3/fur/apgd/medium/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False ###
+act_margin = (0.181097, 0.346169)  (5x natural rel=(0.036219, 0.069234), cached)
+TASK (positive = attack)
+  clean       : acc=0.8675  prec=0.8230  rec=0.9675
+  adversarial : acc=0.1541  prec=0.1386  rec=0.1028
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9398
+  adversarial accuracy: 0.9843
+  precision / recall  : 0.9424 / 0.9843
+  end to end (comparable across model types)
+  clean  : 0.8109   (right AND not flagged)
+  robust : 0.9983   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03549, 0.1668]
+  SLAV rel : [0.3863, 6.265]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7623 ± 0.0966 ms   (early exit 0.00%)
+  latency adv   : 0.8011 ± 0.0747 ms   (early exit 0.00%)
+
+### [103/123] s3/fur/apgd/medium/max/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.155881, 0.347179)  (5x natural rel=(0.031176, 0.069436), cached)
+TASK (positive = attack)
+  clean       : acc=0.8671  prec=0.8485  rec=0.9236
+  adversarial : acc=0.1329  prec=0.1002  rec=0.0720
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9229
+  adversarial accuracy: 0.9257
+  precision / recall  : 0.9231 / 0.9257
+  end to end (comparable across model types)
+  clean  : 0.8029   (right AND not flagged)
+  robust : 0.9972   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06904, 0.6993]
+  SLAV rel : [0.7394, 6.218]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.1745 ± 0.1215 ms   (early exit 2.44%)
+  latency adv   : 0.8472 ± 0.1929 ms   (early exit 83.59%)
+
+### [104/123] s3/fur/apgd/medium/max/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.155881, 0.347179)  (5x natural rel=(0.031176, 0.069436), cached)
+TASK (positive = attack)
+  clean       : acc=0.8731  prec=0.8398  rec=0.9509
+  adversarial : acc=0.1391  prec=0.1351  rec=0.1044
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9330
+  adversarial accuracy: 0.9168
+  precision / recall  : 0.9319 / 0.9168
+  end to end (comparable across model types)
+  clean  : 0.8115   (right AND not flagged)
+  robust : 0.9957   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07626, 0.9369]
+  SLAV rel : [0.8933, 6.549]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8420 ± 0.1403 ms   (early exit 9.67%)
+  latency adv   : 0.7807 ± 0.2439 ms   (early exit 80.37%)
+
+### [105/123] s3/fur/apgd/medium/max/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, detach=True ###
+act_margin = (0.155881, 0.347179)  (5x natural rel=(0.031176, 0.069436), cached)
+TASK (positive = attack)
+  clean       : acc=0.8759  prec=0.8444  rec=0.9496
+  adversarial : acc=0.1349  prec=0.1241  rec=0.0943
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9088
+  adversarial accuracy: 0.9561
+  precision / recall  : 0.9129 / 0.9561
+  end to end (comparable across model types)
+  clean  : 0.7903   (right AND not flagged)
+  robust : 0.9968   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0692, 0.7946]
+  SLAV rel : [0.7994, 5.187]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8230 ± 0.1345 ms   (early exit 13.67%)
+  latency adv   : 0.5913 ± 0.1250 ms   (early exit 93.16%)
+
+### [106/123] s3/fur/apgd/medium/max/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.181097, 0.346169)  (5x natural rel=(0.036219, 0.069234), cached)
+TASK (positive = attack)
+  clean       : acc=0.8771  prec=0.8470  rec=0.9479
+  adversarial : acc=0.0986  prec=0.0784  rec=0.0593
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9255
+  adversarial accuracy: 0.9617
+  precision / recall  : 0.9281 / 0.9617
+  end to end (comparable across model types)
+  clean  : 0.8068   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04957, 0.3851]
+  SLAV rel : [0.4864, 8.843]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 1.0090 ± 0.1211 ms   (early exit 7.52%)
+  latency adv   : 0.7046 ± 0.1701 ms   (early exit 86.72%)
+
+### [107/123] s3/fur/apgd/medium/max/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.181097, 0.346169)  (5x natural rel=(0.036219, 0.069234), cached)
+TASK (positive = attack)
+  clean       : acc=0.8866  prec=0.8722  rec=0.9303
+  adversarial : acc=0.1114  prec=0.0664  rec=0.0470
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9326
+  adversarial accuracy: 0.9693
+  precision / recall  : 0.9350 / 0.9693
+  end to end (comparable across model types)
+  clean  : 0.8252   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04298, 0.3072]
+  SLAV rel : [0.4537, 7.88]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9849 ± 0.1359 ms   (early exit 6.35%)
+  latency adv   : 0.7629 ± 0.1400 ms   (early exit 96.29%)
+
+### [108/123] s3/fur/apgd/medium/max/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), score_reduce=max, early_exit=True, detach=False ###
+act_margin = (0.181097, 0.346169)  (5x natural rel=(0.036219, 0.069234), cached)
+TASK (positive = attack)
+  clean       : acc=0.8782  prec=0.8421  rec=0.9586
+  adversarial : acc=0.0849  prec=0.0622  rec=0.0470
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9518
+  adversarial accuracy: 0.9835
+  precision / recall  : 0.9533 / 0.9835
+  end to end (comparable across model types)
+  clean  : 0.8317   (right AND not flagged)
+  robust : 0.9987   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0397, 0.1888]
+  SLAV rel : [0.4537, 5.636]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.9655 ± 0.2824 ms   (early exit 7.62%)
+  latency adv   : 0.7626 ± 0.1465 ms   (early exit 96.58%)
+
+### [109/123] s3/fur/apgd/high/mean/[detach=True] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=True ###
+act_margin = (0.119904,)  (5x natural rel=(0.023981,), measured)
+TASK (positive = attack)
+  clean       : acc=0.8517  prec=0.8320  rec=0.9155
+  adversarial : acc=0.1716  prec=0.1025  rec=0.0650
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9644
+  adversarial accuracy: 0.9642
+  precision / recall  : 0.9644 / 0.9642
+  end to end (comparable across model types)
+  clean  : 0.8188   (right AND not flagged)
+  robust : 0.9984   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04308, 0.1709, 2.906]
+  SLAV rel : [0.5865, 0.8008, 1.697]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5293 ± 0.0946 ms   (early exit 0.00%)
+  latency adv   : 0.6610 ± 0.1570 ms   (early exit 0.00%)
+
+### [110/123] s3/fur/apgd/high/mean/[detach=True] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=True ###
+act_margin = (0.119904,)  (5x natural rel=(0.023981,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8693  prec=0.8545  rec=0.9191
+  adversarial : acc=0.2904  prec=0.3054  rec=0.2266
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9393
+  adversarial accuracy: 0.9199
+  precision / recall  : 0.9381 / 0.9199
+  end to end (comparable across model types)
+  clean  : 0.8203   (right AND not flagged)
+  robust : 0.9944   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04465, 0.1514, 2.291]
+  SLAV rel : [0.6316, 0.8021, 1.389]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5840 ± 0.0354 ms   (early exit 0.00%)
+  latency adv   : 0.5798 ± 0.0415 ms   (early exit 0.00%)
+
+### [111/123] s3/fur/apgd/high/mean/[detach=True] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=True ###
+act_margin = (0.119904,)  (5x natural rel=(0.023981,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8667  prec=0.8563  rec=0.9107
+  adversarial : acc=0.1707  prec=0.1378  rec=0.0963
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9524
+  adversarial accuracy: 0.9740
+  precision / recall  : 0.9535 / 0.9740
+  end to end (comparable across model types)
+  clean  : 0.8227   (right AND not flagged)
+  robust : 0.9985   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04699, 0.1743, 2.899]
+  SLAV rel : [0.5852, 0.7945, 1.585]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5347 ± 0.0860 ms   (early exit 0.00%)
+  latency adv   : 0.5284 ± 0.0859 ms   (early exit 0.00%)
+
+### [112/123] s3/fur/apgd/high/mean/[detach=False] | unsw-nb15 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False ###
+act_margin = (0.150239,)  (5x natural rel=(0.030048,), measured)
+TASK (positive = attack)
+  clean       : acc=0.8892  prec=0.8767  rec=0.9295
+  adversarial : acc=0.3512  prec=0.3581  rec=0.2251
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8874
+  adversarial accuracy: 0.9401
+  precision / recall  : 0.8931 / 0.9401
+  end to end (comparable across model types)
+  clean  : 0.7817   (right AND not flagged)
+  robust : 0.9966   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02764, 0.09461, 1.242]
+  SLAV rel : [0.3344, 0.5219, 0.9734]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5230 ± 0.0952 ms   (early exit 0.00%)
+  latency adv   : 0.5207 ± 0.0990 ms   (early exit 0.00%)
+
+### [113/123] s3/fur/apgd/high/mean/[detach=False] | unsw-nb15 | seed 43 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False ###
+act_margin = (0.150239,)  (5x natural rel=(0.030048,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8499  prec=0.8181  rec=0.9354
+  adversarial : acc=0.3649  prec=0.3732  rec=0.2258
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8468
+  adversarial accuracy: 0.9265
+  precision / recall  : 0.8581 / 0.9265
+  end to end (comparable across model types)
+  clean  : 0.7087   (right AND not flagged)
+  robust : 0.9978   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03314, 0.1256, 1.661]
+  SLAV rel : [0.4004, 0.5176, 1.046]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5929 ± 0.0399 ms   (early exit 0.00%)
+  latency adv   : 0.5892 ± 0.0422 ms   (early exit 0.00%)
+
+### [114/123] s3/fur/apgd/high/mean/[detach=False] | unsw-nb15 | seed 44 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False ###
+act_margin = (0.150239,)  (5x natural rel=(0.030048,), cached)
+TASK (positive = attack)
+  clean       : acc=0.8670  prec=0.8572  rec=0.9101
+  adversarial : acc=0.2729  prec=0.2423  rec=0.1507
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9459
+  adversarial accuracy: 0.9732
+  precision / recall  : 0.9474 / 0.9732
+  end to end (comparable across model types)
+  clean  : 0.8186   (right AND not flagged)
+  robust : 0.9977   (right OR flagged)
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03502, 0.1232, 2.093]
+  SLAV rel : [0.5374, 0.7916, 1.518]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5149 ± 0.1007 ms   (early exit 0.00%)
+  latency adv   : 0.5245 ± 0.0992 ms   (early exit 0.00%)
+
+### [115/123] s3/clo/mini | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8233  prec=0.7605  rec=0.9912
+  adversarial : acc=0.8129  prec=0.7525  rec=0.9837
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07172, 0.1983]
+  SLAV rel : [0.007882, 0.03097]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2726 ± 0.0420 ms   (early exit 0.00%)
+  latency adv   : 0.2711 ± 0.0415 ms   (early exit 0.00%)
+
+### [116/123] s3/clo/mini | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8156  prec=0.7512  rec=0.9944
+  adversarial : acc=0.8000  prec=0.7438  rec=0.9712
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05944, 0.1657]
+  SLAV rel : [0.008251, 0.02796]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2894 ± 0.0533 ms   (early exit 0.00%)
+  latency adv   : 0.2640 ± 0.0466 ms   (early exit 0.00%)
+
+### [117/123] s3/clo/mini | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8267  prec=0.7655  rec=0.9878
+  adversarial : acc=0.8008  prec=0.7467  rec=0.9661
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0542, 0.181]
+  SLAV rel : [0.007029, 0.03568]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2750 ± 0.0542 ms   (early exit 0.00%)
+  latency adv   : 0.2685 ± 0.0503 ms   (early exit 0.00%)
+
+### [118/123] s3/clo/medium | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8167  prec=0.7523  rec=0.9944
+  adversarial : acc=0.8109  prec=0.7487  rec=0.9884
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02265, 0.0585]
+  SLAV rel : [0.008048, 0.0277]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3184 ± 0.0682 ms   (early exit 0.00%)
+  latency adv   : 0.3146 ± 0.0693 ms   (early exit 0.00%)
+
+### [119/123] s3/clo/medium | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8255  prec=0.7635  rec=0.9896
+  adversarial : acc=0.8092  prec=0.7505  rec=0.9788
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02894, 0.06566]
+  SLAV rel : [0.008851, 0.02616]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2860 ± 0.0389 ms   (early exit 0.00%)
+  latency adv   : 0.2813 ± 0.0331 ms   (early exit 0.00%)
+
+### [120/123] s3/clo/medium | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8242  prec=0.7615  rec=0.9910
+  adversarial : acc=0.8109  prec=0.7495  rec=0.9864
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03477, 0.07857]
+  SLAV rel : [0.009276, 0.02583]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3094 ± 0.0583 ms   (early exit 0.00%)
+  latency adv   : 0.2981 ± 0.0582 ms   (early exit 0.00%)
+
+### [121/123] s3/clo/high | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8162  prec=0.7517  rec=0.9948
+  adversarial : acc=0.8144  prec=0.7503  rec=0.9936
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02531, 0.05576, 0.4067]
+  SLAV rel : [0.008105, 0.01839, 0.07197]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3127 ± 0.0495 ms   (early exit 0.00%)
+  latency adv   : 0.3116 ± 0.0473 ms   (early exit 0.00%)
+
+### [122/123] s3/clo/high | unsw-nb15 | seed 43 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8211  prec=0.7574  rec=0.9933
+  adversarial : acc=0.8016  prec=0.7447  rec=0.9734
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01973, 0.03579, 0.2592]
+  SLAV rel : [0.009583, 0.02076, 0.07952]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3278 ± 0.0594 ms   (early exit 0.00%)
+  latency adv   : 0.3097 ± 0.0499 ms   (early exit 0.00%)
+
+### [123/123] s3/clo/high | unsw-nb15 | seed 44 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,) ###
+TASK (positive = attack)
+  clean       : acc=0.8207  prec=0.7568  rec=0.9936
+  adversarial : acc=0.8112  prec=0.7491  rec=0.9881
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02074, 0.03703, 0.2754]
+  SLAV rel : [0.008622, 0.01746, 0.0751]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2649 ± 0.0426 ms   (early exit 0.00%)
+  latency adv   : 0.2678 ± 0.0418 ms   (early exit 0.00%)
+
+== summary (123 run) ==
+experiment                                dataset  model  n  epochs  task_clean_acc   task_adv_acc  det_clean_acc    det_adv_acc  clean_acc_e2e  robust_acc_e2e  threshold_det      val_score       infer_ms   infer_ms_adv  infer_exit_rate_adv  duration_s
+--------------------------------------  ---------  -----  -  ------  --------------  -------------  -------------  -------------  -------------  --------------  -------------  -------------  -------------  -------------  -------------------  ----------
+s3/fur/pgd/high/mean/[detach=False]     unsw-nb15    det  3    10±1   0.8715±0.0122  0.0018±0.0021  0.9967±0.0030  0.9994±0.0001  0.8692±0.0136   0.9996±0.0002  0.3733±0.1686  0.9698±0.0006  0.6921±0.1269  0.6851±0.1225        0.0000±0.0000      159±13
+s3/fur/pgd/high/max/[detach=False]      unsw-nb15    det  3     9±1   0.8667±0.0177  0.0011±0.0010  0.9978±0.0013  0.9990±0.0007  0.8651±0.0185   0.9992±0.0007  0.6900±0.1386  0.9697±0.0007  0.9630±0.1804  0.6286±0.1392        0.9997±0.0006      140±12
+s3/det/pgd/high/mean/[detach=False]     unsw-nb15    det  3     7±2   0.8618±0.0201  0.2221±0.1006  0.9980±0.0006  0.9993±0.0003  0.8600±0.0207   0.9997±0.0001  0.3633±0.0723  0.9695±0.0008  0.7135±0.1901  0.7181±0.2115        0.0000±0.0000       84±24
+s3/det/pgd/high/max/[detach=False]      unsw-nb15    det  3     7±2   0.8618±0.0201  0.2221±0.1006  0.9981±0.0006  0.9992±0.0003  0.8600±0.0207   0.9997±0.0002  0.7167±0.1286  0.9695±0.0008  1.0307±0.1269  0.6489±0.0959        1.0000±0.0000       88±20
+s3/fur/pgd/mini/mean/[detach=False]     unsw-nb15    det  3    10±0   0.8697±0.0042  0.0941±0.0421  0.9971±0.0014  0.9984±0.0003  0.8675±0.0035   0.9988±0.0003  0.4200±0.1552  0.9692±0.0012  0.3567±0.0693  0.3495±0.0610        0.0000±0.0000       111±6
+s3/det/pgd/medium/mean/[detach=False]   unsw-nb15    det  3     8±1   0.8768±0.0046  0.3134±0.0030  0.9975±0.0007  0.9977±0.0003  0.8746±0.0040   0.9990±0.0005  0.6400±0.0693  0.9689±0.0007  0.5156±0.1149  0.5085±0.1214        0.0000±0.0000        79±9
+s3/fur/pgd/medium/mean/[detach=False]   unsw-nb15    det  3     7±2   0.8691±0.0129  0.1328±0.0262  0.9952±0.0006  0.9981±0.0008  0.8654±0.0128   0.9989±0.0004  0.4767±0.0907  0.9688±0.0008  0.6183±0.1256  0.5878±0.0799        0.0000±0.0000       84±23
+s3/fur/pgd/medium/mean/[detach=True]    unsw-nb15    det  3     8±2   0.8756±0.0134  0.1939±0.0584  0.9960±0.0025  0.9982±0.0014  0.8722±0.0156   0.9990±0.0010  0.4633±0.2363  0.9687±0.0005  0.5125±0.1225  0.5164±0.1211        0.0000±0.0000       90±21
+s3/det/pgd/mini/mean/[detach=False]     unsw-nb15    det  3    10±1   0.8620±0.0089  0.2616±0.0519  0.9973±0.0005  0.9988±0.0005  0.8595±0.0091   0.9997±0.0001  0.2500±0.1808  0.9685±0.0016  0.5888±0.0949  0.5938±0.0868        0.0000±0.0000        94±5
+s3/det/pgd/medium/mean/[detach=True]    unsw-nb15    det  3     7±1   0.8663±0.0139  0.3765±0.0173  0.9957±0.0019  0.9961±0.0006  0.8625±0.0148   0.9985±0.0005  0.3467±0.0777  0.9684±0.0010  0.4377±0.1206  0.4402±0.1212        0.0000±0.0000        69±9
+s3/fur/pgd/mini/mean/[detach=True]      unsw-nb15    det  3    10±0   0.8632±0.0079  0.1433±0.0188  0.9941±0.0035  0.9974±0.0006  0.8579±0.0098   0.9982±0.0005  0.4033±0.1756  0.9684±0.0012  0.4161±0.1515  0.3670±0.0785        0.0000±0.0000       114±3
+s3/fur/pgd/high/mean/[detach=True]      unsw-nb15    det  3     8±3   0.8640±0.0165  0.0388±0.0227  0.9977±0.0016  0.9983±0.0012  0.8625±0.0169   0.9988±0.0007  0.5000±0.0000  0.9683±0.0018  0.6006±0.1039  0.6193±0.1592        0.0000±0.0000      123±40
+s3/det/pgd/high/mean/[detach=True]      unsw-nb15    det  3     8±2   0.8713±0.0118  0.3533±0.0154  0.9966±0.0024  0.9955±0.0020  0.8687±0.0134   0.9972±0.0015  0.5000±0.0000  0.9682±0.0007  0.6875±0.1469  0.6792±0.1297        0.0000±0.0000      101±25
+s3/det/pgd/mini/mean/[detach=True]      unsw-nb15    det  3    10±1   0.8623±0.0031  0.3535±0.0205  0.9936±0.0016  0.9941±0.0013  0.8573±0.0045   0.9977±0.0003  0.4467±0.0569  0.9675±0.0006  0.4598±0.1374  0.4729±0.1460        0.0000±0.0000        95±6
+s3/det/pgd/high/max/[detach=True]       unsw-nb15    det  3    10±0   0.8812±0.0084  0.3220±0.0176  0.9925±0.0014  0.9955±0.0015  0.8770±0.0071   0.9976±0.0012  0.9467±0.0513  0.9643±0.0021  1.0516±0.2335  0.7047±0.2638        0.9948±0.0020       124±3
+s3/fur/apgd/medium/mean/[detach=False]  unsw-nb15    det  3    10±0   0.8748±0.0118  0.1592±0.0068  0.9277±0.0107  0.9767±0.0087  0.8106±0.0057   0.9989±0.0005  0.4167±0.0351  0.9632±0.0016  0.6626±0.1161  0.6665±0.1210        0.0000±0.0000       270±5
+s3/fur/pgd/high/max/[detach=True]       unsw-nb15    det  3     8±2   0.8726±0.0155  0.0384±0.0198  0.9945±0.0051  0.9957±0.0042  0.8692±0.0180   0.9962±0.0040  0.9567±0.0115  0.9632±0.0034  0.9993±0.2370  0.6378±0.1348        0.9925±0.0071      130±32
+s3/fur/apgd/medium/max/[detach=False]   unsw-nb15    det  3    10±0   0.8806±0.0052  0.0983±0.0133  0.9366±0.0136  0.9715±0.0111  0.8212±0.0129   0.9987±0.0002  0.4900±0.0173  0.9591±0.0025  0.9865±0.1948  0.7434±0.1552        0.9320±0.0561       269±7
+s3/fur/apgd/high/mean/[detach=True]     unsw-nb15    det  3    10±0   0.8626±0.0095  0.2109±0.0689  0.9520±0.0126  0.9527±0.0288  0.8206±0.0020   0.9971±0.0023  0.4600±0.0520  0.9563±0.0114  0.5493±0.0804  0.5897±0.1193        0.0000±0.0000       232±9
+s3/fur/apgd/mini/max/[detach=False]     unsw-nb15    det  3    10±0   0.8703±0.0081  0.1168±0.0216  0.9357±0.0278  0.9596±0.0022  0.8099±0.0252   0.9985±0.0001  0.4767±0.0208  0.9560±0.0023  1.0332±0.3816  0.6419±0.1384        0.9482±0.0042       263±3
+s3/fur/apgd/high/mean/[detach=False]    unsw-nb15    det  3     8±2   0.8687±0.0197  0.3297±0.0496  0.8934±0.0498  0.9466±0.0240  0.7697±0.0559   0.9974±0.0007  0.3767±0.0252  0.9509±0.0069  0.5436±0.0903  0.5448±0.0902        0.0000±0.0000      189±34
+s3/fur/apgd/medium/mean/[detach=True]   unsw-nb15    det  3     9±0   0.8877±0.0101  0.2709±0.0362  0.9270±0.0370  0.9281±0.0135  0.8186±0.0274   0.9938±0.0017  0.4633±0.0666  0.9508±0.0038  0.6079±0.0960  0.6091±0.1148        0.0000±0.0000       241±3
+s3/det/apgd/medium/mean/[detach=False]  unsw-nb15    det  3     9±1   0.8697±0.0119  0.3838±0.0713  0.8915±0.0324  0.8680±0.0851  0.7658±0.0418   0.9973±0.0010  0.4767±0.0058  0.9505±0.0032  0.6601±0.1805  0.6273±0.0997        0.0000±0.0000      232±28
+s3/fur/apgd/medium/max/[detach=True]    unsw-nb15    det  3    10±1   0.8720±0.0045  0.1356±0.0032  0.9216±0.0122  0.9329±0.0206  0.8016±0.0107   0.9966±0.0008  0.5367±0.0611  0.9499±0.0076  0.9465±0.2087  0.7397±0.2218        0.8571±0.0665      260±18
+s3/fur/apgd/mini/mean/[detach=False]    unsw-nb15    det  3    10±0   0.8544±0.0122  0.2537±0.0248  0.9143±0.0421  0.9442±0.0161  0.7769±0.0471   0.9966±0.0007  0.4567±0.0577  0.9490±0.0070  0.6907±0.0831  0.7045±0.1046        0.0000±0.0000       261±5
+s3/fur/apgd/mini/mean/[detach=True]     unsw-nb15    det  3    10±1   0.8757±0.0221  0.2644±0.0140  0.8666±0.0293  0.8267±0.0794  0.7491±0.0377   0.9871±0.0029  0.4433±0.0416  0.9407±0.0038  0.6160±0.0823  0.6562±0.1347        0.0000±0.0000      250±20
+s3/det/apgd/high/mean/[detach=False]    unsw-nb15    det  3     8±3   0.8549±0.0355  0.4986±0.1369  0.8772±0.0937  0.6668±0.2939  0.7391±0.0598   0.9838±0.0157  0.5033±0.0351  0.9407±0.0112  0.8256±0.1418  0.8331±0.1311        0.0000±0.0000      268±88
+s3/clo/high                             unsw-nb15    adv  3     6±1   0.8193±0.0027  0.8091±0.0067              -              -  0.8193±0.0027   0.8091±0.0067              -  0.9353±0.0017  0.3018±0.0576  0.2964±0.0507        0.0000±0.0000       67±11
+s3/clo/medium                           unsw-nb15    adv  3     6±1   0.8221±0.0048  0.8103±0.0010              -              -  0.8221±0.0048   0.8103±0.0010              -  0.9330±0.0017  0.3046±0.0581  0.2980±0.0573        0.0000±0.0000        61±4
+s3/clo/mini                             unsw-nb15    adv  3     8±2   0.8219±0.0057  0.8046±0.0072              -              -  0.8219±0.0057   0.8046±0.0072              -  0.9312±0.0023  0.2790±0.0507  0.2679±0.0464        0.0000±0.0000       82±13
+s3/det/apgd/mini/max/[detach=False]     unsw-nb15    det  3    10±0   0.8619±0.0049  0.3476±0.0265  0.8959±0.0202  0.8215±0.0834  0.7635±0.0205   0.9937±0.0026  0.5167±0.0643  0.9303±0.0077  1.0459±0.1553  0.7535±0.1842        0.8799±0.0569       252±5
+s3/det/apgd/mini/mean/[detach=False]    unsw-nb15    det  3     8±3   0.8450±0.0202  0.4844±0.1102  0.8846±0.0773  0.6798±0.2954  0.7345±0.0558   0.9675±0.0407  0.5200±0.0866  0.9245±0.0232  0.5529±0.0934  0.5504±0.0885        0.0000±0.0000      200±73
+s3/fur/apgd/mini/max/[detach=True]      unsw-nb15    det  3    10±0   0.8813±0.0062  0.2386±0.0051  0.9381±0.0271  0.7786±0.0038  0.8254±0.0279   0.9837±0.0022  0.6233±0.0839  0.9215±0.0068  1.1410±0.2358  0.7595±0.2008        0.7549±0.0390       265±5
+s3/det/apgd/medium/max/[detach=False]   unsw-nb15    det  3     9±2   0.8713±0.0115  0.3750±0.0384  0.8312±0.1122  0.8303±0.0875  0.7103±0.1235   0.9965±0.0022  0.5067±0.0231  0.9107±0.0310  0.9986±0.1909  0.6811±0.1827        0.8636±0.0559      227±39
+s3/det/apgd/high/max/[detach=False]     unsw-nb15    det  3     9±1   0.8773±0.0046  0.3691±0.0634  0.8525±0.0226  0.8403±0.0391  0.7361±0.0268   0.9957±0.0031  0.5200±0.0173  0.8904±0.0234  1.3704±0.2530  0.8118±0.2768        0.8786±0.0390      308±39
+s3/det/apgd/high/mean/[detach=True]     unsw-nb15    det  3     8±3   0.8765±0.0266  0.6093±0.0224  0.7169±0.2094  0.6705±0.2751  0.6090±0.1791   0.9676±0.0274  0.4867±0.0379  0.8883±0.0556  0.7220±0.1316  0.7280±0.1512        0.0000±0.0000      253±79
+s3/det/apgd/medium/mean/[detach=True]   unsw-nb15    det  3     7±1   0.8657±0.0053  0.6440±0.0076  0.6007±0.2124  0.7901±0.1614  0.4766±0.2010   0.9630±0.0201  0.4667±0.0289  0.8745±0.0472  0.5459±0.0783  0.5730±0.0951        0.0000±0.0000      164±13
+s3/det/apgd/mini/mean/[detach=True]     unsw-nb15    det  3     8±3   0.8755±0.0147  0.6337±0.0047  0.7175±0.2242  0.5497±0.2223  0.6007±0.2055   0.9587±0.0364  0.5267±0.0635  0.8606±0.0479  0.7880±0.1761  0.7141±0.0824        0.0000±0.0000      194±65
+s3/det/apgd/medium/max/[detach=True]    unsw-nb15    det  3     7±2   0.8716±0.0145  0.6615±0.0062  0.8117±0.2538  0.4251±0.2092  0.6913±0.2315   0.9649±0.0173  0.6467±0.1504  0.7648±0.0602  0.9622±0.2090  0.8572±0.2331        0.4251±0.0644      188±41
+s3/det/apgd/mini/max/[detach=True]      unsw-nb15    det  3     6±2   0.8664±0.0069  0.6498±0.0147  0.9495±0.0247  0.2636±0.0370  0.8197±0.0228   0.9007±0.0133  0.6767±0.0603  0.7463±0.0507  1.1316±0.1812  0.9040±0.2160        0.3118±0.0348      159±34
+s3/det/apgd/high/max/[detach=True]      unsw-nb15    det  3     5±1   0.8605±0.0138  0.6359±0.0253  0.9296±0.0178  0.2810±0.0644  0.7960±0.0189   0.8885±0.0457  0.7033±0.0651  0.7067±0.0700  1.5639±0.2014  1.2394±0.4115        0.3871±0.0741      183±20
+
+== val_score: esperimento x dataset ==
+experiment                                  unsw-nb15
+--------------------------------------  -------------
+s3/det/pgd/mini/mean/[detach=True]      0.9675±0.0006
+s3/det/pgd/mini/mean/[detach=False]     0.9685±0.0016
+s3/det/pgd/medium/mean/[detach=True]    0.9684±0.0010
+s3/det/pgd/medium/mean/[detach=False]   0.9689±0.0007
+s3/det/pgd/high/mean/[detach=True]      0.9682±0.0007
+s3/det/pgd/high/mean/[detach=False]     0.9695±0.0008
+s3/det/pgd/high/max/[detach=True]       0.9643±0.0021
+s3/det/pgd/high/max/[detach=False]      0.9695±0.0008
+s3/det/apgd/mini/mean/[detach=True]     0.8606±0.0479
+s3/det/apgd/mini/mean/[detach=False]    0.9245±0.0232
+s3/det/apgd/mini/max/[detach=True]      0.7463±0.0507
+s3/det/apgd/mini/max/[detach=False]     0.9303±0.0077
+s3/det/apgd/medium/mean/[detach=True]   0.8745±0.0472
+s3/det/apgd/medium/mean/[detach=False]  0.9505±0.0032
+s3/det/apgd/medium/max/[detach=True]    0.7648±0.0602
+s3/det/apgd/medium/max/[detach=False]   0.9107±0.0310
+s3/det/apgd/high/mean/[detach=True]     0.8883±0.0556
+s3/det/apgd/high/mean/[detach=False]    0.9407±0.0112
+s3/det/apgd/high/max/[detach=True]      0.7067±0.0700
+s3/det/apgd/high/max/[detach=False]     0.8904±0.0234
+s3/fur/pgd/mini/mean/[detach=True]      0.9684±0.0012
+s3/fur/pgd/mini/mean/[detach=False]     0.9692±0.0012
+s3/fur/pgd/medium/mean/[detach=True]    0.9687±0.0005
+s3/fur/pgd/medium/mean/[detach=False]   0.9688±0.0008
+s3/fur/pgd/high/mean/[detach=True]      0.9683±0.0018
+s3/fur/pgd/high/mean/[detach=False]     0.9698±0.0006
+s3/fur/pgd/high/max/[detach=True]       0.9632±0.0034
+s3/fur/pgd/high/max/[detach=False]      0.9697±0.0007
+s3/fur/apgd/mini/mean/[detach=True]     0.9407±0.0038
+s3/fur/apgd/mini/mean/[detach=False]    0.9490±0.0070
+s3/fur/apgd/mini/max/[detach=True]      0.9215±0.0068
+s3/fur/apgd/mini/max/[detach=False]     0.9560±0.0023
+s3/fur/apgd/medium/mean/[detach=True]   0.9508±0.0038
+s3/fur/apgd/medium/mean/[detach=False]  0.9632±0.0016
+s3/fur/apgd/medium/max/[detach=True]    0.9499±0.0076
+s3/fur/apgd/medium/max/[detach=False]   0.9591±0.0025
+s3/fur/apgd/high/mean/[detach=True]     0.9563±0.0114
+s3/fur/apgd/high/mean/[detach=False]    0.9509±0.0069
+s3/clo/mini                             0.9312±0.0023
+s3/clo/medium                           0.9330±0.0017
+s3/clo/high                             0.9353±0.0017
+
+CSV: results/summary_s3_UNSW_BW15.csv

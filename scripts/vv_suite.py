@@ -1,6 +1,6 @@
 """V&V suite: all the tests of the spec, in spec order, with the final report.
 
-    Verifica     V1.1-V1.6, V2.1-V2.5   modello e attacchi       (vv_verify_model)
+    Verifica     V1.1-V1.6, V2.1-V2.4   modello e attacchi       (vv_verify_model)
                  V3.1-V3.6              coerenza di sistema      (vv_verify_system)
     Validazione  A3, A1, A2, A4         robustezza               (vv_validate_robustness)
                  M1-M7                  meccanismi del metodo    (vv_validate_mechanisms)
