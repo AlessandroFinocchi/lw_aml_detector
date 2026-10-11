@@ -243,7 +243,7 @@ def v4_6(t:vc.Report, S:vc.Session):
                           infer=le.DEFAULT_TIMED_INFER_SAMPLES).results[0]
         row, saved = vc.normalize_row(res.row()), st.row(name, vc.SEED)
         check_close(t, f"reale {name} seed {vc.SEED}: metriche uguali dopo load_from",
-                    vc.diff_rows, saved, row, exclude=("epochs", "val_score"))
+                    vc.diff_rows, saved, row, exclude=("epochs", "test_score"))
         if exp.config().uses_detectors:
             t.check(f"reale {name} seed {vc.SEED}: soglia identica",
                     vc.same_value(row["threshold_det"], saved["threshold_det"]),

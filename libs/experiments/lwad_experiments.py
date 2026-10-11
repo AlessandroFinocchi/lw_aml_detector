@@ -290,10 +290,13 @@ class DatasetBundle:
 # ===========================================================================
 # Run utilities
 # ===========================================================================
-def validation_score(metrics: dict, mode: str = lc.DEFAULT_SCORE_MODE) -> float:
-    """The single number every run is ranked on, identical for both model types.
+def compute_score(metrics: dict, mode: str = lc.DEFAULT_SCORE_MODE) -> float:
+    """The single number every run is judged on, identical for both model types.
 
-    The old per-model formulas (detector balanced accuracy vs adversarial task 
+    On the validation split it drives early stopping, on the test split it is
+    the test_score the runs are ranked on.
+
+    The old per-model formulas (detector balanced accuracy vs adversarial task
     accuracy) were not comparable, so they could not order detector models and
     adversarial training models in the same table. The end-to-end metrics
     can: see lwad_evaluator for their definition.
@@ -354,7 +357,7 @@ def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
                           attack_mask=data.attack_mask, attack=cfg.train_attack,
                           device=device, threshold_det=threshold_det,
                           attack_kwargs=attack_kwargs, reduce=cfg.score_reduce)
-        val_score = validation_score(val, cfg.score_mode)
+        val_score = compute_score(val, cfg.score_mode)
 
         if verbose >= 2:
             print(_epoch_report(epoch, stats, val, val_score))
@@ -379,7 +382,7 @@ def train_with_early_stopping(model, optimizer, cfg, data: DatasetBundle,
 # Results
 # ===========================================================================
 CSV_COLUMNS = [
-    "dataset", "experiment", "model", "params", "seed", "epochs", "val_score",
+    "dataset", "experiment", "model", "params", "seed", "epochs", "test_score",
     "threshold_det", "train_attack", "eval_attack",
     "task_clean_acc", "task_clean_prec", "task_clean_rec",
     "task_adv_acc", "task_adv_prec", "task_adv_rec",
@@ -413,7 +416,8 @@ class RunResult:
     params: str
     config: Optional[lc.ModelConfig] = None
     epochs_ran: int = 0
-    best_val_score: float = float("nan")
+    best_val_score: float = float("nan")    # early stopping only, never reported
+    test_score: float = float("nan")
     threshold_det: Optional[float] = None
     metrics: Optional[dict] = None
     duration_s: float = 0.0
@@ -436,8 +440,8 @@ class RunResult:
                      eval_attack=self.config.eval_attack)
         if self.threshold_det is not None:
             r["threshold_det"] = round(self.threshold_det, 4)
-        if self.best_val_score == self.best_val_score:
-            r["val_score"] = round(self.best_val_score, 4)
+        if self.test_score == self.test_score:
+            r["test_score"] = round(self.test_score, 4)
         m = self.metrics
         if m:
             tc, ta = m["task_clean"], m["task_adv"]
@@ -531,7 +535,7 @@ class SuiteResult:
         return [r for r in self.results if not r.ok]
 
     # --- reporting ----------------------------------------------------------
-    def summary_table(self, sort_by: str = "val_score", aggregate: bool = True) -> str:
+    def summary_table(self, sort_by: str = "test_score", aggregate: bool = True) -> str:
         """Run results, one line per (experiment, dataset) pair. Details:
            * with more than one seed the cells carry mean±std across seeds, and
              column n is how many seeds contributed
@@ -541,7 +545,7 @@ class SuiteResult:
         """
         cols = ["experiment", "dataset", "model", "n", "epochs", "task_clean_acc",
                 "task_adv_acc", "det_clean_acc", "det_adv_acc",
-                "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "val_score",
+                "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "test_score",
                 "infer_ms", "infer_ms_adv", "infer_exit_rate_adv", "duration_s"]
         n_bad = len(self.failures())
         head = (f"== summary ({len(self.results)} run"
@@ -574,7 +578,7 @@ class SuiteResult:
         body = [line for _, _, line in sorted(lines, key=lambda t: (t[0], -t[1]))]
         return f"{head}\n{_render_table(body, cols)}"
 
-    def pivot(self, metric: str = "val_score") -> str:
+    def pivot(self, metric: str = "test_score") -> str:
         """
         For a given metric, prints a table comparing the experiments for every dataset.
         Cells are averaged over seeds.
@@ -843,6 +847,7 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                               device=device, threshold_det=threshold_det,
                               attack_kwargs=cfg.attack_kwargs(),
                               reduce=cfg.score_reduce)
+    res.test_score = compute_score(res.metrics, cfg.score_mode)
 
     # --- inference latency ---------------------------------------------------
     # timed on clean and on adversarial flows
@@ -860,7 +865,7 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
                            infer_n_adv=adv["infer_n"],
                            infer_exit_rate_adv=adv["infer_exit_rate"])
     if verbose >= 2:
-        print(_metrics_report(res.metrics))
+        print(_metrics_report(res))
 
     # ---- checkpoint ---------------------------------------------------------
     # stores weights + model type + config, so load_checkpoint() can rebuild it
@@ -874,7 +879,8 @@ def run_experiment(exp: Exp, data: DatasetBundle, *, device: str = "cpu",
     return res
 
 
-def _metrics_report(m: dict) -> str:
+def _metrics_report(res: RunResult) -> str:
+    m = res.metrics
     tc, ta = m["task_clean"], m["task_adv"]
     out = ["TASK (positive = attack)",
            f"  clean       : acc={tc['acc']:.4f}  prec={tc['precision']:.4f}  rec={tc['recall']:.4f}",
@@ -888,6 +894,7 @@ def _metrics_report(m: dict) -> str:
                 f"  end to end (comparable across model types)",
             f"  clean  : {m['clean_acc_e2e']:.4f}   (right AND not flagged)",
             f"  robust : {m['robust_acc_e2e']:.4f}   (right OR flagged)"]
+    out += [f"TEST SCORE ({res.config.score_mode}) : {res.test_score:.4f}"]
     out += ["LAYER-WISE VULNERABILITY (one entry per hidden layer)",
             f"  SLAV     : {_vec(m['slav'])}",
             f"  SLAV rel : {_vec(m['slav_rel'])}"]
@@ -1001,7 +1008,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                                          verbose=verbose, checkpoint_dir=ckpt_dir,
                                          timed_infer_samples=timed_infer_samples)
                     if verbose == 1:
-                        print(_metrics_report(res.metrics))
+                        print(_metrics_report(res))
                 except Exception as exc: # one bad run doesn't kill the suite
                     if on_error == "raise":
                         raise
@@ -1017,7 +1024,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
             data.free()
 
 
-    print(f"\n{suite.summary_table()}\n\n{suite.pivot('val_score')}")
+    print(f"\n{suite.summary_table()}\n\n{suite.pivot('test_score')}")
     print(f"\nCSV: {csv_path}")
     return suite
 

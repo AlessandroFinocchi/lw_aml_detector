@@ -68,7 +68,7 @@ SMALL_EPOCHS = 3            # lt.train_epoch epochs of the trained small models
 LATENCY_KEYS = ("infer_ms", "infer_ms_std", "infer_ms_adv", "infer_ms_adv_std")
 EXIT_RATE_KEYS = ("infer_exit_rate", "infer_exit_rate_adv")
 KEY_METRICS = ("task_clean_acc", "task_adv_acc", "det_clean_acc", "det_adv_acc",
-               "clean_acc_e2e", "robust_acc_e2e", "val_score")
+               "clean_acc_e2e", "robust_acc_e2e", "test_score")
 
 S1_P_VALUE = 0.05           # S1: paired t-test threshold
 S1_MIN_SEEDS = 3            # S1: fewer paired seeds -> INCONCLUSIVE
@@ -317,7 +317,7 @@ def key_metrics(res: lx.RunResult) -> dict:
             "det_adv_acc": m["det_adv_acc"],
             "clean_acc_e2e": m["clean_acc_e2e"],
             "robust_acc_e2e": m["robust_acc_e2e"],
-            "val_score": res.best_val_score}
+            "test_score": res.test_score}
 
 
 def bare_forward(model: lw.LWADSequential, x: torch.Tensor) -> torch.Tensor:
