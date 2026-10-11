@@ -10,7 +10,7 @@ FurtherAL winner, on each attack and size, gets every combination of
 
 A model with one detector has nothing to reduce (mean == max) and keeps mean.
 
-Runs: pgd (2+2) + (2+2) + (4+4), apgd (4+4) + (4+4) + (4+2), CloserAL (3) = 41.
+Runs: pgd (2+2) + (2+2) + (4+4), apgd (4+4) + (4+4) + (2+2), CloserAL (3) = 39.
 """
 from __future__ import annotations
 
@@ -53,15 +53,15 @@ FUR_HIGH_PGD    = replace(FUR, **PGD,  hidden_dims=(256, 128, 32), detector_dims
 DET_MINI_APGD   = replace(DET, **APGD, hidden_dims=(48, 16),       detector_dims=(32, 16), wrap_at=(0, 1))
 FUR_MINI_APGD   = replace(FUR, **APGD, hidden_dims=(48, 16),       detector_dims=(32, 16), wrap_at=(0, 1))
 
-DET_MEDIUM_APGD = replace(DET, **APGD, hidden_dims=(160, 64),      detector_dims=(64, 32), wrap_at=(0, 1))
-FUR_MEDIUM_APGD = replace(FUR, **APGD, hidden_dims=(160, 64),      detector_dims=(64, 32), wrap_at=(0, 1))
+DET_MEDIUM_APGD = replace(DET, **APGD, hidden_dims=(160, 64),      detector_dims=(32, 16), wrap_at=(0, 1))
+FUR_MEDIUM_APGD = replace(FUR, **APGD, hidden_dims=(160, 64),      detector_dims=(32, 16), wrap_at=(0, 1))
 
-DET_HIGH_APGD   = replace(DET, **APGD, hidden_dims=(256, 128, 32), detector_dims=(64, 32), wrap_at=(0, 1, 2))
+DET_HIGH_APGD   = replace(DET, **APGD, hidden_dims=(256, 128, 32), detector_dims=(64, 32), wrap_at=(0,))
 FUR_HIGH_APGD   = replace(FUR, **APGD, hidden_dims=(256, 128, 32), detector_dims=(64, 32), wrap_at=(0,))
 
 # --- CloserAL, pgd only -----------------------------------------------------
 CLO_MINI   = replace(CLO, hidden_dims=(48, 16),       wrap_at=(0,))
-CLO_MEDIUM = replace(CLO, hidden_dims=(160, 64),      wrap_at=(0,))
+CLO_MEDIUM = replace(CLO, hidden_dims=(160, 64),      wrap_at=(0, 1))
 CLO_HIGH   = replace(CLO, hidden_dims=(256, 128, 32), wrap_at=(0,))
 
 

@@ -9,6 +9,7 @@ preset, and ONLY the parameters that differ from it. Then
 """
 from __future__ import annotations
 
+import ast
 import csv
 import dataclasses
 import glob
@@ -527,9 +528,10 @@ def _group_by_run(rows: list[dict]) -> dict:
 @dataclass
 class SuiteResult:
     results: list[RunResult] = field(default_factory=list)
+    resumed: list[dict] = field(default_factory=list)  # csv rows of the runs resume skipped
 
     def rows(self) -> list[dict]:
-        return [r.row() for r in self.results]
+        return self.resumed + [r.row() for r in self.results]
 
     def failures(self) -> list[RunResult]:
         return [r for r in self.results if not r.ok]
@@ -547,8 +549,9 @@ class SuiteResult:
                 "task_adv_acc", "det_clean_acc", "det_adv_acc",
                 "clean_acc_e2e", "robust_acc_e2e", "threshold_det", "test_score",
                 "infer_ms", "infer_ms_adv", "infer_exit_rate_adv", "duration_s"]
-        n_bad = len(self.failures())
-        head = (f"== summary ({len(self.results)} run"
+        n_bad, n_old = len(self.failures()), len(self.resumed)
+        head = (f"== summary ({len(self.results) + n_old} run"
+                f"{f', {n_old} read back from the csv' if n_old else ''}"
                 f"{f', {n_bad} failed' if n_bad else ''}) ==")
 
         if not aggregate:
@@ -614,15 +617,28 @@ def _write_rows(path: str, rows: list[dict], append: bool = True) -> None:
         fh.flush()
 
 
-def _done_runs(path: str) -> set:
-    """(experiment, dataset, seed) triples already recorded without error."""
+def _parse_cell(v: str):
+    """A csv cell back to what RunResult.row() wrote: numbers and per-layer
+    lists are literals, anything else (names, params, paths) stays a string."""
+    try:
+        return ast.literal_eval(v)
+    except (ValueError, SyntaxError):
+        return v
+
+
+def _done_runs(path: str) -> dict:
+    """(experiment, dataset, seed) -> csv row, for the runs already recorded
+    without error. The rows are parsed back as RunResult.row() builds them, so
+    the summary tables can mix them with the runs of this suite; a run
+    recorded twice keeps its last row."""
     if not os.path.exists(path):
-        return set()
-    done = set()
+        return {}
+    done = {}
     with open(path, newline="") as fh:
         for r in csv.DictReader(fh):
             if not r.get("error"):
-                done.add((r["experiment"], r["dataset"], str(r["seed"])))
+                done[(r["experiment"], r["dataset"], str(r["seed"]))] = {
+                    c: _parse_cell(r.get(c) or "") for c in CSV_COLUMNS}
     return done
 
 
@@ -924,7 +940,8 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
     so each one is loaded and moved to the device exactly once for the whole
     table. Results are appended to <out_dir>/<summary_file> after every run, so
     an interrupted suite keeps what it already produced (and resume=True skips
-    it).
+    it). The final tables still cover the skipped runs, read back from the csv:
+    a resume with nothing left to run just prints them.
 
     Args:
         datasets: accepts KaggleDataset members or DatasetBundle objects.
@@ -942,7 +959,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
     device = device or ("cuda" if torch.cuda.is_available() else "cpu")
     csv_path = os.path.join(out_dir, summary_file)
     ckpt_dir = os.path.join(out_dir, "checkpoints") if save_checkpoints else None
-    done = _done_runs(csv_path) if resume else set()
+    done = _done_runs(csv_path) if resume else {}
 
     if on_error not in ("record", "raise"):
         raise ValueError(f"on_error: expected 'record' or 'raise', got {on_error!r}")
@@ -994,6 +1011,7 @@ def run_suite(experiments: Sequence[Exp] = None, datasets: Sequence = None, *,
                     if verbose >= 1:
                         print(f"### [{n:3d}/{total}] {exp.name} | {key[1]} | "
                               f"seed {seed} | already present, skipped ###")
+                    suite.resumed.append(done[key])
                     continue
                 if data is None:       # loaded lazily: a fully resumed dataset costs nothing
                     data = DatasetBundle.load(kd, device=device, download=download,
