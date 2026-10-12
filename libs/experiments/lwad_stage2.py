@@ -34,12 +34,19 @@ CLO = lc.AdvTrainingModelConfig(**COMMON, **PGD)           # CloserAL
 # ===========================================================================
 # Shape grids
 # ===========================================================================
-DET_2_LAYERS = dict(hidden_dims=[(32, 16), (64, 32), (128, 64)],  # 18 runs
-                    detector_dims=[(32, 16), (64, 32)],
-                    wrap_at=[(0,), (1,), (0, 1)])
-DET_3_LAYERS = dict(hidden_dims=[(128, 64, 16), (256, 128, 32)],  #  8 runs
-                    detector_dims=[(64, 32)],
-                    wrap_at=[(0,), (2,), (0, 2), (0, 1, 2)])
+DET_2_LAYERS_PGD = dict(hidden_dims=[(32, 16), (64, 32), (128, 64)],  # 18 runs
+                        detector_dims=[(32, 16), (64, 32)],
+                        wrap_at=[(0,), (1,), (0, 1)])
+DET_3_LAYERS_PGD = dict(hidden_dims=[(128, 64, 16), (256, 128, 32)],  #  8 runs
+                        detector_dims=[(64, 32)],
+                        wrap_at=[(0,), (2,), (0, 2), (0, 1, 2)])
+
+DET_2_LAYERS_APGD = dict(hidden_dims=[(48, 16), (80, 32), (160, 64)],  # 18 runs
+                        detector_dims=[(32, 16), (64, 32)],
+                        wrap_at=[(0,), (1,), (0, 1)])
+DET_3_LAYERS_APGD = dict(hidden_dims=[(192, 64, 16), (256, 128, 32)],  #  8 runs
+                        detector_dims=[(64, 32)],
+                        wrap_at=[(0,), (2,), (0, 2), (0, 1, 2)])
 
 # Wider backbones having no detector (see scripts/params_calc.py)
 CLO_2_LAYERS = dict(hidden_dims=[(48, 16), (80, 32), (160, 64)],  #  9 runs
@@ -54,16 +61,16 @@ CLO_3_LAYERS = dict(hidden_dims=[(192, 64, 16), (256, 128, 32)],  #  8 runs
 def table() -> list[Exp]:
     return [
         # --- DetectorLayer -------------------------------------------------
-        Sweep("s2/det/pgd/2_layers/",      DET,                  **DET_2_LAYERS),
-        Sweep("s2/det/pgd/3_layers/",      DET,                  **DET_3_LAYERS),
-        Sweep("s2/det/adaptive/2_layers/", replace(DET, **APGD), **DET_2_LAYERS),
-        Sweep("s2/det/adaptive/3_layers/", replace(DET, **APGD), **DET_3_LAYERS),
+        Sweep("s2/det/pgd/2_layers/",      DET,                  **DET_2_LAYERS_PGD),
+        Sweep("s2/det/pgd/3_layers/",      DET,                  **DET_3_LAYERS_PGD),
+        Sweep("s2/det/adaptive/2_layers/", replace(DET, **APGD), **DET_2_LAYERS_APGD),
+        Sweep("s2/det/adaptive/3_layers/", replace(DET, **APGD), **DET_3_LAYERS_APGD),
 
         # --- FurtherAL -----------------------------------------------------
-        Sweep("s2/fur/pgd/2_layers/",      FUR,                  **DET_2_LAYERS),
-        Sweep("s2/fur/pgd/3_layers/",      FUR,                  **DET_3_LAYERS),
-        Sweep("s2/fur/adaptive/2_layers/", replace(FUR, **APGD), **DET_2_LAYERS),
-        Sweep("s2/fur/adaptive/3_layers/", replace(FUR, **APGD), **DET_3_LAYERS),
+        Sweep("s2/fur/pgd/2_layers/",      FUR,                  **DET_2_LAYERS_PGD),
+        Sweep("s2/fur/pgd/3_layers/",      FUR,                  **DET_3_LAYERS_PGD),
+        Sweep("s2/fur/adaptive/2_layers/", replace(FUR, **APGD), **DET_2_LAYERS_APGD),
+        Sweep("s2/fur/adaptive/3_layers/", replace(FUR, **APGD), **DET_3_LAYERS_APGD),
 
         # --- CloserAL ------------------------------------------------------
         Sweep("s2/clo/pgd/2_layers/",      CLO,                  **CLO_2_LAYERS),
