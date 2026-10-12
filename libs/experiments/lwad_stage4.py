@@ -9,7 +9,8 @@ losses actually use, on log grids:
     FurtherAL       lambda_act x task_loss_on_adv, crossed: they push the same
                     activations in opposite directions (stage 1: lambda_act=10
                     helps a lot once the backbone is adversarially trained),
-                    and margin_factor, the distance FurtherAL pushes to
+                    and margin_factor x lambda_act, margin_factor being the
+                    distance FurtherAL pushes to (task_loss_on_adv of the winner)
     CloserAL        lambda_act, task_loss_on_adv being mandatory there
     detach=False    lambda_det x task_loss_on_adv: only then does the detector
                     loss reach the backbone
@@ -17,13 +18,13 @@ losses actually use, on log grids:
 With detach=True lambda_det scales the gradient of the detector alone, and
 Adam normalizes a constant factor away: s4/vv verifies it on one model.
 
-If lambda_act is too low (0.1, 0.5), the repulsive loss loses against the task
-loss and the samples never reach their margin, so margin_factor=2,5,8 give always
+If lambda_act is too low (0.5 or less), the repulsive loss loses against the task
+loss and the samples never reach their margin, so margin_factor=3,5,8 give always
 the same gradients at each step and runs are identical (with lambda_act=0 the margin
 is useless). With lambda_act >= 1, exploring the margin makes sense.
 
-Runs with the placeholder winners: 6 DetectorLayer x 2 + 6 FurtherAL x (10+12)
-+ 3 CloserAL x 5 + 3 = 162; each detector winner with detach=False adds 6.
+Runs with the placeholder winners: 6 DetectorLayer x 2 + 6 FurtherAL x (6+6)
++ 3 CloserAL x 3 + 3 = 96; each detector winner with detach=False adds 6.
 """
 from __future__ import annotations
 
@@ -70,10 +71,10 @@ CLO_HIGH   = s3.CLO_HIGH
 # Axes
 # ===========================================================================
 TASK_ON_ADV   = [False, True]
-LAMBDA_ACT    = [0.3, 0.5, 1.0, 2.0, 3.0]
+LAMBDA_ACT    = [0.5, 1.0, 2.0]
 LAMBDA_DET    = [0.1, 0.5, 2]   # the default 1 is in the main grid
 MARGIN_FACTOR = [3.0, 5.0, 8.0] # the default 5 is in the main grid
-MARGIN_LAMBDA_ACT = [1.0, 3.0]  # the margin matters once it is reached (read above)
+MARGIN_LAMBDA_ACT = [1.0, 2.0]  # the margin matters once it is reached (read above)
 
 
 def weights(name: str, model: lc.ModelConfig) -> list[Exp]:
@@ -84,7 +85,7 @@ def weights(name: str, model: lc.ModelConfig) -> list[Exp]:
         exps = [Sweep(f"{name}/", model, lambda_act=LAMBDA_ACT,
                       task_loss_on_adv=TASK_ON_ADV),
                 Sweep(f"{name}/margin/", model, margin_factor=MARGIN_FACTOR,
-                      lambda_act=MARGIN_LAMBDA_ACT, task_loss_on_adv=TASK_ON_ADV)]
+                      lambda_act=MARGIN_LAMBDA_ACT)]
     else:                                                           # DetectorLayer
         exps = [Sweep(f"{name}/", model, task_loss_on_adv=TASK_ON_ADV)]
     if not model.detach:

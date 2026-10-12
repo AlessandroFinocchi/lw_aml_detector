@@ -14,7 +14,7 @@ defense that does not know what is coming. Per winner:
 The search run with steps=20, alpha=None (and evade weight 1) on the winner's
 own attack repeats its stage 4 evaluation. A winner's worst case is its lowest
 robust_acc_e2e at the training eps, the curve the lowest per eps. Runs:
-6 detector winners x 41 + 3 CloserAL x 9 = 273, but each is an evaluation:
+12 detector winners x 41 + 3 CloserAL x 9 = 519, but each is an evaluation:
 seconds instead of minutes.
 """
 from __future__ import annotations
@@ -55,14 +55,27 @@ def trained(name: str) -> Optional[lc.ModelConfig]:
 # Stage 4 winners: run names as the stage 4 summary prints them
 # PLACEHOLDERS (the stage 4 runs that keep the stage 3 config): set the best.
 # ===========================================================================
-DET_MINI   = trained("s4/det/mini/[task_loss_on_adv=False]")
-DET_MEDIUM = trained("s4/det/medium/[task_loss_on_adv=False]")
-DET_HIGH   = trained("s4/det/high/[task_loss_on_adv=False]")
+# --- detector models trained and evaluated on pgd --------------------------
+DET_MINI_PGD    = trained("s4/det/pgd/mini/[task_loss_on_adv=False]")
+FUR_MINI_PGD    = trained("s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=False]")
 
-FUR_MINI   = trained("s4/fur/mini/[lambda_act=1,task_loss_on_adv=False]")
-FUR_MEDIUM = trained("s4/fur/medium/[lambda_act=1,task_loss_on_adv=False]")
-FUR_HIGH   = trained("s4/fur/high/[lambda_act=1,task_loss_on_adv=False]")
+DET_MEDIUM_PGD  = trained("s4/det/pgd/medium/[task_loss_on_adv=False]")
+FUR_MEDIUM_PGD  = trained("s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=False]")
 
+DET_HIGH_PGD    = trained("s4/det/pgd/high/[task_loss_on_adv=False]")
+FUR_HIGH_PGD    = trained("s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=False]")
+
+# --- detector models trained and evaluated on pgd_adaptive -----------------
+DET_MINI_APGD   = trained("s4/det/apgd/mini/[task_loss_on_adv=False]")
+FUR_MINI_APGD   = trained("s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=False]")
+
+DET_MEDIUM_APGD = trained("s4/det/apgd/medium/[task_loss_on_adv=False]")
+FUR_MEDIUM_APGD = trained("s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=False]")
+
+DET_HIGH_APGD   = trained("s4/det/apgd/high/[task_loss_on_adv=False]")
+FUR_HIGH_APGD   = trained("s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=False]")
+
+# --- CloserAL, pgd only -----------------------------------------------------
 CLO_MINI   = trained("s4/clo/mini/[lambda_act=1]")
 CLO_MEDIUM = trained("s4/clo/medium/[lambda_act=1]")
 CLO_HIGH   = trained("s4/clo/high/[lambda_act=1]")
@@ -110,19 +123,27 @@ def attacks(name: str, model: Optional[lc.ModelConfig]) -> list[Exp]:
 def table() -> list[Exp]:
     return [
         # --- DetectorLayer winners -----------------------------------------
-        *attacks("s5/det/mini",   DET_MINI),
-        *attacks("s5/det/medium", DET_MEDIUM),
-        *attacks("s5/det/high",   DET_HIGH),
+        *attacks("s5/det/pgd/mini",    DET_MINI_PGD),
+        *attacks("s5/det/pgd/medium",  DET_MEDIUM_PGD),
+        *attacks("s5/det/pgd/high",    DET_HIGH_PGD),
+        *attacks("s5/det/apgd/mini",   DET_MINI_APGD),
+        *attacks("s5/det/apgd/medium", DET_MEDIUM_APGD),
+        *attacks("s5/det/apgd/high",   DET_HIGH_APGD),
 
         # --- FurtherAL winners ---------------------------------------------
-        *attacks("s5/fur/mini",   FUR_MINI),
-        *attacks("s5/fur/medium", FUR_MEDIUM),
-        *attacks("s5/fur/high",   FUR_HIGH),
+        *attacks("s5/fur/pgd/mini",    FUR_MINI_PGD),
+        *attacks("s5/fur/pgd/medium",  FUR_MEDIUM_PGD),
+        *attacks("s5/fur/pgd/high",    FUR_HIGH_PGD),
+        *attacks("s5/fur/apgd/mini",   FUR_MINI_APGD),
+        *attacks("s5/fur/apgd/medium", FUR_MEDIUM_APGD),
+        *attacks("s5/fur/apgd/high",   FUR_HIGH_APGD),
 
         # --- CloserAL winners: no detector, so no adaptive attack ----------
         *attacks("s5/clo/mini",   CLO_MINI),
         *attacks("s5/clo/medium", CLO_MEDIUM),
         *attacks("s5/clo/high",   CLO_HIGH),
+
+        # TODO: ADD ADVERSARIAL TRAIN LIKE WITH SAME CLOSERAL FOR COMPARISON WITH IT
     ]
 
 
