@@ -50,8 +50,8 @@ DET_HIGH_PGD    = replace(DET, **PGD,  hidden_dims=(256, 128, 32), detector_dims
 FUR_HIGH_PGD    = replace(FUR, **PGD,  hidden_dims=(256, 128, 32), detector_dims=(64, 32), wrap_at=(0, 2))
 
 # --- detector models trained and evaluated on pgd_adaptive -----------------
-DET_MINI_APGD   = replace(DET, **APGD, hidden_dims=(48, 16),       detector_dims=(32, 16), wrap_at=(0, 1))
-FUR_MINI_APGD   = replace(FUR, **APGD, hidden_dims=(48, 16),       detector_dims=(32, 16), wrap_at=(0, 1))
+DET_MINI_APGD   = replace(DET, **APGD, hidden_dims=(48, 16),       detector_dims=(64, 32), wrap_at=(0, 1))
+FUR_MINI_APGD   = replace(FUR, **APGD, hidden_dims=(48, 16),       detector_dims=(64, 32), wrap_at=(0, 1))
 
 DET_MEDIUM_APGD = replace(DET, **APGD, hidden_dims=(160, 64),      detector_dims=(32, 16), wrap_at=(0, 1))
 FUR_MEDIUM_APGD = replace(FUR, **APGD, hidden_dims=(160, 64),      detector_dims=(32, 16), wrap_at=(0, 1))
