@@ -17,8 +17,13 @@ losses actually use, on log grids:
 With detach=True lambda_det scales the gradient of the detector alone, and
 Adam normalizes a constant factor away: s4/vv verifies it on one model.
 
-Runs with the placeholder winners: 3x2 + 3x(14+8) + 3x7 + 3 = 96; each
-detector winner with detach=False adds 8.
+If lambda_act is too low (0.1, 0.5), the repulsive loss loses against the task
+loss and the samples never reach their margin, so margin_factor=2,5,8 give always
+the same gradients at each step and runs are identical (with lambda_act=0 the margin
+is useless). With lambda_act >= 1, exploring the margin makes sense.
+
+Runs with the placeholder winners: 6 DetectorLayer x 2 + 6 FurtherAL x (10+12)
++ 3 CloserAL x 5 + 3 = 162; each detector winner with detach=False adds 6.
 """
 from __future__ import annotations
 
@@ -32,30 +37,43 @@ from libs.experiments.lwad_experiments import Exp, Sweep
 
 # ===========================================================================
 # Stage 3 winners: stage 2 model + detection mechanism
-# PLACEHOLDERS (the stage 2 defaults): set the mechanism stage 3 picked.
-# A detector winner may switch loss: use the s3.DETLAYER / s3.FURTHER bundle.
+# PLACEHOLDERS (the stage 2 defaults): set the mechanism stage 3 picked,
+# s3.MEAN or s3.MAX and detach.
 # ===========================================================================
-DET_MINI   = replace(s3.DET_MINI,   **s3.DETLAYER, **s3.MEAN, detach=True)
-DET_MEDIUM = replace(s3.DET_MEDIUM, **s3.DETLAYER, **s3.MEAN, detach=True)
-DET_HIGH   = replace(s3.DET_HIGH,   **s3.DETLAYER, **s3.MEAN, detach=True)
+# --- detector models trained and evaluated on pgd --------------------------
+DET_MINI_PGD    = replace(s3.DET_MINI_PGD,    **s3.MEAN, detach=True)
+FUR_MINI_PGD    = replace(s3.FUR_MINI_PGD,    **s3.MEAN, detach=True)
 
-FUR_MINI   = replace(s3.FUR_MINI,   **s3.FURTHER,  **s3.MEAN, detach=True)
-FUR_MEDIUM = replace(s3.FUR_MEDIUM, **s3.FURTHER,  **s3.MEAN, detach=True)
-FUR_HIGH   = replace(s3.FUR_HIGH,   **s3.FURTHER,  **s3.MEAN, detach=True)
+DET_MEDIUM_PGD  = replace(s3.DET_MEDIUM_PGD,  **s3.MEAN, detach=True)
+FUR_MEDIUM_PGD  = replace(s3.FUR_MEDIUM_PGD,  **s3.MEAN, detach=True)
 
-CLO_MINI   = replace(s3.CLO_MINI,   detach_reference=False)
-CLO_MEDIUM = replace(s3.CLO_MEDIUM, detach_reference=False)
-CLO_HIGH   = replace(s3.CLO_HIGH,   detach_reference=False)
+DET_HIGH_PGD    = replace(s3.DET_HIGH_PGD,    **s3.MEAN, detach=True)
+FUR_HIGH_PGD    = replace(s3.FUR_HIGH_PGD,    **s3.MEAN, detach=True)
+
+# --- detector models trained and evaluated on pgd_adaptive -----------------
+DET_MINI_APGD   = replace(s3.DET_MINI_APGD,   **s3.MEAN, detach=True)
+FUR_MINI_APGD   = replace(s3.FUR_MINI_APGD,   **s3.MEAN, detach=True)
+
+DET_MEDIUM_APGD = replace(s3.DET_MEDIUM_APGD, **s3.MEAN, detach=True)
+FUR_MEDIUM_APGD = replace(s3.FUR_MEDIUM_APGD, **s3.MEAN, detach=True)
+
+DET_HIGH_APGD   = replace(s3.DET_HIGH_APGD,   **s3.MEAN, detach=True)
+FUR_HIGH_APGD   = replace(s3.FUR_HIGH_APGD,   **s3.MEAN, detach=True)
+
+# --- CloserAL, pgd only -----------------------------------------------------
+CLO_MINI   = s3.CLO_MINI
+CLO_MEDIUM = s3.CLO_MEDIUM
+CLO_HIGH   = s3.CLO_HIGH
 
 
 # ===========================================================================
 # Axes
 # ===========================================================================
 TASK_ON_ADV   = [False, True]
-LAMBDA_ACT    = [0.0, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0]  # 0: no activation loss
-LAMBDA_DET    = [0.1, 0.5, 5.0, 10.0]                  # the default 1 is in the main grid
-MARGIN_FACTOR = [2.0, 10.0]                            # the default 5 is in the main grid
-MARGIN_LAMBDA_ACT = [1.0, 10.0]  # from LAMBDA_ACT: the margin matters once it is reached
+LAMBDA_ACT    = [0.3, 0.5, 1.0, 2.0, 3.0]
+LAMBDA_DET    = [0.1, 0.5, 2]   # the default 1 is in the main grid
+MARGIN_FACTOR = [3.0, 5.0, 8.0] # the default 5 is in the main grid
+MARGIN_LAMBDA_ACT = [1.0, 3.0]  # the margin matters once it is reached (read above)
 
 
 def weights(name: str, model: lc.ModelConfig) -> list[Exp]:
@@ -81,14 +99,20 @@ def weights(name: str, model: lc.ModelConfig) -> list[Exp]:
 def table() -> list[Exp]:
     return [
         # --- DetectorLayer winners -----------------------------------------
-        *weights("s4/det/mini",   DET_MINI),
-        *weights("s4/det/medium", DET_MEDIUM),
-        *weights("s4/det/high",   DET_HIGH),
+        *weights("s4/det/pgd/mini",    DET_MINI_PGD),
+        *weights("s4/det/pgd/medium",  DET_MEDIUM_PGD),
+        *weights("s4/det/pgd/high",    DET_HIGH_PGD),
+        *weights("s4/det/apgd/mini",   DET_MINI_APGD),
+        *weights("s4/det/apgd/medium", DET_MEDIUM_APGD),
+        *weights("s4/det/apgd/high",   DET_HIGH_APGD),
 
         # --- FurtherAL winners ---------------------------------------------
-        *weights("s4/fur/mini",   FUR_MINI),
-        *weights("s4/fur/medium", FUR_MEDIUM),
-        *weights("s4/fur/high",   FUR_HIGH),
+        *weights("s4/fur/pgd/mini",    FUR_MINI_PGD),
+        *weights("s4/fur/pgd/medium",  FUR_MEDIUM_PGD),
+        *weights("s4/fur/pgd/high",    FUR_HIGH_PGD),
+        *weights("s4/fur/apgd/mini",   FUR_MINI_APGD),
+        *weights("s4/fur/apgd/medium", FUR_MEDIUM_APGD),
+        *weights("s4/fur/apgd/high",   FUR_HIGH_APGD),
 
         # --- CloserAL winners ----------------------------------------------
         *weights("s4/clo/mini",   CLO_MINI),
@@ -99,7 +123,7 @@ def table() -> list[Exp]:
         # Must match up to Adam's epsilon: detached, the detector loss feeds
         # only the detector, whose updates a constant factor does not change
         # (lambda_det=0 would, the detector would never train)
-        Sweep("s4/vv/lambda_det-detached/", replace(DET_MINI, detach=True),
+        Sweep("s4/vv/lambda_det-detached/", replace(DET_MINI_PGD, detach=True),
               lambda_det=[0.1, 1.0, 10.0]),
     ]
 
