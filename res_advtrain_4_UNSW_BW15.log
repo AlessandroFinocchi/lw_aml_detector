@@ -1,0 +1,56 @@
+All configurations are valid
+== suite: 3 experiments x 1 datasets x 1 seeds = 3 runs ==
+   device=cuda  out_dir=results  test_max_rows=100000  infer_samples=1024  total max epochs=30
+Dropped 'id' and 'attack_cat' columns
+
+### [  1/3] s4/advtrain/mini | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8219  prec=0.7584  rec=0.9928
+  adversarial : acc=0.8103  prec=0.7498  rec=0.9839
+TEST SCORE (joint) : 0.8161
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05911, 0.2876]
+  SLAV rel : [0.02381, 0.05829]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2553 ± 0.0538 ms   (early exit 0.00%)
+  latency adv   : 0.2536 ± 0.0600 ms   (early exit 0.00%)
+
+### [  2/3] s4/advtrain/medium | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8171  prec=0.7526  rec=0.9948
+  adversarial : acc=0.8117  prec=0.7488  rec=0.9902
+TEST SCORE (joint) : 0.8144
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02378, 0.09423]
+  SLAV rel : [0.03017, 0.05353]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2631 ± 0.0603 ms   (early exit 0.00%)
+  latency adv   : 0.2589 ± 0.0564 ms   (early exit 0.00%)
+
+### [  3/3] s4/advtrain/high | unsw-nb15 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8160  prec=0.7513  rec=0.9952
+  adversarial : acc=0.8126  prec=0.7486  rec=0.9931
+TEST SCORE (joint) : 0.8143
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01803, 0.06314, 0.5304]
+  SLAV rel : [0.03046, 0.03541, 0.09785]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3169 ± 0.0547 ms   (early exit 0.00%)
+  latency adv   : 0.3526 ± 0.0725 ms   (early exit 0.00%)
+
+== summary (3 run) ==
+experiment            dataset  model  n  epochs  task_clean_acc  task_adv_acc  det_clean_acc  det_adv_acc  clean_acc_e2e  robust_acc_e2e  threshold_det  test_score       infer_ms   infer_ms_adv  infer_exit_rate_adv  duration_s
+------------------  ---------  -----  -  ------  --------------  ------------  -------------  -----------  -------------  --------------  -------------  ----------  -------------  -------------  -------------------  ----------
+s4/advtrain/mini    unsw-nb15    adv  1       8          0.8219        0.8103              -            -         0.8219          0.8103              -      0.8161  0.2553±0.0538  0.2536±0.0600               0.0000          75
+s4/advtrain/medium  unsw-nb15    adv  1       6          0.8171        0.8117              -            -         0.8171          0.8117              -      0.8144  0.2631±0.0603  0.2589±0.0564               0.0000          61
+s4/advtrain/high    unsw-nb15    adv  1       6          0.8160        0.8126              -            -         0.8160          0.8126              -      0.8143  0.3169±0.0547  0.3526±0.0725               0.0000          64
+
+== test_score: esperimento x dataset ==
+experiment          unsw-nb15
+------------------  ---------
+s4/advtrain/mini       0.8161
+s4/advtrain/medium     0.8144
+s4/advtrain/high       0.8143
+
+CSV: results/summary_s4_UNSW_BW15.csv

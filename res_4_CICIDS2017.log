@@ -1,0 +1,2225 @@
+All configurations are valid
+== suite: 102 experiments x 1 datasets x 1 seeds = 102 runs ==
+   device=cuda  out_dir=results  test_max_rows=100000  infer_samples=1024  total max epochs=1020
+Dropped the bookkeeping columns ('id', 'source', 'scenario', 'capture', 'attack_cat')
+
+CIC-IDS 2017: 69 columns
+  ACK Flag Count
+  Active Max
+  Active Mean
+  Active Min
+  Active Std
+  Average Packet Size
+  Avg Bwd Segment Size
+  Avg Fwd Segment Size
+  Bwd Header Length
+  Bwd IAT Max
+  Bwd IAT Mean
+  Bwd IAT Min
+  Bwd IAT Std
+  Bwd IAT Total
+  Bwd Packet Length Max
+  Bwd Packet Length Mean
+  Bwd Packet Length Min
+  Bwd Packet Length Std
+  Bwd Packets/s
+  CWE Flag Count
+  Destination Port
+  Down/Up Ratio
+  ECE Flag Count
+  FIN Flag Count
+  Flow Bytes/s
+  Flow Duration
+  Flow IAT Max
+  Flow IAT Mean
+  Flow IAT Min
+  Flow IAT Std
+  Flow Packets/s
+  Fwd Header Length
+  Fwd IAT Max
+  Fwd IAT Mean
+  Fwd IAT Min
+  Fwd IAT Std
+  Fwd IAT Total
+  Fwd PSH Flags
+  Fwd Packet Length Max
+  Fwd Packet Length Mean
+  Fwd Packet Length Min
+  Fwd Packet Length Std
+  Fwd Packets/s
+  Fwd URG Flags
+  Idle Max
+  Idle Mean
+  Idle Min
+  Idle Std
+  Init_Win_bytes_backward
+  Init_Win_bytes_forward
+  Max Packet Length
+  Min Packet Length
+  PSH Flag Count
+  Packet Length Mean
+  Packet Length Std
+  Packet Length Variance
+  RST Flag Count
+  SYN Flag Count
+  Subflow Bwd Bytes
+  Subflow Bwd Packets
+  Subflow Fwd Bytes
+  Subflow Fwd Packets
+  Total Backward Packets
+  Total Fwd Packets
+  Total Length of Bwd Packets
+  Total Length of Fwd Packets
+  URG Flag Count
+  act_data_pkt_fwd
+  min_seg_size_forward
+[warn] CIC-IDS 2017: non-attackable columns not found in the features, they will be perturbed by the attack: ['protocol']
+
+### [  1/102] s4/det/pgd/mini/[task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9967  rec=0.9939
+  adversarial : acc=0.4632  prec=0.8129  rec=0.4000
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9963
+  adversarial accuracy: 0.9975
+  precision / recall  : 0.9963 / 0.9975
+  end to end (comparable across model types)
+  clean  : 0.9895   (right AND not flagged)
+  robust : 0.9991   (right OR flagged)
+TEST SCORE (joint) : 0.9943
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2651, 2.403]
+  SLAV rel : [0.04141, 0.2159]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5599 ± 0.0850 ms   (early exit 0.00%)
+  latency adv   : 0.5675 ± 0.0607 ms   (early exit 0.00%)
+
+### [  2/102] s4/det/pgd/mini/[task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9894  prec=0.9957  rec=0.9906
+  adversarial : acc=0.9685  prec=0.9889  rec=0.9703
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9738
+  adversarial accuracy: 0.9674
+  precision / recall  : 0.9736 / 0.9674
+  end to end (comparable across model types)
+  clean  : 0.9654   (right AND not flagged)
+  robust : 0.9905   (right OR flagged)
+TEST SCORE (joint) : 0.9780
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1302, 0.2296]
+  SLAV rel : [0.02276, 0.03105]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5393 ± 0.0934 ms   (early exit 0.00%)
+  latency adv   : 0.5589 ± 0.0918 ms   (early exit 0.00%)
+
+### [  3/102] s4/det/pgd/medium/[task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9935  prec=0.9982  rec=0.9934
+  adversarial : acc=0.5018  prec=0.8322  rec=0.4480
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9991
+  adversarial accuracy: 0.9995
+  precision / recall  : 0.9991 / 0.9995
+  end to end (comparable across model types)
+  clean  : 0.9927   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9961
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05744, 0.7424]
+  SLAV rel : [0.03506, 0.2847]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5845 ± 0.0937 ms   (early exit 0.00%)
+  latency adv   : 0.5941 ± 0.1223 ms   (early exit 0.00%)
+
+### [  4/102] s4/det/pgd/medium/[task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9912  prec=0.9962  rec=0.9924
+  adversarial : acc=0.9803  prec=0.9922  rec=0.9824
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9791
+  adversarial accuracy: 0.9508
+  precision / recall  : 0.9785 / 0.9508
+  end to end (comparable across model types)
+  clean  : 0.9728   (right AND not flagged)
+  robust : 0.9914   (right OR flagged)
+TEST SCORE (joint) : 0.9821
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04295, 0.08699]
+  SLAV rel : [0.02493, 0.03003]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3991 ± 0.0684 ms   (early exit 0.00%)
+  latency adv   : 0.3947 ± 0.0658 ms   (early exit 0.00%)
+
+### [  5/102] s4/det/pgd/high/[task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9941  prec=0.9983  rec=0.9940
+  adversarial : acc=0.5507  prec=0.8632  rec=0.4999
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9996
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9996 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9938   (right AND not flagged)
+  robust : 1.0000   (right OR flagged)
+TEST SCORE (joint) : 0.9969
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03885, 0.3772, 5.303]
+  SLAV rel : [0.03986, 0.1363, 0.5549]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7068 ± 0.0542 ms   (early exit 0.00%)
+  latency adv   : 0.6988 ± 0.0528 ms   (early exit 0.00%)
+
+### [  6/102] s4/det/pgd/high/[task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), use_act_loss=False, margin_factor=None, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9912  prec=0.9963  rec=0.9924
+  adversarial : acc=0.9828  prec=0.9928  rec=0.9850
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9836
+  adversarial accuracy: 0.9779
+  precision / recall  : 0.9835 / 0.9779
+  end to end (comparable across model types)
+  clean  : 0.9773   (right AND not flagged)
+  robust : 0.9932   (right OR flagged)
+TEST SCORE (joint) : 0.9852
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02486, 0.04905, 0.239]
+  SLAV rel : [0.02705, 0.0201, 0.0495]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7691 ± 0.1109 ms   (early exit 0.00%)
+  latency adv   : 0.6761 ± 0.0497 ms   (early exit 0.00%)
+
+### [  7/102] s4/det/apgd/mini/[task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9875  prec=0.9944  rec=0.9895
+  adversarial : acc=0.5168  prec=0.8076  rec=0.4950
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9704
+  adversarial accuracy: 0.9244
+  precision / recall  : 0.9690 / 0.9244
+  end to end (comparable across model types)
+  clean  : 0.9589   (right AND not flagged)
+  robust : 0.9990   (right OR flagged)
+TEST SCORE (joint) : 0.9790
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1905, 1.033]
+  SLAV rel : [0.1996, 0.9041]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5549 ± 0.0794 ms   (early exit 0.00%)
+  latency adv   : 0.5610 ± 0.0751 ms   (early exit 0.00%)
+
+### [  8/102] s4/det/apgd/mini/[task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9885  prec=0.9946  rec=0.9906
+  adversarial : acc=0.9546  prec=0.9798  rec=0.9613
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9641
+  adversarial accuracy: 0.8591
+  precision / recall  : 0.9599 / 0.8591
+  end to end (comparable across model types)
+  clean  : 0.9541   (right AND not flagged)
+  robust : 0.9968   (right OR flagged)
+TEST SCORE (joint) : 0.9754
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03826, 0.1006]
+  SLAV rel : [0.035, 0.07427]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6576 ± 0.0509 ms   (early exit 0.00%)
+  latency adv   : 0.6297 ± 0.0491 ms   (early exit 0.00%)
+
+### [  9/102] s4/det/apgd/mini/lambda_det/[lambda_det=0.1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.1, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9933  prec=0.9963  rec=0.9950
+  adversarial : acc=0.8460  prec=0.9683  rec=0.8286
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9193
+  adversarial accuracy: 0.6587
+  precision / recall  : 0.8908 / 0.6587
+  end to end (comparable across model types)
+  clean  : 0.9131   (right AND not flagged)
+  robust : 0.9982   (right OR flagged)
+TEST SCORE (joint) : 0.9557
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06008, 0.5203]
+  SLAV rel : [0.02003, 0.09131]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5562 ± 0.0789 ms   (early exit 0.00%)
+  latency adv   : 0.5680 ± 0.1063 ms   (early exit 0.00%)
+
+### [ 10/102] s4/det/apgd/mini/lambda_det/[lambda_det=0.1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.1, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9902  prec=0.9959  rec=0.9915
+  adversarial : acc=0.9717  prec=0.9895  rec=0.9739
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9707
+  adversarial accuracy: 0.2634
+  precision / recall  : 0.9000 / 0.2634
+  end to end (comparable across model types)
+  clean  : 0.9672   (right AND not flagged)
+  robust : 0.9922   (right OR flagged)
+TEST SCORE (joint) : 0.9797
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02693, 0.02824]
+  SLAV rel : [0.008157, 0.00621]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6269 ± 0.0488 ms   (early exit 0.00%)
+  latency adv   : 0.6222 ± 0.0441 ms   (early exit 0.00%)
+
+### [ 11/102] s4/det/apgd/mini/lambda_det/[lambda_det=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.5, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9902  prec=0.9955  rec=0.9918
+  adversarial : acc=0.6293  prec=0.9209  rec=0.5710
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9423
+  adversarial accuracy: 0.8908
+  precision / recall  : 0.9392 / 0.8908
+  end to end (comparable across model types)
+  clean  : 0.9338   (right AND not flagged)
+  robust : 0.9994   (right OR flagged)
+TEST SCORE (joint) : 0.9666
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1601, 1.098]
+  SLAV rel : [0.1241, 0.569]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6531 ± 0.0522 ms   (early exit 0.00%)
+  latency adv   : 0.6542 ± 0.0514 ms   (early exit 0.00%)
+
+### [ 12/102] s4/det/apgd/mini/lambda_det/[lambda_det=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.5, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9886  prec=0.9955  rec=0.9897
+  adversarial : acc=0.9623  prec=0.9873  rec=0.9637
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.4107
+  adversarial accuracy: 0.7466
+  precision / recall  : 0.5589 / 0.7466
+  end to end (comparable across model types)
+  clean  : 0.4091   (right AND not flagged)
+  robust : 0.9954   (right OR flagged)
+TEST SCORE (joint) : 0.7022
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01997, 0.02012]
+  SLAV rel : [0.006618, 0.00541]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6243 ± 0.0583 ms   (early exit 0.00%)
+  latency adv   : 0.6249 ± 0.0663 ms   (early exit 0.00%)
+
+### [ 13/102] s4/det/apgd/mini/lambda_det/[lambda_det=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, lambda_det=2, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9832  prec=0.9936  rec=0.9848
+  adversarial : acc=0.3476  prec=0.6473  rec=0.3490
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9777
+  adversarial accuracy: 0.9533
+  precision / recall  : 0.9771 / 0.9533
+  end to end (comparable across model types)
+  clean  : 0.9621   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+TEST SCORE (joint) : 0.9808
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2353, 0.9079]
+  SLAV rel : [0.4559, 1.84]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6356 ± 0.0684 ms   (early exit 0.00%)
+  latency adv   : 0.6161 ± 0.0563 ms   (early exit 0.00%)
+
+### [ 14/102] s4/det/apgd/mini/lambda_det/[lambda_det=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), detach=False, use_act_loss=False, margin_factor=None, lambda_det=2, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9789  prec=0.9935  rec=0.9792
+  adversarial : acc=0.8993  prec=0.9567  rec=0.9114
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9833
+  adversarial accuracy: 0.9587
+  precision / recall  : 0.9828 / 0.9587
+  end to end (comparable across model types)
+  clean  : 0.9634   (right AND not flagged)
+  robust : 0.9978   (right OR flagged)
+TEST SCORE (joint) : 0.9806
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06957, 0.1497]
+  SLAV rel : [0.1473, 0.3108]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6685 ± 0.0906 ms   (early exit 0.00%)
+  latency adv   : 0.6180 ± 0.0559 ms   (early exit 0.00%)
+
+### [ 15/102] s4/det/apgd/medium/[task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9923  prec=0.9974  rec=0.9927
+  adversarial : acc=0.4588  prec=0.7655  rec=0.4357
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9768
+  adversarial accuracy: 0.9303
+  precision / recall  : 0.9756 / 0.9303
+  end to end (comparable across model types)
+  clean  : 0.9696   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9846
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1176, 1.083]
+  SLAV rel : [0.4051, 3.011]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7315 ± 0.0958 ms   (early exit 0.00%)
+  latency adv   : 0.7382 ± 0.0957 ms   (early exit 0.00%)
+
+### [ 16/102] s4/det/apgd/medium/[task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9851  prec=0.9942  rec=0.9866
+  adversarial : acc=0.9634  prec=0.9843  rec=0.9682
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8954
+  adversarial accuracy: 0.1557
+  precision / recall  : 0.5981 / 0.1557
+  end to end (comparable across model types)
+  clean  : 0.8920   (right AND not flagged)
+  robust : 0.9877   (right OR flagged)
+TEST SCORE (joint) : 0.9399
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01604, 0.01352]
+  SLAV rel : [0.01698, 0.01146]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5434 ± 0.0819 ms   (early exit 0.00%)
+  latency adv   : 0.5439 ± 0.0816 ms   (early exit 0.00%)
+
+### [ 17/102] s4/det/apgd/medium/lambda_det/[lambda_det=0.1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=0.1, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9939  prec=0.9986  rec=0.9936
+  adversarial : acc=0.5982  prec=0.8607  rec=0.5751
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9643
+  adversarial accuracy: 0.8842
+  precision / recall  : 0.9612 / 0.8842
+  end to end (comparable across model types)
+  clean  : 0.9588   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9792
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07682, 0.9526]
+  SLAV rel : [0.1222, 1.008]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5480 ± 0.0825 ms   (early exit 0.00%)
+  latency adv   : 0.5453 ± 0.0821 ms   (early exit 0.00%)
+
+### [ 18/102] s4/det/apgd/medium/lambda_det/[lambda_det=0.1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=0.1, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9884  prec=0.9941  rec=0.9909
+  adversarial : acc=0.9720  prec=0.9835  rec=0.9803
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9087
+  adversarial accuracy: 0.1414
+  precision / recall  : 0.6076 / 0.1414
+  end to end (comparable across model types)
+  clean  : 0.9067   (right AND not flagged)
+  robust : 0.9922   (right OR flagged)
+TEST SCORE (joint) : 0.9495
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01746, 0.01743]
+  SLAV rel : [0.01567, 0.0113]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5690 ± 0.1213 ms   (early exit 0.00%)
+  latency adv   : 0.6035 ± 0.1003 ms   (early exit 0.00%)
+
+### [ 19/102] s4/det/apgd/medium/lambda_det/[lambda_det=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=0.5, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9929  prec=0.9978  rec=0.9930
+  adversarial : acc=0.4852  prec=0.7621  rec=0.4889
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9711
+  adversarial accuracy: 0.9095
+  precision / recall  : 0.9692 / 0.9095
+  end to end (comparable across model types)
+  clean  : 0.9646   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+TEST SCORE (joint) : 0.9821
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1126, 0.9938]
+  SLAV rel : [0.2939, 1.935]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6225 ± 0.0401 ms   (early exit 0.00%)
+  latency adv   : 0.6132 ± 0.0391 ms   (early exit 0.00%)
+
+### [ 20/102] s4/det/apgd/medium/lambda_det/[lambda_det=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=0.5, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9917  prec=0.9964  rec=0.9929
+  adversarial : acc=0.9827  prec=0.9919  rec=0.9858
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8865
+  adversarial accuracy: 0.1581
+  precision / recall  : 0.5822 / 0.1581
+  end to end (comparable across model types)
+  clean  : 0.8841   (right AND not flagged)
+  robust : 0.9952   (right OR flagged)
+TEST SCORE (joint) : 0.9396
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01709, 0.01557]
+  SLAV rel : [0.01297, 0.007737]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5695 ± 0.1445 ms   (early exit 0.00%)
+  latency adv   : 0.6110 ± 0.1323 ms   (early exit 0.00%)
+
+### [ 21/102] s4/det/apgd/medium/lambda_det/[lambda_det=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=2, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9913  prec=0.9965  rec=0.9923
+  adversarial : acc=0.3201  prec=0.6177  rec=0.3237
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9871
+  adversarial accuracy: 0.9645
+  precision / recall  : 0.9868 / 0.9645
+  end to end (comparable across model types)
+  clean  : 0.9789   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+TEST SCORE (joint) : 0.9892
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06467, 0.4299]
+  SLAV rel : [0.2547, 1.547]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6433 ± 0.0699 ms   (early exit 0.00%)
+  latency adv   : 0.7137 ± 0.0956 ms   (early exit 0.00%)
+
+### [ 22/102] s4/det/apgd/medium/lambda_det/[lambda_det=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detach=False, detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=2, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9871  prec=0.9947  rec=0.9887
+  adversarial : acc=0.9681  prec=0.9867  rec=0.9720
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8697
+  adversarial accuracy: 0.1786
+  precision / recall  : 0.5782 / 0.1787
+  end to end (comparable across model types)
+  clean  : 0.8659   (right AND not flagged)
+  robust : 0.9916   (right OR flagged)
+TEST SCORE (joint) : 0.9287
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01308, 0.008406]
+  SLAV rel : [0.01418, 0.007687]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5633 ± 0.0859 ms   (early exit 0.00%)
+  latency adv   : 0.5651 ± 0.0825 ms   (early exit 0.00%)
+
+### [ 23/102] s4/det/apgd/high/[task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9944  prec=0.9985  rec=0.9943
+  adversarial : acc=0.4832  prec=0.7906  rec=0.4539
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9814
+  adversarial accuracy: 0.9383
+  precision / recall  : 0.9805 / 0.9383
+  end to end (comparable across model types)
+  clean  : 0.9760   (right AND not flagged)
+  robust : 0.9990   (right OR flagged)
+TEST SCORE (joint) : 0.9875
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06308, 0.2889, 5.373]
+  SLAV rel : [0.3337, 0.4295, 1.096]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5948 ± 0.0487 ms   (early exit 0.00%)
+  latency adv   : 0.5931 ± 0.0458 ms   (early exit 0.00%)
+
+### [ 24/102] s4/det/apgd/high/[task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9916  prec=0.9969  rec=0.9923
+  adversarial : acc=0.9834  prec=0.9934  rec=0.9852
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9924
+  adversarial accuracy: 0.0146
+  precision / recall  : 0.6575 / 0.0146
+  end to end (comparable across model types)
+  clean  : 0.9858   (right AND not flagged)
+  robust : 0.9880   (right OR flagged)
+TEST SCORE (joint) : 0.9869
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01502, 0.01974, 0.04693]
+  SLAV rel : [0.01513, 0.006349, 0.008473]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6138 ± 0.0728 ms   (early exit 0.00%)
+  latency adv   : 0.6155 ± 0.0735 ms   (early exit 0.00%)
+
+### [ 25/102] s4/det/apgd/high/lambda_det/[lambda_det=0.1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.1, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9943  prec=0.9984  rec=0.9942
+  adversarial : acc=0.6349  prec=0.8844  rec=0.6088
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9716
+  adversarial accuracy: 0.8924
+  precision / recall  : 0.9691 / 0.8924
+  end to end (comparable across model types)
+  clean  : 0.9661   (right AND not flagged)
+  robust : 0.9993   (right OR flagged)
+TEST SCORE (joint) : 0.9827
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04342, 0.2837, 3.223]
+  SLAV rel : [0.08914, 0.1549, 0.3536]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6029 ± 0.0592 ms   (early exit 0.00%)
+  latency adv   : 0.7098 ± 0.1684 ms   (early exit 0.00%)
+
+### [ 26/102] s4/det/apgd/high/lambda_det/[lambda_det=0.1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.1, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9919  prec=0.9963  rec=0.9933
+  adversarial : acc=0.9842  prec=0.9921  rec=0.9875
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9968
+  adversarial accuracy: 0.0052
+  precision / recall  : 0.6204 / 0.0052
+  end to end (comparable across model types)
+  clean  : 0.9893   (right AND not flagged)
+  robust : 0.9865   (right OR flagged)
+TEST SCORE (joint) : 0.9879
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01472, 0.02006, 0.05317]
+  SLAV rel : [0.01523, 0.007255, 0.008583]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4485 ± 0.1206 ms   (early exit 0.00%)
+  latency adv   : 0.4486 ± 0.1063 ms   (early exit 0.00%)
+
+### [ 27/102] s4/det/apgd/high/lambda_det/[lambda_det=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.5, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9946  prec=0.9983  rec=0.9947
+  adversarial : acc=0.4873  prec=0.8102  rec=0.4426
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9729
+  adversarial accuracy: 0.9260
+  precision / recall  : 0.9716 / 0.9260
+  end to end (comparable across model types)
+  clean  : 0.9678   (right AND not flagged)
+  robust : 0.9992   (right OR flagged)
+TEST SCORE (joint) : 0.9835
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07485, 0.3865, 6.132]
+  SLAV rel : [0.2906, 0.3947, 1.114]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4179 ± 0.0981 ms   (early exit 0.00%)
+  latency adv   : 0.4028 ± 0.0930 ms   (early exit 0.00%)
+
+### [ 28/102] s4/det/apgd/high/lambda_det/[lambda_det=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, lambda_det=0.5, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9919  prec=0.9964  rec=0.9931
+  adversarial : acc=0.9838  prec=0.9919  rec=0.9871
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9978
+  adversarial accuracy: 0.0050
+  precision / recall  : 0.6898 / 0.0050
+  end to end (comparable across model types)
+  clean  : 0.9902   (right AND not flagged)
+  robust : 0.9857   (right OR flagged)
+TEST SCORE (joint) : 0.9880
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01317, 0.01536, 0.03485]
+  SLAV rel : [0.01355, 0.004955, 0.005738]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5996 ± 0.0647 ms   (early exit 0.00%)
+  latency adv   : 0.5972 ± 0.0587 ms   (early exit 0.00%)
+
+### [ 29/102] s4/det/apgd/high/lambda_det/[lambda_det=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, lambda_det=2, task_loss_on_adv=False ###
+TASK (positive = attack)
+  clean       : acc=0.9941  prec=0.9977  rec=0.9947
+  adversarial : acc=0.4923  prec=0.7898  rec=0.4708
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9781
+  adversarial accuracy: 0.9251
+  precision / recall  : 0.9769 / 0.9251
+  end to end (comparable across model types)
+  clean  : 0.9724   (right AND not flagged)
+  robust : 0.9994   (right OR flagged)
+TEST SCORE (joint) : 0.9859
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0663, 0.2719, 4.714]
+  SLAV rel : [0.3823, 0.4544, 1.235]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6049 ± 0.0726 ms   (early exit 0.00%)
+  latency adv   : 0.6568 ± 0.1181 ms   (early exit 0.00%)
+
+### [ 30/102] s4/det/apgd/high/lambda_det/[lambda_det=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), detach=False, use_act_loss=False, margin_factor=None, lambda_det=2, task_loss_on_adv=True ###
+TASK (positive = attack)
+  clean       : acc=0.9919  prec=0.9963  rec=0.9932
+  adversarial : acc=0.9830  prec=0.9919  rec=0.9861
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.8709
+  adversarial accuracy: 0.2247
+  precision / recall  : 0.6351 / 0.2248
+  end to end (comparable across model types)
+  clean  : 0.8688   (right AND not flagged)
+  robust : 0.9956   (right OR flagged)
+TEST SCORE (joint) : 0.9322
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01344, 0.01572, 0.03278]
+  SLAV rel : [0.015, 0.005419, 0.005672]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4037 ± 0.1014 ms   (early exit 0.00%)
+  latency adv   : 0.4231 ± 0.0979 ms   (early exit 0.00%)
+
+### [ 31/102] s4/fur/pgd/mini/[lambda_act=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), lambda_act=0.5, task_loss_on_adv=False ###
+act_margin = (0.305563,)  (5x natural rel=(0.061113,), measured)
+TASK (positive = attack)
+  clean       : acc=0.9929  prec=0.9982  rec=0.9925
+  adversarial : acc=0.0192  prec=0.0282  rec=0.0079
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9998
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9998 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9927   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9963
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [1.152, 8.492]
+  SLAV rel : [1.035, 2.937]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5463 ± 0.0748 ms   (early exit 0.00%)
+  latency adv   : 0.5534 ± 0.0699 ms   (early exit 0.00%)
+
+### [ 32/102] s4/fur/pgd/mini/[lambda_act=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), lambda_act=0.5, task_loss_on_adv=True ###
+act_margin = (0.178562,)  (5x natural rel=(0.035712,), measured)
+TASK (positive = attack)
+  clean       : acc=0.9872  prec=0.9949  rec=0.9886
+  adversarial : acc=0.9610  prec=0.9862  rec=0.9632
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9687
+  adversarial accuracy: 0.9721
+  precision / recall  : 0.9688 / 0.9721
+  end to end (comparable across model types)
+  clean  : 0.9582   (right AND not flagged)
+  robust : 0.9940   (right OR flagged)
+TEST SCORE (joint) : 0.9761
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.4829, 0.1355]
+  SLAV rel : [0.3523, 0.06277]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3667 ± 0.0651 ms   (early exit 0.00%)
+  latency adv   : 0.3594 ± 0.0614 ms   (early exit 0.00%)
+
+### [ 33/102] s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), lambda_act=1, task_loss_on_adv=False ###
+act_margin = (0.305563,)  (5x natural rel=(0.061113,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9980  rec=0.9928
+  adversarial : acc=0.0248  prec=0.0267  rec=0.0073
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9998
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9998 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9927   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9963
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [1.098, 8.934]
+  SLAV rel : [1.183, 2.978]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3510 ± 0.0576 ms   (early exit 0.00%)
+  latency adv   : 0.3627 ± 0.0679 ms   (early exit 0.00%)
+
+### [ 34/102] s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), lambda_act=1, task_loss_on_adv=True ###
+act_margin = (0.178562,)  (5x natural rel=(0.035712,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9875  prec=0.9952  rec=0.9886
+  adversarial : acc=0.9608  prec=0.9855  rec=0.9636
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9822
+  adversarial accuracy: 0.9820
+  precision / recall  : 0.9822 / 0.9820
+  end to end (comparable across model types)
+  clean  : 0.9715   (right AND not flagged)
+  robust : 0.9956   (right OR flagged)
+TEST SCORE (joint) : 0.9835
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.3077, 0.1122]
+  SLAV rel : [0.419, 0.04886]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3640 ± 0.0639 ms   (early exit 0.00%)
+  latency adv   : 0.3628 ± 0.0627 ms   (early exit 0.00%)
+
+### [ 35/102] s4/fur/pgd/mini/[lambda_act=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), lambda_act=2, task_loss_on_adv=False ###
+act_margin = (0.305563,)  (5x natural rel=(0.061113,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9927  prec=0.9973  rec=0.9933
+  adversarial : acc=0.0249  prec=0.0182  rec=0.0049
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9997
+  adversarial accuracy: 0.9996
+  precision / recall  : 0.9997 / 0.9996
+  end to end (comparable across model types)
+  clean  : 0.9924   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+TEST SCORE (joint) : 0.9960
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.741, 6.072]
+  SLAV rel : [1.202, 2.879]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5746 ± 0.0655 ms   (early exit 0.00%)
+  latency adv   : 0.5507 ± 0.0780 ms   (early exit 0.00%)
+
+### [ 36/102] s4/fur/pgd/mini/[lambda_act=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), lambda_act=2, task_loss_on_adv=True ###
+act_margin = (0.178562,)  (5x natural rel=(0.035712,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9858  prec=0.9941  rec=0.9875
+  adversarial : acc=0.9637  prec=0.9857  rec=0.9671
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9882
+  adversarial accuracy: 0.9810
+  precision / recall  : 0.9881 / 0.9810
+  end to end (comparable across model types)
+  clean  : 0.9752   (right AND not flagged)
+  robust : 0.9954   (right OR flagged)
+TEST SCORE (joint) : 0.9853
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2815, 0.08145]
+  SLAV rel : [0.4993, 0.08466]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5522 ± 0.0790 ms   (early exit 0.00%)
+  latency adv   : 0.5467 ± 0.0797 ms   (early exit 0.00%)
+
+### [ 37/102] s4/fur/pgd/mini/margin/[margin_factor=3,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), margin_factor=3, lambda_act=1 ###
+act_margin = (0.183338,)  (3x natural rel=(0.061113,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9925  prec=0.9983  rec=0.9921
+  adversarial : acc=0.0383  prec=0.0834  rec=0.0240
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9998
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9998 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9923   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9961
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.8919, 8.425]
+  SLAV rel : [0.5725, 2.097]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5645 ± 0.1011 ms   (early exit 0.00%)
+  latency adv   : 0.6343 ± 0.1403 ms   (early exit 0.00%)
+
+### [ 38/102] s4/fur/pgd/mini/margin/[margin_factor=3,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), margin_factor=3, lambda_act=2 ###
+act_margin = (0.183338,)  (3x natural rel=(0.061113,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9983  rec=0.9925
+  adversarial : acc=0.0253  prec=0.0332  rec=0.0091
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9998
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9998 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9927   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9963
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.8292, 7.799]
+  SLAV rel : [0.6884, 2.49]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5555 ± 0.0871 ms   (early exit 0.00%)
+  latency adv   : 0.5927 ± 0.1203 ms   (early exit 0.00%)
+
+### [ 39/102] s4/fur/pgd/mini/margin/[margin_factor=8,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), margin_factor=8, lambda_act=1 ###
+act_margin = (0.488901,)  (8x natural rel=(0.061113,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9972  rec=0.9935
+  adversarial : acc=0.0192  prec=0.0019  rec=0.0005
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9994
+  adversarial accuracy: 0.9993
+  precision / recall  : 0.9994 / 0.9993
+  end to end (comparable across model types)
+  clean  : 0.9922   (right AND not flagged)
+  robust : 0.9994   (right OR flagged)
+TEST SCORE (joint) : 0.9958
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.9381, 6.914]
+  SLAV rel : [2.366, 4.452]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5713 ± 0.0635 ms   (early exit 0.00%)
+  latency adv   : 0.5948 ± 0.0563 ms   (early exit 0.00%)
+
+### [ 40/102] s4/fur/pgd/mini/margin/[margin_factor=8,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), margin_factor=8, lambda_act=2 ###
+act_margin = (0.488901,)  (8x natural rel=(0.061113,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9934  prec=0.9977  rec=0.9938
+  adversarial : acc=0.0043  prec=0.0005  rec=0.0001
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9999
+  precision / recall  : 0.9999 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9933   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9966
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.638, 8.538]
+  SLAV rel : [1.803, 5.926]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3582 ± 0.0538 ms   (early exit 0.00%)
+  latency adv   : 0.4706 ± 0.1212 ms   (early exit 0.00%)
+
+### [ 41/102] s4/fur/pgd/medium/[lambda_act=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), lambda_act=0.5, task_loss_on_adv=False ###
+act_margin = (0.252077,)  (5x natural rel=(0.050415,), measured)
+TASK (positive = attack)
+  clean       : acc=0.9937  prec=0.9983  rec=0.9935
+  adversarial : acc=0.1164  prec=0.2178  rec=0.0537
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9996
+  precision / recall  : 0.9999 / 0.9996
+  end to end (comparable across model types)
+  clean  : 0.9936   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+TEST SCORE (joint) : 0.9967
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.3701, 1.518]
+  SLAV rel : [0.8247, 1.474]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3744 ± 0.0665 ms   (early exit 0.00%)
+  latency adv   : 0.3730 ± 0.0652 ms   (early exit 0.00%)
+
+### [ 42/102] s4/fur/pgd/medium/[lambda_act=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), lambda_act=0.5, task_loss_on_adv=True ###
+act_margin = (0.173493,)  (5x natural rel=(0.034699,), measured)
+TASK (positive = attack)
+  clean       : acc=0.9912  prec=0.9958  rec=0.9929
+  adversarial : acc=0.9822  prec=0.9907  rec=0.9862
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9905
+  adversarial accuracy: 0.9853
+  precision / recall  : 0.9904 / 0.9853
+  end to end (comparable across model types)
+  clean  : 0.9825   (right AND not flagged)
+  robust : 0.9982   (right OR flagged)
+TEST SCORE (joint) : 0.9903
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1502, 0.07224]
+  SLAV rel : [0.3278, 0.05965]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6316 ± 0.1056 ms   (early exit 0.00%)
+  latency adv   : 0.6003 ± 0.0869 ms   (early exit 0.00%)
+
+### [ 43/102] s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), lambda_act=1, task_loss_on_adv=False ###
+act_margin = (0.252077,)  (5x natural rel=(0.050415,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9939  prec=0.9985  rec=0.9936
+  adversarial : acc=0.1100  prec=0.1862  rec=0.0437
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9999
+  precision / recall  : 0.9999 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9938   (right AND not flagged)
+  robust : 1.0000   (right OR flagged)
+TEST SCORE (joint) : 0.9969
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.3602, 1.755]
+  SLAV rel : [0.9619, 1.819]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3561 ± 0.0537 ms   (early exit 0.00%)
+  latency adv   : 0.3737 ± 0.0630 ms   (early exit 0.00%)
+
+### [ 44/102] s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), lambda_act=1, task_loss_on_adv=True ###
+act_margin = (0.173493,)  (5x natural rel=(0.034699,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9904  prec=0.9962  rec=0.9914
+  adversarial : acc=0.9790  prec=0.9915  rec=0.9813
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9973
+  adversarial accuracy: 0.9951
+  precision / recall  : 0.9973 / 0.9951
+  end to end (comparable across model types)
+  clean  : 0.9880   (right AND not flagged)
+  robust : 0.9994   (right OR flagged)
+TEST SCORE (joint) : 0.9937
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1443, 0.06723]
+  SLAV rel : [0.423, 0.06369]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3768 ± 0.0710 ms   (early exit 0.00%)
+  latency adv   : 0.3790 ± 0.0695 ms   (early exit 0.00%)
+
+### [ 45/102] s4/fur/pgd/medium/[lambda_act=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), lambda_act=2, task_loss_on_adv=False ###
+act_margin = (0.252077,)  (5x natural rel=(0.050415,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9938  prec=0.9985  rec=0.9935
+  adversarial : acc=0.0874  prec=0.1505  rec=0.0380
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9999
+  precision / recall  : 0.9999 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9938   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9968
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2478, 1.548]
+  SLAV rel : [0.9806, 2.062]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6350 ± 0.1486 ms   (early exit 0.00%)
+  latency adv   : 0.6662 ± 0.1662 ms   (early exit 0.00%)
+
+### [ 46/102] s4/fur/pgd/medium/[lambda_act=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), lambda_act=2, task_loss_on_adv=True ###
+act_margin = (0.173493,)  (5x natural rel=(0.034699,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9897  prec=0.9956  rec=0.9911
+  adversarial : acc=0.9714  prec=0.9886  rec=0.9743
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9979
+  adversarial accuracy: 0.9951
+  precision / recall  : 0.9979 / 0.9951
+  end to end (comparable across model types)
+  clean  : 0.9879   (right AND not flagged)
+  robust : 0.9991   (right OR flagged)
+TEST SCORE (joint) : 0.9935
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07811, 0.05919]
+  SLAV rel : [0.4165, 0.07304]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5650 ± 0.0894 ms   (early exit 0.00%)
+  latency adv   : 0.5736 ± 0.0875 ms   (early exit 0.00%)
+
+### [ 47/102] s4/fur/pgd/medium/margin/[margin_factor=3,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), margin_factor=3, lambda_act=1 ###
+act_margin = (0.151246,)  (3x natural rel=(0.050415,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9939  prec=0.9984  rec=0.9938
+  adversarial : acc=0.1676  prec=0.3507  rec=0.0860
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9998
+  adversarial accuracy: 0.9999
+  precision / recall  : 0.9998 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9938   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9969
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2706, 1.465]
+  SLAV rel : [0.4925, 1.164]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5915 ± 0.0525 ms   (early exit 0.00%)
+  latency adv   : 0.5901 ± 0.0537 ms   (early exit 0.00%)
+
+### [ 48/102] s4/fur/pgd/medium/margin/[margin_factor=3,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), margin_factor=3, lambda_act=2 ###
+act_margin = (0.151246,)  (3x natural rel=(0.050415,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9938  prec=0.9986  rec=0.9934
+  adversarial : acc=0.1508  prec=0.3087  rec=0.0766
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9999 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9937   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9968
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2508, 1.822]
+  SLAV rel : [0.5463, 1.532]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3640 ± 0.0591 ms   (early exit 0.00%)
+  latency adv   : 0.3752 ± 0.0649 ms   (early exit 0.00%)
+
+### [ 49/102] s4/fur/pgd/medium/margin/[margin_factor=8,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), margin_factor=8, lambda_act=1 ###
+act_margin = (0.403324,)  (8x natural rel=(0.050415,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9937  prec=0.9983  rec=0.9935
+  adversarial : acc=0.0706  prec=0.0730  rec=0.0169
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9997
+  precision / recall  : 0.9999 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9936   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+TEST SCORE (joint) : 0.9967
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.368, 2.056]
+  SLAV rel : [1.817, 2.831]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5572 ± 0.0831 ms   (early exit 0.00%)
+  latency adv   : 0.5565 ± 0.0695 ms   (early exit 0.00%)
+
+### [ 50/102] s4/fur/pgd/medium/margin/[margin_factor=8,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(128,64), wrap_at=(0,), detector_dims=(32,16), margin_factor=8, lambda_act=2 ###
+act_margin = (0.403324,)  (8x natural rel=(0.050415,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9938  prec=0.9984  rec=0.9936
+  adversarial : acc=0.0716  prec=0.1540  rec=0.0438
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9999
+  precision / recall  : 1.0000 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9938   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9968
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2883, 1.786]
+  SLAV rel : [1.67, 2.634]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5878 ± 0.0494 ms   (early exit 0.00%)
+  latency adv   : 0.5755 ± 0.0582 ms   (early exit 0.00%)
+
+### [ 51/102] s4/fur/pgd/high/[lambda_act=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), lambda_act=0.5, task_loss_on_adv=False ###
+act_margin = (0.225406, 0.851517)  (5x natural rel=(0.045081, 0.170303), measured)
+TASK (positive = attack)
+  clean       : acc=0.9940  prec=0.9987  rec=0.9936
+  adversarial : acc=0.0167  prec=0.0044  rec=0.0012
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9997
+  precision / recall  : 1.0000 / 0.9997
+  end to end (comparable across model types)
+  clean  : 0.9940   (right AND not flagged)
+  robust : 1.0000   (right OR flagged)
+TEST SCORE (joint) : 0.9970
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2194, 1.097, 14.72]
+  SLAV rel : [0.6881, 1.747, 4.247]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8169 ± 0.0660 ms   (early exit 0.00%)
+  latency adv   : 0.8124 ± 0.0656 ms   (early exit 0.00%)
+
+### [ 52/102] s4/fur/pgd/high/[lambda_act=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), lambda_act=0.5, task_loss_on_adv=True ###
+act_margin = (0.168714, 0.238093)  (5x natural rel=(0.033743, 0.047619), measured)
+TASK (positive = attack)
+  clean       : acc=0.9913  prec=0.9963  rec=0.9924
+  adversarial : acc=0.9825  prec=0.9928  rec=0.9846
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9982
+  adversarial accuracy: 0.9985
+  precision / recall  : 0.9982 / 0.9985
+  end to end (comparable across model types)
+  clean  : 0.9898   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+TEST SCORE (joint) : 0.9948
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05778, 0.1024, 2.869]
+  SLAV rel : [0.3268, 0.1379, 2.667]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7474 ± 0.0772 ms   (early exit 0.00%)
+  latency adv   : 0.7748 ± 0.1066 ms   (early exit 0.00%)
+
+### [ 53/102] s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), lambda_act=1, task_loss_on_adv=False ###
+act_margin = (0.225406, 0.851517)  (5x natural rel=(0.045081, 0.170303), cached)
+TASK (positive = attack)
+  clean       : acc=0.9943  prec=0.9986  rec=0.9941
+  adversarial : acc=0.0091  prec=0.0095  rec=0.0027
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9998
+  precision / recall  : 1.0000 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9943   (right AND not flagged)
+  robust : 1.0000   (right OR flagged)
+TEST SCORE (joint) : 0.9971
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2445, 0.9637, 12.85]
+  SLAV rel : [0.8306, 2.023, 4.324]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7893 ± 0.1478 ms   (early exit 0.00%)
+  latency adv   : 0.7514 ± 0.1098 ms   (early exit 0.00%)
+
+### [ 54/102] s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), lambda_act=1, task_loss_on_adv=True ###
+act_margin = (0.168714, 0.238093)  (5x natural rel=(0.033743, 0.047619), cached)
+TASK (positive = attack)
+  clean       : acc=0.9913  prec=0.9962  rec=0.9926
+  adversarial : acc=0.9814  prec=0.9924  rec=0.9836
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9985
+  adversarial accuracy: 0.9992
+  precision / recall  : 0.9985 / 0.9992
+  end to end (comparable across model types)
+  clean  : 0.9901   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9950
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04703, 0.1025, 2.675]
+  SLAV rel : [0.3524, 0.1767, 3.164]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5777 ± 0.0869 ms   (early exit 0.00%)
+  latency adv   : 0.5776 ± 0.0862 ms   (early exit 0.00%)
+
+### [ 55/102] s4/fur/pgd/high/[lambda_act=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), lambda_act=2, task_loss_on_adv=False ###
+act_margin = (0.225406, 0.851517)  (5x natural rel=(0.045081, 0.170303), cached)
+TASK (positive = attack)
+  clean       : acc=0.9944  prec=0.9986  rec=0.9942
+  adversarial : acc=0.0090  prec=0.0174  rec=0.0050
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9999
+  precision / recall  : 1.0000 / 0.9999
+  end to end (comparable across model types)
+  clean  : 0.9944   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9972
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2294, 0.7041, 9.318]
+  SLAV rel : [0.8514, 1.926, 4.032]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8299 ± 0.0807 ms   (early exit 0.00%)
+  latency adv   : 0.8177 ± 0.0970 ms   (early exit 0.00%)
+
+### [ 56/102] s4/fur/pgd/high/[lambda_act=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), lambda_act=2, task_loss_on_adv=True ###
+act_margin = (0.168714, 0.238093)  (5x natural rel=(0.033743, 0.047619), cached)
+TASK (positive = attack)
+  clean       : acc=0.9906  prec=0.9960  rec=0.9919
+  adversarial : acc=0.9731  prec=0.9918  rec=0.9733
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9985
+  adversarial accuracy: 0.9989
+  precision / recall  : 0.9985 / 0.9989
+  end to end (comparable across model types)
+  clean  : 0.9895   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+TEST SCORE (joint) : 0.9946
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04032, 0.06729, 1.384]
+  SLAV rel : [0.3859, 0.1496, 2.631]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5759 ± 0.0820 ms   (early exit 0.00%)
+  latency adv   : 0.5612 ± 0.0805 ms   (early exit 0.00%)
+
+### [ 57/102] s4/fur/pgd/high/margin/[margin_factor=3,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), margin_factor=3, lambda_act=1 ###
+act_margin = (0.135243, 0.51091)  (3x natural rel=(0.045081, 0.170303), cached)
+TASK (positive = attack)
+  clean       : acc=0.9941  prec=0.9987  rec=0.9937
+  adversarial : acc=0.0214  prec=0.0077  rec=0.0020
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9999
+  adversarial accuracy: 0.9998
+  precision / recall  : 0.9999 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9941   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9970
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1699, 0.821, 10.8]
+  SLAV rel : [0.4493, 1.241, 3.75]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8690 ± 0.1505 ms   (early exit 0.00%)
+  latency adv   : 0.6758 ± 0.0652 ms   (early exit 0.00%)
+
+### [ 58/102] s4/fur/pgd/high/margin/[margin_factor=3,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), margin_factor=3, lambda_act=2 ###
+act_margin = (0.135243, 0.51091)  (3x natural rel=(0.045081, 0.170303), cached)
+TASK (positive = attack)
+  clean       : acc=0.9937  prec=0.9988  rec=0.9931
+  adversarial : acc=0.0206  prec=0.0112  rec=0.0030
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9998
+  precision / recall  : 1.0000 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9937   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9968
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1685, 0.6685, 8.286]
+  SLAV rel : [0.4974, 1.246, 3.351]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5957 ± 0.0886 ms   (early exit 0.00%)
+  latency adv   : 0.5923 ± 0.0857 ms   (early exit 0.00%)
+
+### [ 59/102] s4/fur/pgd/high/margin/[margin_factor=8,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), margin_factor=8, lambda_act=1 ###
+act_margin = (0.360649, 1.362427)  (8x natural rel=(0.045081, 0.170303), cached)
+TASK (positive = attack)
+  clean       : acc=0.9937  prec=0.9987  rec=0.9931
+  adversarial : acc=0.0041  prec=0.0000  rec=0.0000
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9996
+  precision / recall  : 1.0000 / 0.9996
+  end to end (comparable across model types)
+  clean  : 0.9937   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+TEST SCORE (joint) : 0.9967
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2868, 0.949, 12.74]
+  SLAV rel : [1.29, 3.062, 7.481]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.8350 ± 0.4761 ms   (early exit 0.00%)
+  latency adv   : 0.6095 ± 0.1309 ms   (early exit 0.00%)
+
+### [ 60/102] s4/fur/pgd/high/margin/[margin_factor=8,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), margin_factor=8, lambda_act=2 ###
+act_margin = (0.360649, 1.362427)  (8x natural rel=(0.045081, 0.170303), cached)
+TASK (positive = attack)
+  clean       : acc=0.9942  prec=0.9986  rec=0.9939
+  adversarial : acc=0.0033  prec=0.0003  rec=0.0001
+DETECTOR (positive = adversarial)
+  clean accuracy      : 1.0000
+  adversarial accuracy: 0.9998
+  precision / recall  : 1.0000 / 0.9998
+  end to end (comparable across model types)
+  clean  : 0.9942   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9971
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2645, 0.6786, 7.716]
+  SLAV rel : [1.297, 2.635, 6.06]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6769 ± 0.0489 ms   (early exit 0.00%)
+  latency adv   : 0.7837 ± 0.1328 ms   (early exit 0.00%)
+
+### [ 61/102] s4/fur/apgd/mini/[lambda_act=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), lambda_act=0.5, task_loss_on_adv=False ###
+act_margin = (0.114074, 0.207623)  (5x natural rel=(0.022815, 0.041525), measured)
+TASK (positive = attack)
+  clean       : acc=0.9913  prec=0.9967  rec=0.9921
+  adversarial : acc=0.3735  prec=0.6939  rec=0.3441
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9784
+  adversarial accuracy: 0.7212
+  precision / recall  : 0.9709 / 0.7212
+  end to end (comparable across model types)
+  clean  : 0.9702   (right AND not flagged)
+  robust : 0.9981   (right OR flagged)
+TEST SCORE (joint) : 0.9842
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.3423, 8.61]
+  SLAV rel : [0.7975, 13.14]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6113 ± 0.1132 ms   (early exit 0.00%)
+  latency adv   : 0.5625 ± 0.1323 ms   (early exit 0.00%)
+
+### [ 62/102] s4/fur/apgd/mini/[lambda_act=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), lambda_act=0.5, task_loss_on_adv=True ###
+act_margin = (0.092338, 0.100358)  (5x natural rel=(0.018468, 0.020072), measured)
+TASK (positive = attack)
+  clean       : acc=0.9846  prec=0.9942  rec=0.9860
+  adversarial : acc=0.9563  prec=0.9787  rec=0.9647
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9721
+  adversarial accuracy: 0.0689
+  precision / recall  : 0.7121 / 0.0689
+  end to end (comparable across model types)
+  clean  : 0.9633   (right AND not flagged)
+  robust : 0.9826   (right OR flagged)
+TEST SCORE (joint) : 0.9729
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03423, 0.05454]
+  SLAV rel : [0.02697, 0.03287]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6305 ± 0.1288 ms   (early exit 0.00%)
+  latency adv   : 0.6240 ± 0.1193 ms   (early exit 0.00%)
+
+### [ 63/102] s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), lambda_act=1, task_loss_on_adv=False ###
+act_margin = (0.114074, 0.207623)  (5x natural rel=(0.022815, 0.041525), cached)
+TASK (positive = attack)
+  clean       : acc=0.9924  prec=0.9973  rec=0.9929
+  adversarial : acc=0.2601  prec=0.5565  rec=0.2267
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9720
+  adversarial accuracy: 0.8974
+  precision / recall  : 0.9698 / 0.8974
+  end to end (comparable across model types)
+  clean  : 0.9649   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9823
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.4031, 13.66]
+  SLAV rel : [2.55, 33.37]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6375 ± 0.0469 ms   (early exit 0.00%)
+  latency adv   : 0.6356 ± 0.0438 ms   (early exit 0.00%)
+
+### [ 64/102] s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), lambda_act=1, task_loss_on_adv=True ###
+act_margin = (0.092338, 0.100358)  (5x natural rel=(0.018468, 0.020072), cached)
+TASK (positive = attack)
+  clean       : acc=0.9888  prec=0.9956  rec=0.9899
+  adversarial : acc=0.9522  prec=0.9843  rec=0.9535
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9655
+  adversarial accuracy: 0.9482
+  precision / recall  : 0.9649 / 0.9482
+  end to end (comparable across model types)
+  clean  : 0.9569   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+TEST SCORE (joint) : 0.9779
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07224, 0.3426]
+  SLAV rel : [0.2364, 0.5888]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7797 ± 0.0950 ms   (early exit 0.00%)
+  latency adv   : 0.7877 ± 0.0923 ms   (early exit 0.00%)
+
+### [ 65/102] s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), lambda_act=2, task_loss_on_adv=False ###
+act_margin = (0.114074, 0.207623)  (5x natural rel=(0.022815, 0.041525), cached)
+TASK (positive = attack)
+  clean       : acc=0.9901  prec=0.9957  rec=0.9915
+  adversarial : acc=0.1706  prec=0.4123  rec=0.1630
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9817
+  adversarial accuracy: 0.8857
+  precision / recall  : 0.9798 / 0.8857
+  end to end (comparable across model types)
+  clean  : 0.9720   (right AND not flagged)
+  robust : 0.9990   (right OR flagged)
+TEST SCORE (joint) : 0.9855
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.3018, 8.208]
+  SLAV rel : [2.384, 21.91]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6272 ± 0.0391 ms   (early exit 0.00%)
+  latency adv   : 0.6338 ± 0.0488 ms   (early exit 0.00%)
+
+### [ 66/102] s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), lambda_act=2, task_loss_on_adv=True ###
+act_margin = (0.092338, 0.100358)  (5x natural rel=(0.018468, 0.020072), cached)
+TASK (positive = attack)
+  clean       : acc=0.9904  prec=0.9946  rec=0.9930
+  adversarial : acc=0.9654  prec=0.9796  rec=0.9757
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9695
+  adversarial accuracy: 0.9691
+  precision / recall  : 0.9695 / 0.9691
+  end to end (comparable across model types)
+  clean  : 0.9609   (right AND not flagged)
+  robust : 0.9991   (right OR flagged)
+TEST SCORE (joint) : 0.9800
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06632, 0.347]
+  SLAV rel : [0.2876, 0.71]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5715 ± 0.0830 ms   (early exit 0.00%)
+  latency adv   : 0.5693 ± 0.0806 ms   (early exit 0.00%)
+
+### [ 67/102] s4/fur/apgd/mini/margin/[margin_factor=3,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), margin_factor=3, lambda_act=1 ###
+act_margin = (0.068445, 0.124574)  (3x natural rel=(0.022815, 0.041525), cached)
+TASK (positive = attack)
+  clean       : acc=0.9926  prec=0.9970  rec=0.9935
+  adversarial : acc=0.4158  prec=0.7259  rec=0.3965
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9283
+  adversarial accuracy: 0.8602
+  precision / recall  : 0.9230 / 0.8602
+  end to end (comparable across model types)
+  clean  : 0.9215   (right AND not flagged)
+  robust : 0.9993   (right OR flagged)
+TEST SCORE (joint) : 0.9604
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2884, 6.715]
+  SLAV rel : [0.9299, 11.08]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6232 ± 0.0760 ms   (early exit 0.00%)
+  latency adv   : 0.6125 ± 0.0496 ms   (early exit 0.00%)
+
+### [ 68/102] s4/fur/apgd/mini/margin/[margin_factor=3,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), margin_factor=3, lambda_act=2 ###
+act_margin = (0.068445, 0.124574)  (3x natural rel=(0.022815, 0.041525), cached)
+TASK (positive = attack)
+  clean       : acc=0.9935  prec=0.9963  rec=0.9954
+  adversarial : acc=0.3668  prec=0.6769  rec=0.3512
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9591
+  adversarial accuracy: 0.9450
+  precision / recall  : 0.9586 / 0.9450
+  end to end (comparable across model types)
+  clean  : 0.9533   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+TEST SCORE (joint) : 0.9765
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.3258, 9.615]
+  SLAV rel : [1.527, 17.27]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6520 ± 0.0753 ms   (early exit 0.00%)
+  latency adv   : 0.6443 ± 0.0504 ms   (early exit 0.00%)
+
+### [ 69/102] s4/fur/apgd/mini/margin/[margin_factor=8,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), margin_factor=8, lambda_act=1 ###
+act_margin = (0.182519, 0.332197)  (8x natural rel=(0.022815, 0.041525), cached)
+TASK (positive = attack)
+  clean       : acc=0.9932  prec=0.9980  rec=0.9932
+  adversarial : acc=0.1476  prec=0.3457  rec=0.1108
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9580
+  adversarial accuracy: 0.9259
+  precision / recall  : 0.9566 / 0.9260
+  end to end (comparable across model types)
+  clean  : 0.9515   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+TEST SCORE (joint) : 0.9755
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.513, 17.86]
+  SLAV rel : [5.123, 46.24]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5403 ± 0.0715 ms   (early exit 0.00%)
+  latency adv   : 0.5424 ± 0.0728 ms   (early exit 0.00%)
+
+### [ 70/102] s4/fur/apgd/mini/margin/[margin_factor=8,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(48,16), wrap_at=(0,1), margin_factor=8, lambda_act=2 ###
+act_margin = (0.182519, 0.332197)  (8x natural rel=(0.022815, 0.041525), cached)
+TASK (positive = attack)
+  clean       : acc=0.9925  prec=0.9974  rec=0.9929
+  adversarial : acc=0.1872  prec=0.4370  rec=0.1663
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9739
+  adversarial accuracy: 0.9505
+  precision / recall  : 0.9733 / 0.9505
+  end to end (comparable across model types)
+  clean  : 0.9668   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+TEST SCORE (joint) : 0.9828
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2203, 5.587]
+  SLAV rel : [3.932, 33.42]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5506 ± 0.0770 ms   (early exit 0.00%)
+  latency adv   : 0.5441 ± 0.0768 ms   (early exit 0.00%)
+
+### [ 71/102] s4/fur/apgd/medium/[lambda_act=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), lambda_act=0.5, task_loss_on_adv=False ###
+act_margin = (0.121096, 0.236179)  (5x natural rel=(0.024219, 0.047236), measured)
+TASK (positive = attack)
+  clean       : acc=0.9916  prec=0.9982  rec=0.9910
+  adversarial : acc=0.4233  prec=0.7505  rec=0.3842
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9718
+  adversarial accuracy: 0.9178
+  precision / recall  : 0.9702 / 0.9178
+  end to end (comparable across model types)
+  clean  : 0.9638   (right AND not flagged)
+  robust : 0.9994   (right OR flagged)
+TEST SCORE (joint) : 0.9816
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1001, 2.022]
+  SLAV rel : [0.929, 11.03]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6196 ± 0.0434 ms   (early exit 0.00%)
+  latency adv   : 0.6226 ± 0.0463 ms   (early exit 0.00%)
+
+### [ 72/102] s4/fur/apgd/medium/[lambda_act=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), lambda_act=0.5, task_loss_on_adv=True ###
+act_margin = (0.103967, 0.079207)  (5x natural rel=(0.020793, 0.015841), measured)
+TASK (positive = attack)
+  clean       : acc=0.9912  prec=0.9962  rec=0.9925
+  adversarial : acc=0.9780  prec=0.9899  rec=0.9817
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9909
+  adversarial accuracy: 0.9758
+  precision / recall  : 0.9907 / 0.9758
+  end to end (comparable across model types)
+  clean  : 0.9824   (right AND not flagged)
+  robust : 0.9994   (right OR flagged)
+TEST SCORE (joint) : 0.9909
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0565, 0.2919]
+  SLAV rel : [0.2755, 0.7708]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6257 ± 0.0430 ms   (early exit 0.00%)
+  latency adv   : 0.6275 ± 0.0466 ms   (early exit 0.00%)
+
+### [ 73/102] s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), lambda_act=1, task_loss_on_adv=False ###
+act_margin = (0.121096, 0.236179)  (5x natural rel=(0.024219, 0.047236), cached)
+TASK (positive = attack)
+  clean       : acc=0.9915  prec=0.9971  rec=0.9919
+  adversarial : acc=0.3275  prec=0.6410  rec=0.3023
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9632
+  adversarial accuracy: 0.8747
+  precision / recall  : 0.9596 / 0.8747
+  end to end (comparable across model types)
+  clean  : 0.9551   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+TEST SCORE (joint) : 0.9770
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0814, 1.849]
+  SLAV rel : [1.075, 14.86]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6201 ± 0.0387 ms   (early exit 0.00%)
+  latency adv   : 0.5948 ± 0.0696 ms   (early exit 0.00%)
+
+### [ 74/102] s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), lambda_act=1, task_loss_on_adv=True ###
+act_margin = (0.103967, 0.079207)  (5x natural rel=(0.020793, 0.015841), cached)
+TASK (positive = attack)
+  clean       : acc=0.9911  prec=0.9957  rec=0.9928
+  adversarial : acc=0.9779  prec=0.9887  rec=0.9828
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9915
+  adversarial accuracy: 0.9926
+  precision / recall  : 0.9915 / 0.9926
+  end to end (comparable across model types)
+  clean  : 0.9828   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9913
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04776, 0.1763]
+  SLAV rel : [0.3242, 0.6301]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6258 ± 0.0453 ms   (early exit 0.00%)
+  latency adv   : 0.6244 ± 0.0448 ms   (early exit 0.00%)
+
+### [ 75/102] s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), lambda_act=2, task_loss_on_adv=False ###
+act_margin = (0.121096, 0.236179)  (5x natural rel=(0.024219, 0.047236), cached)
+TASK (positive = attack)
+  clean       : acc=0.9935  prec=0.9981  rec=0.9935
+  adversarial : acc=0.3976  prec=0.7432  rec=0.3414
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9939
+  adversarial accuracy: 0.9771
+  precision / recall  : 0.9938 / 0.9771
+  end to end (comparable across model types)
+  clean  : 0.9875   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9935
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06746, 1.189]
+  SLAV rel : [1.183, 9.744]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5709 ± 0.1296 ms   (early exit 0.00%)
+  latency adv   : 0.5695 ± 0.0812 ms   (early exit 0.00%)
+
+### [ 76/102] s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), lambda_act=2, task_loss_on_adv=True ###
+act_margin = (0.103967, 0.079207)  (5x natural rel=(0.020793, 0.015841), cached)
+TASK (positive = attack)
+  clean       : acc=0.9906  prec=0.9953  rec=0.9925
+  adversarial : acc=0.9757  prec=0.9872  rec=0.9813
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9947
+  adversarial accuracy: 0.9943
+  precision / recall  : 0.9947 / 0.9943
+  end to end (comparable across model types)
+  clean  : 0.9856   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9927
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03769, 0.114]
+  SLAV rel : [0.3369, 0.4939]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6177 ± 0.0429 ms   (early exit 0.00%)
+  latency adv   : 0.6188 ± 0.0454 ms   (early exit 0.00%)
+
+### [ 77/102] s4/fur/apgd/medium/margin/[margin_factor=3,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), margin_factor=3, lambda_act=1 ###
+act_margin = (0.072658, 0.141708)  (3x natural rel=(0.024219, 0.047236), cached)
+TASK (positive = attack)
+  clean       : acc=0.9911  prec=0.9950  rec=0.9935
+  adversarial : acc=0.5250  prec=0.7972  rec=0.5198
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9234
+  adversarial accuracy: 0.8201
+  precision / recall  : 0.9146 / 0.8201
+  end to end (comparable across model types)
+  clean  : 0.9151   (right AND not flagged)
+  robust : 0.9993   (right OR flagged)
+TEST SCORE (joint) : 0.9572
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06192, 1.097]
+  SLAV rel : [0.4725, 7.013]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5811 ± 0.0911 ms   (early exit 0.00%)
+  latency adv   : 0.5542 ± 0.0781 ms   (early exit 0.00%)
+
+### [ 78/102] s4/fur/apgd/medium/margin/[margin_factor=3,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), margin_factor=3, lambda_act=2 ###
+act_margin = (0.072658, 0.141708)  (3x natural rel=(0.024219, 0.047236), cached)
+TASK (positive = attack)
+  clean       : acc=0.9936  prec=0.9984  rec=0.9933
+  adversarial : acc=0.3761  prec=0.7208  rec=0.3193
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9869
+  adversarial accuracy: 0.9704
+  precision / recall  : 0.9867 / 0.9704
+  end to end (comparable across model types)
+  clean  : 0.9807   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9902
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07837, 1.339]
+  SLAV rel : [0.7779, 8.051]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6615 ± 0.0890 ms   (early exit 0.00%)
+  latency adv   : 0.6223 ± 0.0527 ms   (early exit 0.00%)
+
+### [ 79/102] s4/fur/apgd/medium/margin/[margin_factor=8,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), margin_factor=8, lambda_act=1 ###
+act_margin = (0.193753, 0.377887)  (8x natural rel=(0.024219, 0.047236), cached)
+TASK (positive = attack)
+  clean       : acc=0.9931  prec=0.9984  rec=0.9927
+  adversarial : acc=0.2512  prec=0.5424  rec=0.2217
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9879
+  adversarial accuracy: 0.9624
+  precision / recall  : 0.9876 / 0.9625
+  end to end (comparable across model types)
+  clean  : 0.9815   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9905
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.09879, 2.24]
+  SLAV rel : [2.15, 22.99]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.7042 ± 0.0858 ms   (early exit 0.00%)
+  latency adv   : 0.6443 ± 0.0523 ms   (early exit 0.00%)
+
+### [ 80/102] s4/fur/apgd/medium/margin/[margin_factor=8,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(160,64), wrap_at=(0,1), detector_dims=(32,16), margin_factor=8, lambda_act=2 ###
+act_margin = (0.193753, 0.377887)  (8x natural rel=(0.024219, 0.047236), cached)
+TASK (positive = attack)
+  clean       : acc=0.9931  prec=0.9984  rec=0.9926
+  adversarial : acc=0.2329  prec=0.5139  rec=0.2049
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9902
+  adversarial accuracy: 0.9719
+  precision / recall  : 0.9900 / 0.9719
+  end to end (comparable across model types)
+  clean  : 0.9835   (right AND not flagged)
+  robust : 0.9992   (right OR flagged)
+TEST SCORE (joint) : 0.9914
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.07117, 1.096]
+  SLAV rel : [2.061, 15.64]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6290 ± 0.0507 ms   (early exit 0.00%)
+  latency adv   : 0.6300 ± 0.0511 ms   (early exit 0.00%)
+
+### [ 81/102] s4/fur/apgd/high/[lambda_act=0.5,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0.5, task_loss_on_adv=False ###
+act_margin = (0.091943,)  (5x natural rel=(0.018389,), measured)
+TASK (positive = attack)
+  clean       : acc=0.9938  prec=0.9986  rec=0.9934
+  adversarial : acc=0.2229  prec=0.4976  rec=0.1895
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9951
+  adversarial accuracy: 0.9914
+  precision / recall  : 0.9951 / 0.9914
+  end to end (comparable across model types)
+  clean  : 0.9890   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9943
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.06045, 0.3428, 6.385]
+  SLAV rel : [0.4725, 0.711, 1.488]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6079 ± 0.0623 ms   (early exit 0.00%)
+  latency adv   : 0.6061 ± 0.0603 ms   (early exit 0.00%)
+
+### [ 82/102] s4/fur/apgd/high/[lambda_act=0.5,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0.5, task_loss_on_adv=True ###
+act_margin = (0.117541,)  (5x natural rel=(0.023508,), measured)
+TASK (positive = attack)
+  clean       : acc=0.9920  prec=0.9967  rec=0.9930
+  adversarial : acc=0.9775  prec=0.9906  rec=0.9803
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9947
+  adversarial accuracy: 0.9889
+  precision / recall  : 0.9947 / 0.9889
+  end to end (comparable across model types)
+  clean  : 0.9869   (right AND not flagged)
+  robust : 0.9995   (right OR flagged)
+TEST SCORE (joint) : 0.9932
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04512, 0.03427, 0.2586]
+  SLAV rel : [0.224, 0.0363, 0.06877]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6052 ± 0.0490 ms   (early exit 0.00%)
+  latency adv   : 0.6214 ± 0.0975 ms   (early exit 0.00%)
+
+### [ 83/102] s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=1, task_loss_on_adv=False ###
+act_margin = (0.091943,)  (5x natural rel=(0.018389,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9942  prec=0.9985  rec=0.9939
+  adversarial : acc=0.2141  prec=0.4833  rec=0.1915
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9982
+  adversarial accuracy: 0.9949
+  precision / recall  : 0.9982 / 0.9950
+  end to end (comparable across model types)
+  clean  : 0.9924   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+TEST SCORE (joint) : 0.9961
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0579, 0.385, 8.104]
+  SLAV rel : [0.5549, 0.8896, 1.8]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.6002 ± 0.0578 ms   (early exit 0.00%)
+  latency adv   : 0.6042 ± 0.0521 ms   (early exit 0.00%)
+
+### [ 84/102] s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=1, task_loss_on_adv=True ###
+act_margin = (0.117541,)  (5x natural rel=(0.023508,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9924  prec=0.9962  rec=0.9940
+  adversarial : acc=0.9843  prec=0.9907  rec=0.9891
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9965
+  adversarial accuracy: 0.9959
+  precision / recall  : 0.9965 / 0.9959
+  end to end (comparable across model types)
+  clean  : 0.9891   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9945
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0471, 0.03148, 0.3684]
+  SLAV rel : [0.3052, 0.04228, 0.07274]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4280 ± 0.1070 ms   (early exit 0.00%)
+  latency adv   : 0.4345 ± 0.1083 ms   (early exit 0.00%)
+
+### [ 85/102] s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=False] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=2, task_loss_on_adv=False ###
+act_margin = (0.091943,)  (5x natural rel=(0.018389,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9944  prec=0.9985  rec=0.9943
+  adversarial : acc=0.1334  prec=0.3125  rec=0.0978
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9965
+  adversarial accuracy: 0.9954
+  precision / recall  : 0.9965 / 0.9954
+  end to end (comparable across model types)
+  clean  : 0.9909   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+TEST SCORE (joint) : 0.9954
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04939, 0.3521, 8.181]
+  SLAV rel : [0.6311, 1.077, 2.258]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5957 ± 0.0505 ms   (early exit 0.00%)
+  latency adv   : 0.5872 ± 0.0583 ms   (early exit 0.00%)
+
+### [ 86/102] s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=True] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=2, task_loss_on_adv=True ###
+act_margin = (0.117541,)  (5x natural rel=(0.023508,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9906  prec=0.9957  rec=0.9923
+  adversarial : acc=0.9786  prec=0.9909  rec=0.9815
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9975
+  adversarial accuracy: 0.9945
+  precision / recall  : 0.9975 / 0.9945
+  end to end (comparable across model types)
+  clean  : 0.9884   (right AND not flagged)
+  robust : 0.9999   (right OR flagged)
+TEST SCORE (joint) : 0.9941
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03241, 0.02333, 0.337]
+  SLAV rel : [0.3481, 0.04892, 0.1082]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5993 ± 0.0485 ms   (early exit 0.00%)
+  latency adv   : 0.5867 ± 0.0576 ms   (early exit 0.00%)
+
+### [ 87/102] s4/fur/apgd/high/margin/[margin_factor=3,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), margin_factor=3, lambda_act=1 ###
+act_margin = (0.055166,)  (3x natural rel=(0.018389,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9943  prec=0.9986  rec=0.9940
+  adversarial : acc=0.2685  prec=0.5765  rec=0.2144
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9940
+  adversarial accuracy: 0.9936
+  precision / recall  : 0.9940 / 0.9936
+  end to end (comparable across model types)
+  clean  : 0.9884   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+TEST SCORE (joint) : 0.9940
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05342, 0.3572, 6.676]
+  SLAV rel : [0.3486, 0.6146, 1.35]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.5799 ± 0.0693 ms   (early exit 0.00%)
+  latency adv   : 0.5925 ± 0.0549 ms   (early exit 0.00%)
+
+### [ 88/102] s4/fur/apgd/high/margin/[margin_factor=3,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), margin_factor=3, lambda_act=2 ###
+act_margin = (0.055166,)  (3x natural rel=(0.018389,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9945  prec=0.9986  rec=0.9943
+  adversarial : acc=0.1593  prec=0.3686  rec=0.1178
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9961
+  adversarial accuracy: 0.9950
+  precision / recall  : 0.9961 / 0.9950
+  end to end (comparable across model types)
+  clean  : 0.9907   (right AND not flagged)
+  robust : 0.9996   (right OR flagged)
+TEST SCORE (joint) : 0.9952
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05059, 0.3716, 7.55]
+  SLAV rel : [0.4092, 0.8079, 1.79]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4284 ± 0.0292 ms   (early exit 0.00%)
+  latency adv   : 0.4299 ± 0.0265 ms   (early exit 0.00%)
+
+### [ 89/102] s4/fur/apgd/high/margin/[margin_factor=8,lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), margin_factor=8, lambda_act=1 ###
+act_margin = (0.147108,)  (8x natural rel=(0.018389,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9940  prec=0.9984  rec=0.9938
+  adversarial : acc=0.1573  prec=0.3827  rec=0.1409
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9981
+  adversarial accuracy: 0.9937
+  precision / recall  : 0.9981 / 0.9937
+  end to end (comparable across model types)
+  clean  : 0.9921   (right AND not flagged)
+  robust : 0.9998   (right OR flagged)
+TEST SCORE (joint) : 0.9960
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.061, 0.3454, 8.274]
+  SLAV rel : [0.8886, 1.132, 1.948]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4300 ± 0.0278 ms   (early exit 0.00%)
+  latency adv   : 0.4311 ± 0.0272 ms   (early exit 0.00%)
+
+### [ 90/102] s4/fur/apgd/high/margin/[margin_factor=8,lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, train_attack=pgd_adaptive, eval_attack=pgd_adaptive, hidden_dims=(256,128,32), wrap_at=(0,), margin_factor=8, lambda_act=2 ###
+act_margin = (0.147108,)  (8x natural rel=(0.018389,), cached)
+TASK (positive = attack)
+  clean       : acc=0.9946  prec=0.9984  rec=0.9945
+  adversarial : acc=0.0839  prec=0.1843  rec=0.0529
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9981
+  adversarial accuracy: 0.9954
+  precision / recall  : 0.9981 / 0.9954
+  end to end (comparable across model types)
+  clean  : 0.9927   (right AND not flagged)
+  robust : 0.9997   (right OR flagged)
+TEST SCORE (joint) : 0.9962
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05302, 0.4014, 10.95]
+  SLAV rel : [1.071, 1.966, 3.506]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4294 ± 0.0298 ms   (early exit 0.00%)
+  latency adv   : 0.4284 ± 0.0300 ms   (early exit 0.00%)
+
+### [ 91/102] s4/clo/mini/[lambda_act=0.5] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=0.5 ###
+TASK (positive = attack)
+  clean       : acc=0.9901  prec=0.9945  rec=0.9927
+  adversarial : acc=0.9760  prec=0.9853  rec=0.9837
+TEST SCORE (joint) : 0.9830
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.108, 0.2229]
+  SLAV rel : [0.009711, 0.03131]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2370 ± 0.0557 ms   (early exit 0.00%)
+  latency adv   : 0.2268 ± 0.0457 ms   (early exit 0.00%)
+
+### [ 92/102] s4/clo/mini/[lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=1 ###
+TASK (positive = attack)
+  clean       : acc=0.9900  prec=0.9948  rec=0.9923
+  adversarial : acc=0.9767  prec=0.9865  rec=0.9835
+TEST SCORE (joint) : 0.9834
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.09067, 0.1827]
+  SLAV rel : [0.006551, 0.02173]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2259 ± 0.0442 ms   (early exit 0.00%)
+  latency adv   : 0.2235 ± 0.0335 ms   (early exit 0.00%)
+
+### [ 93/102] s4/clo/mini/[lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=2 ###
+TASK (positive = attack)
+  clean       : acc=0.9894  prec=0.9946  rec=0.9917
+  adversarial : acc=0.9768  prec=0.9878  rec=0.9822
+TEST SCORE (joint) : 0.9831
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.08513, 0.1563]
+  SLAV rel : [0.005381, 0.02296]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2061 ± 0.0327 ms   (early exit 0.00%)
+  latency adv   : 0.2037 ± 0.0318 ms   (early exit 0.00%)
+
+### [ 94/102] s4/clo/medium/[lambda_act=0.5] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=0.5 ###
+TASK (positive = attack)
+  clean       : acc=0.9920  prec=0.9964  rec=0.9933
+  adversarial : acc=0.9838  prec=0.9921  rec=0.9870
+TEST SCORE (joint) : 0.9879
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05224, 0.1785]
+  SLAV rel : [0.008172, 0.001033]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2013 ± 0.0297 ms   (early exit 0.00%)
+  latency adv   : 0.1996 ± 0.0355 ms   (early exit 0.00%)
+
+### [ 95/102] s4/clo/medium/[lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=1 ###
+TASK (positive = attack)
+  clean       : acc=0.9918  prec=0.9966  rec=0.9929
+  adversarial : acc=0.9836  prec=0.9923  rec=0.9864
+TEST SCORE (joint) : 0.9877
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05453, 0.132]
+  SLAV rel : [0.006302, 0.0008065]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2333 ± 0.0479 ms   (early exit 0.00%)
+  latency adv   : 0.2275 ± 0.0395 ms   (early exit 0.00%)
+
+### [ 96/102] s4/clo/medium/[lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=2 ###
+TASK (positive = attack)
+  clean       : acc=0.9914  prec=0.9957  rec=0.9932
+  adversarial : acc=0.9827  prec=0.9899  rec=0.9877
+TEST SCORE (joint) : 0.9870
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04607, 0.1065]
+  SLAV rel : [0.005722, 0.0008097]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2041 ± 0.0427 ms   (early exit 0.00%)
+  latency adv   : 0.1903 ± 0.0417 ms   (early exit 0.00%)
+
+### [ 97/102] s4/clo/high/[lambda_act=0.5] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0.5 ###
+TASK (positive = attack)
+  clean       : acc=0.9923  prec=0.9965  rec=0.9935
+  adversarial : acc=0.9855  prec=0.9925  rec=0.9887
+TEST SCORE (joint) : 0.9889
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02727, 0.06296, 0.3104]
+  SLAV rel : [0.009635, 0.01219, 0.04454]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2328 ± 0.0361 ms   (early exit 0.00%)
+  latency adv   : 0.2304 ± 0.0378 ms   (early exit 0.00%)
+
+### [ 98/102] s4/clo/high/[lambda_act=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=1 ###
+TASK (positive = attack)
+  clean       : acc=0.9920  prec=0.9964  rec=0.9932
+  adversarial : acc=0.9855  prec=0.9932  rec=0.9880
+TEST SCORE (joint) : 0.9887
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.03263, 0.06107, 0.3259]
+  SLAV rel : [0.006852, 0.01091, 0.04388]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3527 ± 0.0615 ms   (early exit 0.00%)
+  latency adv   : 0.3487 ± 0.0623 ms   (early exit 0.00%)
+
+### [ 99/102] s4/clo/high/[lambda_act=2] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=2 ###
+TASK (positive = attack)
+  clean       : acc=0.9918  prec=0.9962  rec=0.9932
+  adversarial : acc=0.9851  prec=0.9933  rec=0.9875
+TEST SCORE (joint) : 0.9885
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.0297, 0.04852, 0.2554]
+  SLAV rel : [0.005173, 0.009859, 0.04411]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2324 ± 0.0329 ms   (early exit 0.00%)
+  latency adv   : 0.2357 ± 0.0331 ms   (early exit 0.00%)
+
+### [100/102] s4/vv/lambda_det-detached/[lambda_det=0.1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=0.1 ###
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9967  rec=0.9939
+  adversarial : acc=0.4632  prec=0.8129  rec=0.4000
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9968
+  adversarial accuracy: 0.9971
+  precision / recall  : 0.9968 / 0.9971
+  end to end (comparable across model types)
+  clean  : 0.9898   (right AND not flagged)
+  robust : 0.9989   (right OR flagged)
+TEST SCORE (joint) : 0.9943
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2651, 2.403]
+  SLAV rel : [0.04141, 0.2159]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4141 ± 0.0491 ms   (early exit 0.00%)
+  latency adv   : 0.4126 ± 0.0505 ms   (early exit 0.00%)
+
+### [101/102] s4/vv/lambda_det-detached/[lambda_det=1] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=1 ###
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9967  rec=0.9939
+  adversarial : acc=0.4632  prec=0.8129  rec=0.4000
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9963
+  adversarial accuracy: 0.9975
+  precision / recall  : 0.9963 / 0.9975
+  end to end (comparable across model types)
+  clean  : 0.9895   (right AND not flagged)
+  robust : 0.9991   (right OR flagged)
+TEST SCORE (joint) : 0.9943
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2651, 2.403]
+  SLAV rel : [0.04141, 0.2159]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4582 ± 0.0466 ms   (early exit 0.00%)
+  latency adv   : 0.4570 ± 0.0459 ms   (early exit 0.00%)
+
+### [102/102] s4/vv/lambda_det-detached/[lambda_det=10] | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(32,16), wrap_at=(0,), detector_dims=(32,16), use_act_loss=False, margin_factor=None, lambda_det=10 ###
+TASK (positive = attack)
+  clean       : acc=0.9928  prec=0.9981  rec=0.9927
+  adversarial : acc=0.4376  prec=0.8063  rec=0.3618
+DETECTOR (positive = adversarial)
+  clean accuracy      : 0.9978
+  adversarial accuracy: 0.9975
+  precision / recall  : 0.9978 / 0.9975
+  end to end (comparable across model types)
+  clean  : 0.9909   (right AND not flagged)
+  robust : 0.9986   (right OR flagged)
+TEST SCORE (joint) : 0.9947
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.2691, 2.513]
+  SLAV rel : [0.04078, 0.2078]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4603 ± 0.0394 ms   (early exit 0.00%)
+  latency adv   : 0.4584 ± 0.0447 ms   (early exit 0.00%)
+
+== summary (102 run) ==
+experiment                                                                dataset  model  n  epochs  task_clean_acc  task_adv_acc  det_clean_acc  det_adv_acc  clean_acc_e2e  robust_acc_e2e  threshold_det  test_score       infer_ms   infer_ms_adv  infer_exit_rate_adv  duration_s
+---------------------------------------------------------------------  ----------  -----  -  ------  --------------  ------------  -------------  -----------  -------------  --------------  -------------  ----------  -------------  -------------  -------------------  ----------
+s4/fur/pgd/high/[lambda_act=2,task_loss_on_adv=False]                  cicids2017    det  1      10          0.9944        0.0090         1.0000       0.9999         0.9944          0.9999         0.5000      0.9972  0.8299±0.0807  0.8177±0.0970               0.0000         166
+s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=False]                  cicids2017    det  1      10          0.9943        0.0091         1.0000       0.9998         0.9943          1.0000         0.5000      0.9971  0.7893±0.1478  0.7514±0.1098               0.0000         168
+s4/fur/pgd/high/margin/[margin_factor=8,lambda_act=2]                  cicids2017    det  1      10          0.9942        0.0033         1.0000       0.9998         0.9942          0.9999         0.5000      0.9971  0.6769±0.0489  0.7837±0.1328               0.0000         165
+s4/fur/pgd/high/[lambda_act=0.5,task_loss_on_adv=False]                cicids2017    det  1      10          0.9940        0.0167         1.0000       0.9997         0.9940          1.0000         0.5000      0.9970  0.8169±0.0660  0.8124±0.0656               0.0000         175
+s4/fur/pgd/high/margin/[margin_factor=3,lambda_act=1]                  cicids2017    det  1      10          0.9941        0.0214         0.9999       0.9998         0.9941          0.9999         0.5000      0.9970  0.8690±0.1505  0.6758±0.0652               0.0000         172
+s4/det/pgd/high/[task_loss_on_adv=False]                               cicids2017    det  1      10          0.9941        0.5507         0.9996       0.9998         0.9938          1.0000         0.5000      0.9969  0.7068±0.0542  0.6988±0.0528               0.0000         133
+s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=False]                cicids2017    det  1      10          0.9939        0.1100         0.9999       0.9999         0.9938          1.0000         0.3000      0.9969  0.3561±0.0537  0.3737±0.0630               0.0000         124
+s4/fur/pgd/medium/margin/[margin_factor=3,lambda_act=1]                cicids2017    det  1      10          0.9939        0.1676         0.9998       0.9999         0.9938          0.9999         0.5000      0.9969  0.5915±0.0525  0.5901±0.0537               0.0000         128
+s4/fur/pgd/medium/[lambda_act=2,task_loss_on_adv=False]                cicids2017    det  1      10          0.9938        0.0874         0.9999       0.9999         0.9938          0.9999         0.3900      0.9968  0.6350±0.1486  0.6662±0.1662               0.0000         130
+s4/fur/pgd/medium/margin/[margin_factor=3,lambda_act=2]                cicids2017    det  1      10          0.9938        0.1508         0.9999       0.9998         0.9937          0.9999         0.6900      0.9968  0.3640±0.0591  0.3752±0.0649               0.0000         127
+s4/fur/pgd/medium/margin/[margin_factor=8,lambda_act=2]                cicids2017    det  1      10          0.9938        0.0716         1.0000       0.9999         0.9938          0.9999         0.4500      0.9968  0.5878±0.0494  0.5755±0.0582               0.0000         128
+s4/fur/pgd/high/margin/[margin_factor=3,lambda_act=2]                  cicids2017    det  1      10          0.9937        0.0206         1.0000       0.9998         0.9937          0.9999         0.5000      0.9968  0.5957±0.0886  0.5923±0.0857               0.0000         165
+s4/fur/pgd/medium/[lambda_act=0.5,task_loss_on_adv=False]              cicids2017    det  1      10          0.9937        0.1164         0.9999       0.9996         0.9936          0.9998         0.8100      0.9967  0.3744±0.0665  0.3730±0.0652               0.0000         133
+s4/fur/pgd/medium/margin/[margin_factor=8,lambda_act=1]                cicids2017    det  1      10          0.9937        0.0706         0.9999       0.9997         0.9936          0.9998         0.4700      0.9967  0.5572±0.0831  0.5565±0.0695               0.0000         119
+s4/fur/pgd/high/margin/[margin_factor=8,lambda_act=1]                  cicids2017    det  1      10          0.9937        0.0041         1.0000       0.9996         0.9937          0.9997         0.5000      0.9967  0.8350±0.4761  0.6095±0.1309               0.0000         164
+s4/fur/pgd/mini/margin/[margin_factor=8,lambda_act=2]                  cicids2017    det  1      10          0.9934        0.0043         0.9999       0.9999         0.9933          0.9999         0.5000      0.9966  0.3582±0.0538  0.4706±0.1212               0.0000         125
+s4/fur/pgd/mini/[lambda_act=0.5,task_loss_on_adv=False]                cicids2017    det  1      10          0.9929        0.0192         0.9998       0.9998         0.9927          0.9999         0.4000      0.9963  0.5463±0.0748  0.5534±0.0699               0.0000         130
+s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=False]                  cicids2017    det  1      10          0.9928        0.0248         0.9998       0.9998         0.9927          0.9999         0.4600      0.9963  0.3510±0.0576  0.3627±0.0679               0.0000         125
+s4/fur/pgd/mini/margin/[margin_factor=3,lambda_act=2]                  cicids2017    det  1      10          0.9928        0.0253         0.9998       0.9998         0.9927          0.9999         0.1200      0.9963  0.5555±0.0871  0.5927±0.1203               0.0000         120
+s4/fur/apgd/high/margin/[margin_factor=8,lambda_act=2]                 cicids2017    det  1      10          0.9946        0.0839         0.9981       0.9954         0.9927          0.9997         0.4300      0.9962  0.4294±0.0298  0.4284±0.0300               0.0000         254
+s4/det/pgd/medium/[task_loss_on_adv=False]                             cicids2017    det  1      10          0.9935        0.5018         0.9991       0.9995         0.9927          0.9996         0.3500      0.9961  0.5845±0.0937  0.5941±0.1223               0.0000         105
+s4/fur/pgd/mini/margin/[margin_factor=3,lambda_act=1]                  cicids2017    det  1      10          0.9925        0.0383         0.9998       0.9998         0.9923          0.9999         0.4500      0.9961  0.5645±0.1011  0.6343±0.1403               0.0000         124
+s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=False]                 cicids2017    det  1      10          0.9942        0.2141         0.9982       0.9949         0.9924          0.9997         0.4100      0.9961  0.6002±0.0578  0.6042±0.0521               0.0000         250
+s4/fur/pgd/mini/[lambda_act=2,task_loss_on_adv=False]                  cicids2017    det  1      10          0.9927        0.0249         0.9997       0.9996         0.9924          0.9997         0.5700      0.9960  0.5746±0.0655  0.5507±0.0780               0.0000         123
+s4/fur/apgd/high/margin/[margin_factor=8,lambda_act=1]                 cicids2017    det  1      10          0.9940        0.1573         0.9981       0.9937         0.9921          0.9998         0.4300      0.9960  0.4300±0.0278  0.4311±0.0272               0.0000         254
+s4/fur/pgd/mini/margin/[margin_factor=8,lambda_act=1]                  cicids2017    det  1      10          0.9928        0.0192         0.9994       0.9993         0.9922          0.9994         0.4700      0.9958  0.5713±0.0635  0.5948±0.0563               0.0000         127
+s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=False]                 cicids2017    det  1      10          0.9944        0.1334         0.9965       0.9954         0.9909          0.9998         0.4000      0.9954  0.5957±0.0505  0.5872±0.0583               0.0000         252
+s4/fur/apgd/high/margin/[margin_factor=3,lambda_act=2]                 cicids2017    det  1      10          0.9945        0.1593         0.9961       0.9950         0.9907          0.9996         0.4300      0.9952  0.4284±0.0292  0.4299±0.0265               0.0000         261
+s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=True]                   cicids2017    det  1      10          0.9913        0.9814         0.9985       0.9992         0.9901          0.9999         0.5000      0.9950  0.5777±0.0869  0.5776±0.0862               0.0000         167
+s4/fur/pgd/high/[lambda_act=0.5,task_loss_on_adv=True]                 cicids2017    det  1      10          0.9913        0.9825         0.9982       0.9985         0.9898          0.9997         0.5000      0.9948  0.7474±0.0772  0.7748±0.1066               0.0000         175
+s4/vv/lambda_det-detached/[lambda_det=10]                              cicids2017    det  1      10          0.9928        0.4376         0.9978       0.9975         0.9909          0.9986         0.5400      0.9947  0.4603±0.0394  0.4584±0.0447               0.0000         112
+s4/fur/pgd/high/[lambda_act=2,task_loss_on_adv=True]                   cicids2017    det  1      10          0.9906        0.9731         0.9985       0.9989         0.9895          0.9998         0.5000      0.9946  0.5759±0.0820  0.5612±0.0805               0.0000         166
+s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=True]                  cicids2017    det  1      10          0.9924        0.9843         0.9965       0.9959         0.9891          0.9999         0.4300      0.9945  0.4280±0.1070  0.4345±0.1083               0.0000         233
+s4/det/pgd/mini/[task_loss_on_adv=False]                               cicids2017    det  1      10          0.9928        0.4632         0.9963       0.9975         0.9895          0.9991         0.1800      0.9943  0.5599±0.0850  0.5675±0.0607               0.0000         100
+s4/fur/apgd/high/[lambda_act=0.5,task_loss_on_adv=False]               cicids2017    det  1      10          0.9938        0.2229         0.9951       0.9914         0.9890          0.9996         0.4600      0.9943  0.6079±0.0623  0.6061±0.0603               0.0000         246
+s4/vv/lambda_det-detached/[lambda_det=0.1]                             cicids2017    det  1      10          0.9928        0.4632         0.9968       0.9971         0.9898          0.9989         0.2000      0.9943  0.4141±0.0491  0.4126±0.0505               0.0000         115
+s4/vv/lambda_det-detached/[lambda_det=1]                               cicids2017    det  1      10          0.9928        0.4632         0.9963       0.9975         0.9895          0.9991         0.1800      0.9943  0.4582±0.0466  0.4570±0.0459               0.0000         114
+s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=True]                  cicids2017    det  1       9          0.9906        0.9786         0.9975       0.9945         0.9884          0.9999         0.2200      0.9941  0.5993±0.0485  0.5867±0.0576               0.0000         230
+s4/fur/apgd/high/margin/[margin_factor=3,lambda_act=1]                 cicids2017    det  1      10          0.9943        0.2685         0.9940       0.9936         0.9884          0.9997         0.3900      0.9940  0.5799±0.0693  0.5925±0.0549               0.0000         252
+s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=True]                 cicids2017    det  1      10          0.9904        0.9790         0.9973       0.9951         0.9880          0.9994         0.3200      0.9937  0.3768±0.0710  0.3790±0.0695               0.0000         118
+s4/fur/pgd/medium/[lambda_act=2,task_loss_on_adv=True]                 cicids2017    det  1       9          0.9897        0.9714         0.9979       0.9951         0.9879          0.9991         0.4300      0.9935  0.5650±0.0894  0.5736±0.0875               0.0000         109
+s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=False]               cicids2017    det  1      10          0.9935        0.3976         0.9939       0.9771         0.9875          0.9996         0.4700      0.9935  0.5709±0.1296  0.5695±0.0812               0.0000         294
+s4/fur/apgd/high/[lambda_act=0.5,task_loss_on_adv=True]                cicids2017    det  1      10          0.9920        0.9775         0.9947       0.9889         0.9869          0.9995         0.4000      0.9932  0.6052±0.0490  0.6214±0.0975               0.0000         247
+s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=True]                cicids2017    det  1      10          0.9906        0.9757         0.9947       0.9943         0.9856          0.9999         0.5000      0.9927  0.6177±0.0429  0.6188±0.0454               0.0000         306
+s4/fur/apgd/medium/margin/[margin_factor=8,lambda_act=2]               cicids2017    det  1       8          0.9931        0.2329         0.9902       0.9719         0.9835          0.9992         0.4600      0.9914  0.6290±0.0507  0.6300±0.0511               0.0000         234
+s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=True]                cicids2017    det  1      10          0.9911        0.9779         0.9915       0.9926         0.9828          0.9999         0.5000      0.9913  0.6258±0.0453  0.6244±0.0448               0.0000         303
+s4/fur/apgd/medium/[lambda_act=0.5,task_loss_on_adv=True]              cicids2017    det  1      10          0.9912        0.9780         0.9909       0.9758         0.9824          0.9994         0.5400      0.9909  0.6257±0.0430  0.6275±0.0466               0.0000         312
+s4/fur/apgd/medium/margin/[margin_factor=8,lambda_act=1]               cicids2017    det  1       8          0.9931        0.2512         0.9879       0.9624         0.9815          0.9996         0.4000      0.9905  0.7042±0.0858  0.6443±0.0523               0.0000         233
+s4/fur/pgd/medium/[lambda_act=0.5,task_loss_on_adv=True]               cicids2017    det  1      10          0.9912        0.9822         0.9905       0.9853         0.9825          0.9982         0.3900      0.9903  0.6316±0.1056  0.6003±0.0869               0.0000         125
+s4/fur/apgd/medium/margin/[margin_factor=3,lambda_act=2]               cicids2017    det  1      10          0.9936        0.3761         0.9869       0.9704         0.9807          0.9996         0.4900      0.9902  0.6615±0.0890  0.6223±0.0527               0.0000         310
+s4/det/apgd/medium/lambda_det/[lambda_det=2,task_loss_on_adv=False]    cicids2017    det  1      10          0.9913        0.3201         0.9871       0.9645         0.9789          0.9995         0.4100      0.9892  0.6433±0.0699  0.7137±0.0956               0.0000         275
+s4/clo/high/[lambda_act=0.5]                                           cicids2017    adv  1      10          0.9923        0.9855              -            -         0.9923          0.9854              -      0.9889  0.2328±0.0361  0.2304±0.0378               0.0000         126
+s4/clo/high/[lambda_act=1]                                             cicids2017    adv  1      10          0.9920        0.9855              -            -         0.9920          0.9855              -      0.9887  0.3527±0.0615  0.3487±0.0623               0.0000         126
+s4/clo/high/[lambda_act=2]                                             cicids2017    adv  1      10          0.9918        0.9851              -            -         0.9918          0.9851              -      0.9885  0.2324±0.0329  0.2357±0.0331               0.0000         129
+s4/det/apgd/high/lambda_det/[lambda_det=0.5,task_loss_on_adv=True]     cicids2017    det  1       7          0.9919        0.9838         0.9978       0.0050         0.9902          0.9857         0.5700      0.9880  0.5996±0.0647  0.5972±0.0587               0.0000         157
+s4/det/apgd/high/lambda_det/[lambda_det=0.1,task_loss_on_adv=True]     cicids2017    det  1       7          0.9919        0.9842         0.9968       0.0052         0.9893          0.9865         0.5600      0.9879  0.4485±0.1206  0.4486±0.1063               0.0000         160
+s4/clo/medium/[lambda_act=0.5]                                         cicids2017    adv  1      10          0.9920        0.9838              -            -         0.9920          0.9837              -      0.9879  0.2013±0.0297  0.1996±0.0355               0.0000         128
+s4/clo/medium/[lambda_act=1]                                           cicids2017    adv  1      10          0.9918        0.9836              -            -         0.9918          0.9836              -      0.9877  0.2333±0.0479  0.2275±0.0395               0.0000         126
+s4/det/apgd/high/[task_loss_on_adv=False]                              cicids2017    det  1      10          0.9944        0.4832         0.9814       0.9383         0.9760          0.9990         0.4600      0.9875  0.5948±0.0487  0.5931±0.0458               0.0000         234
+s4/clo/medium/[lambda_act=2]                                           cicids2017    adv  1      10          0.9914        0.9827              -            -         0.9914          0.9827              -      0.9870  0.2041±0.0427  0.1903±0.0417               0.0000         125
+s4/det/apgd/high/[task_loss_on_adv=True]                               cicids2017    det  1       8          0.9916        0.9834         0.9924       0.0146         0.9858          0.9880         0.5300      0.9869  0.6138±0.0728  0.6155±0.0735               0.0000         194
+s4/det/apgd/high/lambda_det/[lambda_det=2,task_loss_on_adv=False]      cicids2017    det  1      10          0.9941        0.4923         0.9781       0.9251         0.9724          0.9994         0.4000      0.9859  0.6049±0.0726  0.6568±0.1181               0.0000         232
+s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=False]                 cicids2017    det  1       6          0.9901        0.1706         0.9817       0.8857         0.9720          0.9990         0.4100      0.9855  0.6272±0.0391  0.6338±0.0488               0.0000         183
+s4/fur/pgd/mini/[lambda_act=2,task_loss_on_adv=True]                   cicids2017    det  1      10          0.9858        0.9637         0.9882       0.9810         0.9752          0.9954         0.4400      0.9853  0.5522±0.0790  0.5467±0.0797               0.0000         124
+s4/det/pgd/high/[task_loss_on_adv=True]                                cicids2017    det  1       7          0.9912        0.9828         0.9836       0.9779         0.9773          0.9932         0.4800      0.9852  0.7691±0.1109  0.6761±0.0497               0.0000          88
+s4/det/apgd/medium/[task_loss_on_adv=False]                            cicids2017    det  1      10          0.9923        0.4588         0.9768       0.9303         0.9696          0.9996         0.3900      0.9846  0.7315±0.0958  0.7382±0.0957               0.0000         269
+s4/fur/apgd/mini/[lambda_act=0.5,task_loss_on_adv=False]               cicids2017    det  1       8          0.9913        0.3735         0.9784       0.7212         0.9702          0.9981         0.4600      0.9842  0.6113±0.1132  0.5625±0.1323               0.0000         244
+s4/det/apgd/high/lambda_det/[lambda_det=0.5,task_loss_on_adv=False]    cicids2017    det  1      10          0.9946        0.4873         0.9729       0.9260         0.9678          0.9992         0.4400      0.9835  0.4179±0.0981  0.4028±0.0930               0.0000         230
+s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=True]                   cicids2017    det  1      10          0.9875        0.9608         0.9822       0.9820         0.9715          0.9956         0.4200      0.9835  0.3640±0.0639  0.3628±0.0627               0.0000         122
+s4/clo/mini/[lambda_act=1]                                             cicids2017    adv  1      10          0.9900        0.9767              -            -         0.9900          0.9767              -      0.9834  0.2259±0.0442  0.2235±0.0335               0.0000         109
+s4/clo/mini/[lambda_act=2]                                             cicids2017    adv  1      10          0.9894        0.9768              -            -         0.9894          0.9768              -      0.9831  0.2061±0.0327  0.2037±0.0318               0.0000         102
+s4/clo/mini/[lambda_act=0.5]                                           cicids2017    adv  1      10          0.9901        0.9760              -            -         0.9901          0.9760              -      0.9830  0.2370±0.0557  0.2268±0.0457               0.0000         106
+s4/fur/apgd/mini/margin/[margin_factor=8,lambda_act=2]                 cicids2017    det  1      10          0.9925        0.1872         0.9739       0.9505         0.9668          0.9989         0.3400      0.9828  0.5506±0.0770  0.5441±0.0768               0.0000         310
+s4/det/apgd/high/lambda_det/[lambda_det=0.1,task_loss_on_adv=False]    cicids2017    det  1      10          0.9943        0.6349         0.9716       0.8924         0.9661          0.9993         0.4900      0.9827  0.6029±0.0592  0.7098±0.1684               0.0000         232
+s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=False]                 cicids2017    det  1       9          0.9924        0.2601         0.9720       0.8974         0.9649          0.9996         0.4000      0.9823  0.6375±0.0469  0.6356±0.0438               0.0000         263
+s4/det/pgd/medium/[task_loss_on_adv=True]                              cicids2017    det  1       9          0.9912        0.9803         0.9791       0.9508         0.9728          0.9914         0.4400      0.9821  0.3991±0.0684  0.3947±0.0658               0.0000          90
+s4/det/apgd/medium/lambda_det/[lambda_det=0.5,task_loss_on_adv=False]  cicids2017    det  1      10          0.9929        0.4852         0.9711       0.9095         0.9646          0.9995         0.4200      0.9821  0.6225±0.0401  0.6132±0.0391               0.0000         274
+s4/fur/apgd/medium/[lambda_act=0.5,task_loss_on_adv=False]             cicids2017    det  1      10          0.9916        0.4233         0.9718       0.9178         0.9638          0.9994         0.4200      0.9816  0.6196±0.0434  0.6226±0.0463               0.0000         298
+s4/det/apgd/mini/lambda_det/[lambda_det=2,task_loss_on_adv=False]      cicids2017    det  1      10          0.9832        0.3476         0.9777       0.9533         0.9621          0.9995         0.3900      0.9808  0.6356±0.0684  0.6161±0.0563               0.0000         281
+s4/det/apgd/mini/lambda_det/[lambda_det=2,task_loss_on_adv=True]       cicids2017    det  1      10          0.9789        0.8993         0.9833       0.9587         0.9634          0.9978         0.4400      0.9806  0.6685±0.0906  0.6180±0.0559               0.0000         274
+s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=True]                  cicids2017    det  1      10          0.9904        0.9654         0.9695       0.9691         0.9609          0.9991         0.5000      0.9800  0.5715±0.0830  0.5693±0.0806               0.0000         306
+s4/det/apgd/mini/lambda_det/[lambda_det=0.1,task_loss_on_adv=True]     cicids2017    det  1      10          0.9902        0.9717         0.9707       0.2634         0.9672          0.9922         0.5200      0.9797  0.6269±0.0488  0.6222±0.0441               0.0000         271
+s4/det/apgd/medium/lambda_det/[lambda_det=0.1,task_loss_on_adv=False]  cicids2017    det  1      10          0.9939        0.5982         0.9643       0.8842         0.9588          0.9996         0.4400      0.9792  0.5480±0.0825  0.5453±0.0821               0.0000         281
+s4/det/apgd/mini/[task_loss_on_adv=False]                              cicids2017    det  1      10          0.9875        0.5168         0.9704       0.9244         0.9589          0.9990         0.4100      0.9790  0.5549±0.0794  0.5610±0.0751               0.0000         273
+s4/det/pgd/mini/[task_loss_on_adv=True]                                cicids2017    det  1      10          0.9894        0.9685         0.9738       0.9674         0.9654          0.9905         0.4500      0.9780  0.5393±0.0934  0.5589±0.0918               0.0000          99
+s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=True]                  cicids2017    det  1      10          0.9888        0.9522         0.9655       0.9482         0.9569          0.9989         0.5000      0.9779  0.7797±0.0950  0.7877±0.0923               0.0000         293
+s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=False]               cicids2017    det  1       6          0.9915        0.3275         0.9632       0.8747         0.9551          0.9989         0.3900      0.9770  0.6201±0.0387  0.5948±0.0696               0.0000         181
+s4/fur/apgd/mini/margin/[margin_factor=3,lambda_act=2]                 cicids2017    det  1      10          0.9935        0.3668         0.9591       0.9450         0.9533          0.9998         0.3500      0.9765  0.6520±0.0753  0.6443±0.0504               0.0000         318
+s4/fur/pgd/mini/[lambda_act=0.5,task_loss_on_adv=True]                 cicids2017    det  1      10          0.9872        0.9610         0.9687       0.9721         0.9582          0.9940         0.3700      0.9761  0.3667±0.0651  0.3594±0.0614               0.0000         127
+s4/fur/apgd/mini/margin/[margin_factor=8,lambda_act=1]                 cicids2017    det  1      10          0.9932        0.1476         0.9580       0.9259         0.9515          0.9995         0.3400      0.9755  0.5403±0.0715  0.5424±0.0728               0.0000         309
+s4/det/apgd/mini/[task_loss_on_adv=True]                               cicids2017    det  1      10          0.9885        0.9546         0.9641       0.8591         0.9541          0.9968         0.4800      0.9754  0.6576±0.0509  0.6297±0.0491               0.0000         266
+s4/fur/apgd/mini/[lambda_act=0.5,task_loss_on_adv=True]                cicids2017    det  1       5          0.9846        0.9563         0.9721       0.0689         0.9633          0.9826         0.5500      0.9729  0.6305±0.1288  0.6240±0.1193               0.0000         152
+s4/det/apgd/mini/lambda_det/[lambda_det=0.5,task_loss_on_adv=False]    cicids2017    det  1      10          0.9902        0.6293         0.9423       0.8908         0.9338          0.9994         0.4500      0.9666  0.6531±0.0522  0.6542±0.0514               0.0000         280
+s4/fur/apgd/mini/margin/[margin_factor=3,lambda_act=1]                 cicids2017    det  1       9          0.9926        0.4158         0.9283       0.8602         0.9215          0.9993         0.3800      0.9604  0.6232±0.0760  0.6125±0.0496               0.0000         267
+s4/fur/apgd/medium/margin/[margin_factor=3,lambda_act=1]               cicids2017    det  1       5          0.9911        0.5250         0.9234       0.8201         0.9151          0.9993         0.4300      0.9572  0.5811±0.0911  0.5542±0.0781               0.0000         151
+s4/det/apgd/mini/lambda_det/[lambda_det=0.1,task_loss_on_adv=False]    cicids2017    det  1      10          0.9933        0.8460         0.9193       0.6587         0.9131          0.9982         0.4400      0.9557  0.5562±0.0789  0.5680±0.1063               0.0000         276
+s4/det/apgd/medium/lambda_det/[lambda_det=0.1,task_loss_on_adv=True]   cicids2017    det  1       5          0.9884        0.9720         0.9087       0.1414         0.9067          0.9922         0.5000      0.9495  0.5690±0.1213  0.6035±0.1003               0.0000         140
+s4/det/apgd/medium/[task_loss_on_adv=True]                             cicids2017    det  1       5          0.9851        0.9634         0.8954       0.1557         0.8920          0.9877         0.5000      0.9399  0.5434±0.0819  0.5439±0.0816               0.0000         140
+s4/det/apgd/medium/lambda_det/[lambda_det=0.5,task_loss_on_adv=True]   cicids2017    det  1      10          0.9917        0.9827         0.8865       0.1581         0.8841          0.9952         0.5000      0.9396  0.5695±0.1445  0.6110±0.1323               0.0000         263
+s4/det/apgd/high/lambda_det/[lambda_det=2,task_loss_on_adv=True]       cicids2017    det  1       7          0.9919        0.9830         0.8709       0.2247         0.8688          0.9956         0.5000      0.9322  0.4037±0.1014  0.4231±0.0979               0.0000         156
+s4/det/apgd/medium/lambda_det/[lambda_det=2,task_loss_on_adv=True]     cicids2017    det  1       5          0.9871        0.9681         0.8697       0.1786         0.8659          0.9916         0.5000      0.9287  0.5633±0.0859  0.5651±0.0825               0.0000         140
+s4/det/apgd/mini/lambda_det/[lambda_det=0.5,task_loss_on_adv=True]     cicids2017    det  1       7          0.9886        0.9623         0.4107       0.7466         0.4091          0.9954         0.4900      0.7022  0.6243±0.0583  0.6249±0.0663               0.0000         193
+
+== test_score: esperimento x dataset ==
+experiment                                                             cicids2017
+---------------------------------------------------------------------  ----------
+s4/det/pgd/mini/[task_loss_on_adv=False]                                   0.9943
+s4/det/pgd/mini/[task_loss_on_adv=True]                                    0.9780
+s4/det/pgd/medium/[task_loss_on_adv=False]                                 0.9961
+s4/det/pgd/medium/[task_loss_on_adv=True]                                  0.9821
+s4/det/pgd/high/[task_loss_on_adv=False]                                   0.9969
+s4/det/pgd/high/[task_loss_on_adv=True]                                    0.9852
+s4/det/apgd/mini/[task_loss_on_adv=False]                                  0.9790
+s4/det/apgd/mini/[task_loss_on_adv=True]                                   0.9754
+s4/det/apgd/mini/lambda_det/[lambda_det=0.1,task_loss_on_adv=False]        0.9557
+s4/det/apgd/mini/lambda_det/[lambda_det=0.1,task_loss_on_adv=True]         0.9797
+s4/det/apgd/mini/lambda_det/[lambda_det=0.5,task_loss_on_adv=False]        0.9666
+s4/det/apgd/mini/lambda_det/[lambda_det=0.5,task_loss_on_adv=True]         0.7022
+s4/det/apgd/mini/lambda_det/[lambda_det=2,task_loss_on_adv=False]          0.9808
+s4/det/apgd/mini/lambda_det/[lambda_det=2,task_loss_on_adv=True]           0.9806
+s4/det/apgd/medium/[task_loss_on_adv=False]                                0.9846
+s4/det/apgd/medium/[task_loss_on_adv=True]                                 0.9399
+s4/det/apgd/medium/lambda_det/[lambda_det=0.1,task_loss_on_adv=False]      0.9792
+s4/det/apgd/medium/lambda_det/[lambda_det=0.1,task_loss_on_adv=True]       0.9495
+s4/det/apgd/medium/lambda_det/[lambda_det=0.5,task_loss_on_adv=False]      0.9821
+s4/det/apgd/medium/lambda_det/[lambda_det=0.5,task_loss_on_adv=True]       0.9396
+s4/det/apgd/medium/lambda_det/[lambda_det=2,task_loss_on_adv=False]        0.9892
+s4/det/apgd/medium/lambda_det/[lambda_det=2,task_loss_on_adv=True]         0.9287
+s4/det/apgd/high/[task_loss_on_adv=False]                                  0.9875
+s4/det/apgd/high/[task_loss_on_adv=True]                                   0.9869
+s4/det/apgd/high/lambda_det/[lambda_det=0.1,task_loss_on_adv=False]        0.9827
+s4/det/apgd/high/lambda_det/[lambda_det=0.1,task_loss_on_adv=True]         0.9879
+s4/det/apgd/high/lambda_det/[lambda_det=0.5,task_loss_on_adv=False]        0.9835
+s4/det/apgd/high/lambda_det/[lambda_det=0.5,task_loss_on_adv=True]         0.9880
+s4/det/apgd/high/lambda_det/[lambda_det=2,task_loss_on_adv=False]          0.9859
+s4/det/apgd/high/lambda_det/[lambda_det=2,task_loss_on_adv=True]           0.9322
+s4/fur/pgd/mini/[lambda_act=0.5,task_loss_on_adv=False]                    0.9963
+s4/fur/pgd/mini/[lambda_act=0.5,task_loss_on_adv=True]                     0.9761
+s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=False]                      0.9963
+s4/fur/pgd/mini/[lambda_act=1,task_loss_on_adv=True]                       0.9835
+s4/fur/pgd/mini/[lambda_act=2,task_loss_on_adv=False]                      0.9960
+s4/fur/pgd/mini/[lambda_act=2,task_loss_on_adv=True]                       0.9853
+s4/fur/pgd/mini/margin/[margin_factor=3,lambda_act=1]                      0.9961
+s4/fur/pgd/mini/margin/[margin_factor=3,lambda_act=2]                      0.9963
+s4/fur/pgd/mini/margin/[margin_factor=8,lambda_act=1]                      0.9958
+s4/fur/pgd/mini/margin/[margin_factor=8,lambda_act=2]                      0.9966
+s4/fur/pgd/medium/[lambda_act=0.5,task_loss_on_adv=False]                  0.9967
+s4/fur/pgd/medium/[lambda_act=0.5,task_loss_on_adv=True]                   0.9903
+s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=False]                    0.9969
+s4/fur/pgd/medium/[lambda_act=1,task_loss_on_adv=True]                     0.9937
+s4/fur/pgd/medium/[lambda_act=2,task_loss_on_adv=False]                    0.9968
+s4/fur/pgd/medium/[lambda_act=2,task_loss_on_adv=True]                     0.9935
+s4/fur/pgd/medium/margin/[margin_factor=3,lambda_act=1]                    0.9969
+s4/fur/pgd/medium/margin/[margin_factor=3,lambda_act=2]                    0.9968
+s4/fur/pgd/medium/margin/[margin_factor=8,lambda_act=1]                    0.9967
+s4/fur/pgd/medium/margin/[margin_factor=8,lambda_act=2]                    0.9968
+s4/fur/pgd/high/[lambda_act=0.5,task_loss_on_adv=False]                    0.9970
+s4/fur/pgd/high/[lambda_act=0.5,task_loss_on_adv=True]                     0.9948
+s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=False]                      0.9971
+s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=True]                       0.9950
+s4/fur/pgd/high/[lambda_act=2,task_loss_on_adv=False]                      0.9972
+s4/fur/pgd/high/[lambda_act=2,task_loss_on_adv=True]                       0.9946
+s4/fur/pgd/high/margin/[margin_factor=3,lambda_act=1]                      0.9970
+s4/fur/pgd/high/margin/[margin_factor=3,lambda_act=2]                      0.9968
+s4/fur/pgd/high/margin/[margin_factor=8,lambda_act=1]                      0.9967
+s4/fur/pgd/high/margin/[margin_factor=8,lambda_act=2]                      0.9971
+s4/fur/apgd/mini/[lambda_act=0.5,task_loss_on_adv=False]                   0.9842
+s4/fur/apgd/mini/[lambda_act=0.5,task_loss_on_adv=True]                    0.9729
+s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=False]                     0.9823
+s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=True]                      0.9779
+s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=False]                     0.9855
+s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=True]                      0.9800
+s4/fur/apgd/mini/margin/[margin_factor=3,lambda_act=1]                     0.9604
+s4/fur/apgd/mini/margin/[margin_factor=3,lambda_act=2]                     0.9765
+s4/fur/apgd/mini/margin/[margin_factor=8,lambda_act=1]                     0.9755
+s4/fur/apgd/mini/margin/[margin_factor=8,lambda_act=2]                     0.9828
+s4/fur/apgd/medium/[lambda_act=0.5,task_loss_on_adv=False]                 0.9816
+s4/fur/apgd/medium/[lambda_act=0.5,task_loss_on_adv=True]                  0.9909
+s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=False]                   0.9770
+s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=True]                    0.9913
+s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=False]                   0.9935
+s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=True]                    0.9927
+s4/fur/apgd/medium/margin/[margin_factor=3,lambda_act=1]                   0.9572
+s4/fur/apgd/medium/margin/[margin_factor=3,lambda_act=2]                   0.9902
+s4/fur/apgd/medium/margin/[margin_factor=8,lambda_act=1]                   0.9905
+s4/fur/apgd/medium/margin/[margin_factor=8,lambda_act=2]                   0.9914
+s4/fur/apgd/high/[lambda_act=0.5,task_loss_on_adv=False]                   0.9943
+s4/fur/apgd/high/[lambda_act=0.5,task_loss_on_adv=True]                    0.9932
+s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=False]                     0.9961
+s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=True]                      0.9945
+s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=False]                     0.9954
+s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=True]                      0.9941
+s4/fur/apgd/high/margin/[margin_factor=3,lambda_act=1]                     0.9940
+s4/fur/apgd/high/margin/[margin_factor=3,lambda_act=2]                     0.9952
+s4/fur/apgd/high/margin/[margin_factor=8,lambda_act=1]                     0.9960
+s4/fur/apgd/high/margin/[margin_factor=8,lambda_act=2]                     0.9962
+s4/clo/mini/[lambda_act=0.5]                                               0.9830
+s4/clo/mini/[lambda_act=1]                                                 0.9834
+s4/clo/mini/[lambda_act=2]                                                 0.9831
+s4/clo/medium/[lambda_act=0.5]                                             0.9879
+s4/clo/medium/[lambda_act=1]                                               0.9877
+s4/clo/medium/[lambda_act=2]                                               0.9870
+s4/clo/high/[lambda_act=0.5]                                               0.9889
+s4/clo/high/[lambda_act=1]                                                 0.9887
+s4/clo/high/[lambda_act=2]                                                 0.9885
+s4/vv/lambda_det-detached/[lambda_det=0.1]                                 0.9943
+s4/vv/lambda_det-detached/[lambda_det=1]                                   0.9943
+s4/vv/lambda_det-detached/[lambda_det=10]                                  0.9947
+
+CSV: results/summary_s4_CICIDS2017.csv

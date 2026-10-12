@@ -1,0 +1,128 @@
+All configurations are valid
+== suite: 3 experiments x 1 datasets x 1 seeds = 3 runs ==
+   device=cuda  out_dir=results  test_max_rows=100000  infer_samples=1024  total max epochs=30
+Dropped the bookkeeping columns ('id', 'source', 'scenario', 'capture', 'attack_cat')
+
+CIC-IDS 2017: 69 columns
+  ACK Flag Count
+  Active Max
+  Active Mean
+  Active Min
+  Active Std
+  Average Packet Size
+  Avg Bwd Segment Size
+  Avg Fwd Segment Size
+  Bwd Header Length
+  Bwd IAT Max
+  Bwd IAT Mean
+  Bwd IAT Min
+  Bwd IAT Std
+  Bwd IAT Total
+  Bwd Packet Length Max
+  Bwd Packet Length Mean
+  Bwd Packet Length Min
+  Bwd Packet Length Std
+  Bwd Packets/s
+  CWE Flag Count
+  Destination Port
+  Down/Up Ratio
+  ECE Flag Count
+  FIN Flag Count
+  Flow Bytes/s
+  Flow Duration
+  Flow IAT Max
+  Flow IAT Mean
+  Flow IAT Min
+  Flow IAT Std
+  Flow Packets/s
+  Fwd Header Length
+  Fwd IAT Max
+  Fwd IAT Mean
+  Fwd IAT Min
+  Fwd IAT Std
+  Fwd IAT Total
+  Fwd PSH Flags
+  Fwd Packet Length Max
+  Fwd Packet Length Mean
+  Fwd Packet Length Min
+  Fwd Packet Length Std
+  Fwd Packets/s
+  Fwd URG Flags
+  Idle Max
+  Idle Mean
+  Idle Min
+  Idle Std
+  Init_Win_bytes_backward
+  Init_Win_bytes_forward
+  Max Packet Length
+  Min Packet Length
+  PSH Flag Count
+  Packet Length Mean
+  Packet Length Std
+  Packet Length Variance
+  RST Flag Count
+  SYN Flag Count
+  Subflow Bwd Bytes
+  Subflow Bwd Packets
+  Subflow Fwd Bytes
+  Subflow Fwd Packets
+  Total Backward Packets
+  Total Fwd Packets
+  Total Length of Bwd Packets
+  Total Length of Fwd Packets
+  URG Flag Count
+  act_data_pkt_fwd
+  min_seg_size_forward
+[warn] CIC-IDS 2017: non-attackable columns not found in the features, they will be perturbed by the attack: ['protocol']
+
+### [  1/3] s4/advtrain/mini | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.9899  prec=0.9955  rec=0.9915
+  adversarial : acc=0.9751  prec=0.9899  rec=0.9779
+TEST SCORE (joint) : 0.9825
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1041, 0.3095]
+  SLAV rel : [0.02253, 0.03808]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.3331 ± 0.1186 ms   (early exit 0.00%)
+  latency adv   : 0.2685 ± 0.0658 ms   (early exit 0.00%)
+
+### [  2/3] s4/advtrain/medium | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.9922  prec=0.9966  rec=0.9933
+  adversarial : acc=0.9848  prec=0.9923  rec=0.9880
+TEST SCORE (joint) : 0.9885
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04551, 0.133]
+  SLAV rel : [0.02434, 0.02699]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2665 ± 0.0587 ms   (early exit 0.00%)
+  latency adv   : 0.3060 ± 0.0771 ms   (early exit 0.00%)
+
+### [  3/3] s4/advtrain/high | cicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.9923  prec=0.9966  rec=0.9936
+  adversarial : acc=0.9859  prec=0.9934  rec=0.9884
+TEST SCORE (joint) : 0.9891
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.02898, 0.08173, 0.3824]
+  SLAV rel : [0.02659, 0.01934, 0.06465]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.4577 ± 0.2013 ms   (early exit 0.00%)
+  latency adv   : 0.3017 ± 0.0631 ms   (early exit 0.00%)
+
+== summary (3 run) ==
+experiment             dataset  model  n  epochs  task_clean_acc  task_adv_acc  det_clean_acc  det_adv_acc  clean_acc_e2e  robust_acc_e2e  threshold_det  test_score       infer_ms   infer_ms_adv  infer_exit_rate_adv  duration_s
+------------------  ----------  -----  -  ------  --------------  ------------  -------------  -----------  -------------  --------------  -------------  ----------  -------------  -------------  -------------------  ----------
+s4/advtrain/high    cicids2017    adv  1      10          0.9923        0.9859              -            -         0.9923          0.9859              -      0.9891  0.4577±0.2013  0.3017±0.0631               0.0000         124
+s4/advtrain/medium  cicids2017    adv  1      10          0.9922        0.9848              -            -         0.9922          0.9847              -      0.9885  0.2665±0.0587  0.3060±0.0771               0.0000         117
+s4/advtrain/mini    cicids2017    adv  1      10          0.9899        0.9751              -            -         0.9899          0.9751              -      0.9825  0.3331±0.1186  0.2685±0.0658               0.0000         104
+
+== test_score: esperimento x dataset ==
+experiment          cicids2017
+------------------  ----------
+s4/advtrain/mini        0.9825
+s4/advtrain/medium      0.9885
+s4/advtrain/high        0.9891
+
+CSV: results/summary_s4_CICIDS2017.csv

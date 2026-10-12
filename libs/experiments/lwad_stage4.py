@@ -22,9 +22,13 @@ loss and the samples never reach their margin, so margin_factor=3,5,8 give alway
 the same gradients at each step and runs are identical (with lambda_act=0 the margin
 is useless). With lambda_act >= 1, exploring the margin makes sense.
 
+Next to the CloserAL winners, their architectures with lambda_act=0: plain
+adversarial training, no weight to explore. Not a winner but the baseline
+stage 5 attacks next to CloserAL, to tell what the attractive loss adds.
+
 Runs: 6 DetectorLayer x 2 + 3 DetectorLayer with detach=False (apgd) x 6
-+ 6 FurtherAL x (6+4) + 3 CloserAL x 3 + 3 = 102; each detector winner with
-detach=False adds 6.
++ 6 FurtherAL x (6+4) + 3 CloserAL x 3 + 3 adversarial training + 3 = 105;
+each detector winner with detach=False adds 6.
 """
 from __future__ import annotations
 
@@ -118,6 +122,11 @@ def table() -> list[Exp]:
         *weights("s4/clo/mini",   CLO_MINI),
         *weights("s4/clo/medium", CLO_MEDIUM),
         *weights("s4/clo/high",   CLO_HIGH),
+
+        # --- Adversarial training: CloserAL without its attractive loss ----
+        Exp("s4/advtrain/mini",   CLO_MINI,   lambda_act=0.0),
+        Exp("s4/advtrain/medium", CLO_MEDIUM, lambda_act=0.0),
+        Exp("s4/advtrain/high",   CLO_HIGH,   lambda_act=0.0),
 
         # --- V&V -----------------------------------------------------------
         # Must match up to Adam's epsilon: detached, the detector loss feeds

@@ -1,0 +1,127 @@
+All configurations are valid
+== suite: 3 experiments x 1 datasets x 1 seeds = 3 runs ==
+   device=cuda  out_dir=results  test_max_rows=100000  infer_samples=1024  total max epochs=30
+Dropped the bookkeeping columns ('id', 'source', 'scenario', 'capture', 'attack_cat')
+
+CSE-CIC-IDS2018: 69 columns
+  ACK Flag Count
+  Active Max
+  Active Mean
+  Active Min
+  Active Std
+  Avg Bwd Segment Size
+  Avg Fwd Segment Size
+  Avg Packet Size
+  Bwd Header Length
+  Bwd IAT Max
+  Bwd IAT Mean
+  Bwd IAT Min
+  Bwd IAT Std
+  Bwd IAT Total
+  Bwd Packet Length Max
+  Bwd Packet Length Mean
+  Bwd Packet Length Min
+  Bwd Packet Length Std
+  Bwd Packets Length Total
+  Bwd Packets/s
+  CWE Flag Count
+  Down/Up Ratio
+  ECE Flag Count
+  FIN Flag Count
+  Flow Bytes/s
+  Flow Duration
+  Flow IAT Max
+  Flow IAT Mean
+  Flow IAT Min
+  Flow IAT Std
+  Flow Packets/s
+  Fwd Act Data Packets
+  Fwd Header Length
+  Fwd IAT Max
+  Fwd IAT Mean
+  Fwd IAT Min
+  Fwd IAT Std
+  Fwd IAT Total
+  Fwd PSH Flags
+  Fwd Packet Length Max
+  Fwd Packet Length Mean
+  Fwd Packet Length Min
+  Fwd Packet Length Std
+  Fwd Packets Length Total
+  Fwd Packets/s
+  Fwd Seg Size Min
+  Fwd URG Flags
+  Idle Max
+  Idle Mean
+  Idle Min
+  Idle Std
+  Init Bwd Win Bytes
+  Init Fwd Win Bytes
+  PSH Flag Count
+  Packet Length Max
+  Packet Length Mean
+  Packet Length Min
+  Packet Length Std
+  Packet Length Variance
+  Protocol
+  RST Flag Count
+  SYN Flag Count
+  Subflow Bwd Bytes
+  Subflow Bwd Packets
+  Subflow Fwd Bytes
+  Subflow Fwd Packets
+  Total Backward Packets
+  Total Fwd Packets
+  URG Flag Count
+
+### [  1/3] s4/advtrain/mini | cseecicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8848  prec=0.9978  rec=0.8709
+  adversarial : acc=0.8664  prec=0.9947  rec=0.8527
+TEST SCORE (joint) : 0.8756
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.1268, 0.2679]
+  SLAV rel : [0.02751, 0.04952]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2379 ± 0.0558 ms   (early exit 0.00%)
+  latency adv   : 0.2560 ± 0.0587 ms   (early exit 0.00%)
+
+### [  2/3] s4/advtrain/medium | cseecicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8849  prec=0.9984  rec=0.8706
+  adversarial : acc=0.8766  prec=0.9972  rec=0.8621
+TEST SCORE (joint) : 0.8807
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.05568, 0.1232]
+  SLAV rel : [0.03233, 0.03807]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2140 ± 0.0452 ms   (early exit 0.00%)
+  latency adv   : 0.2024 ± 0.0442 ms   (early exit 0.00%)
+
+### [  3/3] s4/advtrain/high | cseecicids2017 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8838  prec=0.9985  rec=0.8692
+  adversarial : acc=0.8784  prec=0.9976  rec=0.8639
+TEST SCORE (joint) : 0.8811
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.04107, 0.09239, 0.4277]
+  SLAV rel : [0.0378, 0.02434, 0.06481]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2602 ± 0.0047 ms   (early exit 0.00%)
+  latency adv   : 0.2613 ± 0.0049 ms   (early exit 0.00%)
+
+== summary (3 run) ==
+experiment                 dataset  model  n  epochs  task_clean_acc  task_adv_acc  det_clean_acc  det_adv_acc  clean_acc_e2e  robust_acc_e2e  threshold_det  test_score       infer_ms   infer_ms_adv  infer_exit_rate_adv  duration_s
+------------------  --------------  -----  -  ------  --------------  ------------  -------------  -----------  -------------  --------------  -------------  ----------  -------------  -------------  -------------------  ----------
+s4/advtrain/high    cseecicids2017    adv  1      10          0.8838        0.8784              -            -         0.8838          0.8784              -      0.8811  0.2602±0.0047  0.2613±0.0049               0.0000         136
+s4/advtrain/medium  cseecicids2017    adv  1      10          0.8849        0.8766              -            -         0.8849          0.8765              -      0.8807  0.2140±0.0452  0.2024±0.0442               0.0000         127
+s4/advtrain/mini    cseecicids2017    adv  1      10          0.8848        0.8664              -            -         0.8848          0.8664              -      0.8756  0.2379±0.0558  0.2560±0.0587               0.0000         114
+
+== test_score: esperimento x dataset ==
+experiment          cseecicids2017
+------------------  --------------
+s4/advtrain/mini            0.8756
+s4/advtrain/medium          0.8807
+s4/advtrain/high            0.8811
+
+CSV: results/summary_s4_CSECICIDS2018.csv

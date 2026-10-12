@@ -1,0 +1,66 @@
+All configurations are valid
+== suite: 3 experiments x 1 datasets x 1 seeds = 3 runs ==
+   device=cuda  out_dir=results  test_max_rows=100000  infer_samples=1024  total max epochs=30
+Dropped the bookkeeping columns ('id', 'source', 'scenario', 'capture', 'attack_cat')
+
+CTU-13: 8 columns
+  dir
+  dtos
+  dur
+  proto
+  src_bytes
+  state
+  tot_bytes
+  tot_pkts
+
+### [  1/3] s4/advtrain/mini | ctu13 | seed 42 | epochs=10, eps=0.2, hidden_dims=(48,16), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.7837  prec=0.8163  rec=0.7344
+  adversarial : acc=0.6709  prec=0.6890  rec=0.6282
+TEST SCORE (joint) : 0.7273
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01904, 0.02305]
+  SLAV rel : [0.02034, 0.02189]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2667 ± 0.0474 ms   (early exit 0.00%)
+  latency adv   : 0.2606 ± 0.0486 ms   (early exit 0.00%)
+
+### [  2/3] s4/advtrain/medium | ctu13 | seed 42 | epochs=10, eps=0.2, hidden_dims=(160,64), wrap_at=(0,1), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.8035  prec=0.8237  rec=0.7746
+  adversarial : acc=0.6754  prec=0.6868  rec=0.6501
+TEST SCORE (joint) : 0.7395
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01348, 0.04675]
+  SLAV rel : [0.02776, 0.02108]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2296 ± 0.0396 ms   (early exit 0.00%)
+  latency adv   : 0.2322 ± 0.0341 ms   (early exit 0.00%)
+
+### [  3/3] s4/advtrain/high | ctu13 | seed 42 | epochs=10, eps=0.2, hidden_dims=(256,128,32), wrap_at=(0,), lambda_act=0 ###
+TASK (positive = attack)
+  clean       : acc=0.7978  prec=0.8024  rec=0.7924
+  adversarial : acc=0.6789  prec=0.6780  rec=0.6867
+TEST SCORE (joint) : 0.7383
+LAYER-WISE VULNERABILITY (one entry per hidden layer)
+  SLAV     : [0.01068, 0.02966, 0.03443]
+  SLAV rel : [0.02805, 0.01825, 0.02177]
+INFERENCE (one sample at a time, n=1024)
+  latency clean : 0.2473 ± 0.0440 ms   (early exit 0.00%)
+  latency adv   : 0.2482 ± 0.0424 ms   (early exit 0.00%)
+
+== summary (3 run) ==
+experiment          dataset  model  n  epochs  task_clean_acc  task_adv_acc  det_clean_acc  det_adv_acc  clean_acc_e2e  robust_acc_e2e  threshold_det  test_score       infer_ms   infer_ms_adv  infer_exit_rate_adv  duration_s
+------------------  -------  -----  -  ------  --------------  ------------  -------------  -----------  -------------  --------------  -------------  ----------  -------------  -------------  -------------------  ----------
+s4/advtrain/medium    ctu13    adv  1      10          0.8035        0.6754              -            -         0.8035          0.6754              -      0.7395  0.2296±0.0396  0.2322±0.0341               0.0000         129
+s4/advtrain/high      ctu13    adv  1       7          0.7978        0.6789              -            -         0.7978          0.6789              -      0.7383  0.2473±0.0440  0.2482±0.0424               0.0000          96
+s4/advtrain/mini      ctu13    adv  1      10          0.7837        0.6709              -            -         0.7837          0.6709              -      0.7273  0.2667±0.0474  0.2606±0.0486               0.0000         118
+
+== test_score: esperimento x dataset ==
+experiment           ctu13
+------------------  ------
+s4/advtrain/mini    0.7273
+s4/advtrain/medium  0.7395
+s4/advtrain/high    0.7383
+
+CSV: results/summary_s4_CTU13.csv
