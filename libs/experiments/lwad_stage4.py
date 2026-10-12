@@ -22,8 +22,9 @@ loss and the samples never reach their margin, so margin_factor=3,5,8 give alway
 the same gradients at each step and runs are identical (with lambda_act=0 the margin
 is useless). With lambda_act >= 1, exploring the margin makes sense.
 
-Runs with the placeholder winners: 6 DetectorLayer x 2 + 6 FurtherAL x (6+6)
-+ 3 CloserAL x 3 + 3 = 96; each detector winner with detach=False adds 6.
+Runs: 6 DetectorLayer x 2 + 3 DetectorLayer with detach=False (apgd) x 6
++ 6 FurtherAL x (6+4) + 3 CloserAL x 3 + 3 = 102; each detector winner with
+detach=False adds 6.
 """
 from __future__ import annotations
 
@@ -36,9 +37,8 @@ from libs.experiments.lwad_experiments import Exp, Sweep
 
 
 # ===========================================================================
-# Stage 3 winners: stage 2 model + detection mechanism
-# PLACEHOLDERS (the stage 2 defaults): set the mechanism stage 3 picked,
-# s3.MEAN or s3.MAX and detach.
+# Stage 3 winners: stage 2 model + the detection mechanism stage 3 picked
+# (s3.MEAN or s3.MAX, and detach)
 # ===========================================================================
 # --- detector models trained and evaluated on pgd --------------------------
 DET_MINI_PGD    = replace(s3.DET_MINI_PGD,    **s3.MEAN, detach=True)
@@ -51,13 +51,13 @@ DET_HIGH_PGD    = replace(s3.DET_HIGH_PGD,    **s3.MEAN, detach=True)
 FUR_HIGH_PGD    = replace(s3.FUR_HIGH_PGD,    **s3.MEAN, detach=True)
 
 # --- detector models trained and evaluated on pgd_adaptive -----------------
-DET_MINI_APGD   = replace(s3.DET_MINI_APGD,   **s3.MEAN, detach=True)
+DET_MINI_APGD  = replace(s3.DET_MINI_APGD,   **s3.MEAN, detach=False)
 FUR_MINI_APGD   = replace(s3.FUR_MINI_APGD,   **s3.MEAN, detach=True)
 
-DET_MEDIUM_APGD = replace(s3.DET_MEDIUM_APGD, **s3.MEAN, detach=True)
+DET_MEDIUM_APGD = replace(s3.DET_MEDIUM_APGD, **s3.MEAN, detach=False)
 FUR_MEDIUM_APGD = replace(s3.FUR_MEDIUM_APGD, **s3.MEAN, detach=True)
 
-DET_HIGH_APGD   = replace(s3.DET_HIGH_APGD,   **s3.MEAN, detach=True)
+DET_HIGH_APGD   = replace(s3.DET_HIGH_APGD,   **s3.MEAN, detach=False)
 FUR_HIGH_APGD   = replace(s3.FUR_HIGH_APGD,   **s3.MEAN, detach=True)
 
 # --- CloserAL, pgd only -----------------------------------------------------
@@ -71,8 +71,8 @@ CLO_HIGH   = s3.CLO_HIGH
 # ===========================================================================
 TASK_ON_ADV   = [False, True]
 LAMBDA_ACT    = [0.5, 1.0, 2.0]
-LAMBDA_DET    = [0.1, 0.5, 2]   # the default 1 is in the main grid
-MARGIN_FACTOR = [3.0, 5.0, 8.0] # the default 5 is in the main grid
+LAMBDA_DET    = [0.1, 0.5, 2.0] # the default 1 is in the main grid
+MARGIN_FACTOR = [3.0, 8.0]      # the default 5 is in the main grid
 MARGIN_LAMBDA_ACT = [1.0, 2.0]  # the margin matters once it is reached (read above)
 
 
