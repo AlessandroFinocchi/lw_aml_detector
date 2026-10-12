@@ -13,9 +13,14 @@ defense that does not know what is coming. Per winner:
 
 The search run with steps=20, alpha=None (and evade weight 1) on the winner's
 own attack repeats its stage 4 evaluation. A winner's worst case is its lowest
-robust_acc_e2e at the training eps, the curve the lowest per eps. Runs:
-12 detector winners x 41 + 3 CloserAL x 9 = 519, but each is an evaluation:
-seconds instead of minutes.
+robust_acc_e2e at the training eps, the curve the lowest per eps.
+
+The CloserAL architectures trained with lambda_act=0 (plain adversarial
+training, stage 4 trains them) face the same attacks as the CloserAL winners:
+the gap between the two is what the attractive loss adds.
+
+Runs: 12 detector winners x 41 + 3 CloserAL x 9 + 3 adversarial training x 9
+= 546, but each is an evaluation: seconds instead of minutes.
 """
 from __future__ import annotations
 
@@ -80,6 +85,12 @@ CLO_MINI   = trained("s4/clo/mini/[lambda_act=1]")
 CLO_MEDIUM = trained("s4/clo/medium/[lambda_act=1]")
 CLO_HIGH   = trained("s4/clo/high/[lambda_act=1]")
 
+# --- Adversarial training: the CloserAL architectures, lambda_act=0 --------
+# not winners (nothing to pick): the baseline CloserAL is compared against
+ADV_MINI   = trained("s4/advtrain/mini")
+ADV_MEDIUM = trained("s4/advtrain/medium")
+ADV_HIGH   = trained("s4/advtrain/high")
+
 
 # ===========================================================================
 # Axes
@@ -143,7 +154,10 @@ def table() -> list[Exp]:
         *attacks("s5/clo/medium", CLO_MEDIUM),
         *attacks("s5/clo/high",   CLO_HIGH),
 
-        # TODO: ADD ADVERSARIAL TRAIN LIKE WITH SAME CLOSERAL FOR COMPARISON WITH IT
+        # --- Adversarial training: CloserAL without its attractive loss ----
+        *attacks("s5/advtrain/mini",   ADV_MINI),
+        *attacks("s5/advtrain/medium", ADV_MEDIUM),
+        *attacks("s5/advtrain/high",   ADV_HIGH),
     ]
 
 

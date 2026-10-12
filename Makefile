@@ -55,7 +55,7 @@ exp%:
 		--only s$*/$(ONLY) \
 		$(if $(DATASET),--dataset $(DATASET),) \
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
-		--verbose 0 \
+		--verbose 1 \
 		--resume \
 	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
 
@@ -74,6 +74,10 @@ tests:
 clean:
 	rm -rf results/
 	rm res*.log
+
+check_exec:
+	pgrep -af experiment.py
+
 
 # RESOURCE USAGE =====================================================================
 WINDOW ?= 30 # Finestra temporale di campionamento (in secondi)
