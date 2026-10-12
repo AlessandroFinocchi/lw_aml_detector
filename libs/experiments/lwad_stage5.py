@@ -7,20 +7,13 @@ on the dataset and seed of the run, and changes only the attack. The detector
 threshold stays the one picked on the training attack, as for a deployed
 defense that does not know what is coming. Per winner:
 
-    search  at the training eps: fgsm; pgd over steps x step size; against the
-            detectors too, pgd_adaptive over steps x step size x evade weight
+    search  fgsm over eps; 
+            pgd over steps x step size;
+            pgd_adaptive over steps x step size x evade weight
     curve   other budgets, at 100 steps: pgd, and pgd_adaptive per evade weight
 
-The search run with steps=20, alpha=None (and evade weight 1) on the winner's
-own attack repeats its stage 4 evaluation. A winner's worst case is its lowest
-robust_acc_e2e at the training eps, the curve the lowest per eps.
-
-The CloserAL architectures trained with lambda_act=0 (plain adversarial
-training, stage 4 trains them) face the same attacks as the CloserAL winners:
-the gap between the two is what the attractive loss adds.
-
-Runs: 12 detector winners x 41 + 3 CloserAL x 9 + 3 adversarial training x 9
-= 546, but each is an evaluation: seconds instead of minutes.
+Runs: 18 detector models x 41 + 6 models without detectors x 9 = 792, but
+each is an evaluation: seconds instead of minutes.
 """
 from __future__ import annotations
 
@@ -58,7 +51,6 @@ def trained(name: str) -> Optional[lc.ModelConfig]:
 
 # ===========================================================================
 # Stage 4 winners: run names as the stage 4 summary prints them
-# PLACEHOLDERS (the stage 4 runs that keep the stage 3 config): set the best.
 # ===========================================================================
 # --- detector models trained and evaluated on pgd --------------------------
 DET_MINI_PGD    = trained("s4/det/pgd/mini/[task_loss_on_adv=False]")
@@ -71,22 +63,32 @@ DET_HIGH_PGD    = trained("s4/det/pgd/high/[task_loss_on_adv=False]")
 FUR_HIGH_PGD    = trained("s4/fur/pgd/high/[lambda_act=1,task_loss_on_adv=False]")
 
 # --- detector models trained and evaluated on pgd_adaptive -----------------
+# lambda_det=1 is the default, so it is not in the name
 DET_MINI_APGD   = trained("s4/det/apgd/mini/[task_loss_on_adv=False]")
-FUR_MINI_APGD   = trained("s4/fur/apgd/mini/[lambda_act=1,task_loss_on_adv=False]")
+FUR_MINI_APGD   = trained("s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=False]")
 
 DET_MEDIUM_APGD = trained("s4/det/apgd/medium/[task_loss_on_adv=False]")
-FUR_MEDIUM_APGD = trained("s4/fur/apgd/medium/[lambda_act=1,task_loss_on_adv=False]")
+FUR_MEDIUM_APGD = trained("s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=False]")
 
 DET_HIGH_APGD   = trained("s4/det/apgd/high/[task_loss_on_adv=False]")
-FUR_HIGH_APGD   = trained("s4/fur/apgd/high/[lambda_act=1,task_loss_on_adv=False]")
+FUR_HIGH_APGD   = trained("s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=False]")
+
+# comparison: the pgd_adaptive winners with task_loss_on_adv=True ---------
+DET_MINI_APGD_ADV   = trained("s4/det/apgd/mini/[task_loss_on_adv=True]")
+FUR_MINI_APGD_ADV   = trained("s4/fur/apgd/mini/[lambda_act=2,task_loss_on_adv=True]")
+
+DET_MEDIUM_APGD_ADV = trained("s4/det/apgd/medium/[task_loss_on_adv=True]")
+FUR_MEDIUM_APGD_ADV = trained("s4/fur/apgd/medium/[lambda_act=2,task_loss_on_adv=True]")
+
+DET_HIGH_APGD_ADV   = trained("s4/det/apgd/high/[task_loss_on_adv=True]")
+FUR_HIGH_APGD_ADV   = trained("s4/fur/apgd/high/[lambda_act=2,task_loss_on_adv=True]")
 
 # --- CloserAL, pgd only -----------------------------------------------------
 CLO_MINI   = trained("s4/clo/mini/[lambda_act=1]")
 CLO_MEDIUM = trained("s4/clo/medium/[lambda_act=1]")
 CLO_HIGH   = trained("s4/clo/high/[lambda_act=1]")
 
-# --- Adversarial training: the CloserAL architectures, lambda_act=0 --------
-# not winners (nothing to pick): the baseline CloserAL is compared against
+# comparison: adversarial training, CloserAL with lambda_act=0 -------------
 ADV_MINI   = trained("s4/advtrain/mini")
 ADV_MEDIUM = trained("s4/advtrain/medium")
 ADV_HIGH   = trained("s4/advtrain/high")
@@ -95,19 +97,19 @@ ADV_HIGH   = trained("s4/advtrain/high")
 # ===========================================================================
 # Axes
 # ===========================================================================
-EPS        = s2.COMMON["eps"]          # the training budget: the threat model
-STEPS      = [20, 100]                 # the training attack, then near convergence
+EPS        = s2.COMMON["eps"]           # the training budget: the threat model
+STEPS      = [20, 100]                  # the training attack, then near convergence
 LONG_STEPS = [max(STEPS)]
-ALPHAS     = [None, EPS / 4]           # None: 2*eps/steps; eps/4 reaches the
-                                       # corners of the ball in a few steps
-BETAS      = [1.0, 10.0, 100.0, 1000.0]  # the detector score is a sigmoid that
-                                         # saturates: its gradient needs a large
-                                         # weight to count against the task loss
-EPS_CURVE  = [0.1, 0.3, 0.5, 1.0]      # the training eps is in the search
+ALPHAS     = [None, EPS / 5]            # None: 2*eps/steps; eps/4 reaches the
+                                        # corners of the ball in a few steps
+BETAS      = [1.0, 5.0, 10.0, 100.0]    # the detector score is a sigmoid that
+                                        # saturates: its gradient needs a large
+                                        # weight to count against the task loss
+EPS_CURVE  = [0.1, 0.3, 0.5, 1.0]       # the training eps is in the search
 
 
 def attacks(name: str, model: Optional[lc.ModelConfig]) -> list[Exp]:
-    """The attacks one reloaded winner faces."""
+    """The attacks a reloaded winner faces."""
     if model is None:
         return []
     # the eval attack is set explicitly: the winner's own may be either one
@@ -149,12 +151,20 @@ def table() -> list[Exp]:
         *attacks("s5/fur/apgd/medium", FUR_MEDIUM_APGD),
         *attacks("s5/fur/apgd/high",   FUR_HIGH_APGD),
 
+        # --- controls: pgd_adaptive winners with task_loss_on_adv=True -----
+        *attacks("s5/det-advtrain/apgd/mini",   DET_MINI_APGD_ADV),
+        *attacks("s5/det-advtrain/apgd/medium", DET_MEDIUM_APGD_ADV),
+        *attacks("s5/det-advtrain/apgd/high",   DET_HIGH_APGD_ADV),
+        *attacks("s5/fur-advtrain/apgd/mini",   FUR_MINI_APGD_ADV),
+        *attacks("s5/fur-advtrain/apgd/medium", FUR_MEDIUM_APGD_ADV),
+        *attacks("s5/fur-advtrain/apgd/high",   FUR_HIGH_APGD_ADV),
+
         # --- CloserAL winners: no detector, so no adaptive attack ----------
         *attacks("s5/clo/mini",   CLO_MINI),
         *attacks("s5/clo/medium", CLO_MEDIUM),
         *attacks("s5/clo/high",   CLO_HIGH),
 
-        # --- Adversarial training: CloserAL without its attractive loss ----
+        # --- control: adversarial training, same architectures as CloserAL -
         *attacks("s5/advtrain/mini",   ADV_MINI),
         *attacks("s5/advtrain/medium", ADV_MEDIUM),
         *attacks("s5/advtrain/high",   ADV_HIGH),
