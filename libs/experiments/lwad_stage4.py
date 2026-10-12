@@ -7,8 +7,7 @@ losses actually use, on log grids:
 
     DetectorLayer   task_loss_on_adv
     FurtherAL       lambda_act x task_loss_on_adv, crossed: they push the same
-                    activations in opposite directions (stage 1: lambda_act=10
-                    helps a lot once the backbone is adversarially trained),
+                    activations in opposite directions,
                     and margin_factor x lambda_act, margin_factor being the
                     distance FurtherAL pushes to (task_loss_on_adv of the winner)
     CloserAL        lambda_act, task_loss_on_adv being mandatory there
