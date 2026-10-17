@@ -48,7 +48,10 @@ install_libs:
 # Other options:
 #	--seeds 42,43,44 \
 
+LOG_DIR := results/logs
+
 exp%:
+	mkdir -p $(LOG_DIR)
 	nohup env PYTHONUNBUFFERED=1 \
 	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
 	scripts/experiment.py \
@@ -57,23 +60,23 @@ exp%:
 		--summary-file summary_s$*$(if $(DATASET),_$(DATASET),).csv \
 		--verbose 1 \
 		--resume \
-	> res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
+	> $(LOG_DIR)/res_$*$(if $(DATASET),_$(DATASET),).log 2>&1 &
 
 # SUITE V&V (scripts/vv_suite.py) =================================================
-#   make tests                       tutta la suite (~1h), log in res_vv_suite.log
+#   make tests                       tutta la suite (~1h), log in results/logs/res_vv_suite.log
 #   make tests ONLY=V1,V2            solo i test con questi prefissi di id
 #   make tests MIN_SEEDS=1           validazione esplorativa con meno di 3 seed
 tests:
+	mkdir -p $(LOG_DIR)
 	nohup env PYTHONUNBUFFERED=1 \
 	$(shell conda info --envs | awk '$$1=="lwad_gpu_env" {print $$NF}')/bin/python \
 	scripts/vv_suite.py \
 		$(if $(ONLY),--only $(ONLY),) \
 		$(if $(MIN_SEEDS),--min-seeds $(MIN_SEEDS),) \
-	> res_vv_suite.log 2>&1 &
+	> $(LOG_DIR)/res_vv_suite.log 2>&1 &
 
 clean:
 	rm -rf results/
-	rm res*.log
 
 check_exec:
 	pgrep -af experiment.py
